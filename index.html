@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Charlon Mini POS Scanner</title>
+
+  <!-- External live camera barcode scanner. This works best on a normal HTTPS host such as Netlify/GitHub Pages/Vercel. -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f6f7;
+      margin: 0;
+      padding: 16px;
+      color: #222;
+    }
+
+    .container {
+      max-width: 760px;
+      margin: auto;
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    h1, h2, h3 {
+      margin-top: 0;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    input, select, textarea, button {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 12px;
+      margin-top: 6px;
+      margin-bottom: 10px;
+      border-radius: 9px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      background: #111;
+      color: white;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #666;
+    }
+
+    button.success {
+      background: #198754;
+    }
+
+    button.danger {
+      background: #b42318;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .muted {
+      color: #666;
+      font-size: 13px;
+    }
+
+    .success-text {
+      color: #198754;
+      font-weight: bold;
+    }
+
+    .error {
+      color: #b42318;
+      font-weight: bold;
+    }
+
+    #reader {
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .choice {
+      text-align: left;
+      padding: 16px;
+      margin-bottom: 10px;
+      font-size: 17px;
+    }
+
+    .product-box {
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #eee;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (max-width: 600px) {
+      .row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="card" id="loginCard">
+    <h1>Charlon Mini POS</h1>
+    <p class="muted">Camera scanner website</p>
+
+    <label>Staff PIN</label>
+    <input type="password" id="pin" placeholder="Enter PIN">
+
+    <button onclick="login()">Login</button>
+    <div id="message"></div>
+  </div>
+
+  <div class="card hidden" id="homeCard">
+    <h2 id="welcomeText">Welcome</h2>
+    <p id="userInfo" class="muted"></p>
+
+    <button class="choice" onclick="chooseType('SALE')">Sales / Stock Out</button>
+    <button class="choice" onclick="chooseType('PURCHASE')">Purchase / Stock In</button>
+    <button class="choice" onclick="chooseType('COUNT_CHECK')">Count Check</button>
+    <button class="choice secondary" onclick="chooseType('SEARCH')">Search Product Only</button>
+
+    <button class="danger" onclick="logout()">Logout</button>
+  </div>
+
+  <div class="card hidden" id="scanCard">
+    <h2 id="transactionTitle">Scan Product</h2>
+
+    <label>Barcode / SKU / QBO ID</label>
+    <input type="text" id="searchValue" placeholder="Scan or type barcode">
+
+    <button onclick="findProduct()">Find Product</button>
+    <button class="secondary" onclick="startCamera()">Start Camera Scanner</button>
+    <button class="secondary" onclick="stopCamera()">Stop Camera Scanner</button>
+
+    <div id="reader"></div>
+
+    <button class="secondary" onclick="backHome()">Back</button>
+  </div>
+
+  <div class="card hidden" id="productCard">
+    <h3>Product Found</h3>
+    <div class="product-box" id="productInfo"></div>
+  </div>
+
+  <div class="card hidden" id="formCard">
+    <h3 id="formTitle">Transaction Form</h3>
+    <div id="formFields"></div>
+    <button class="success" onclick="submitTransaction()">Submit</button>
+  </div>
+
+</div>
+
+<script>
+/*
+  IMPORTANT:
+  Replace the URL below with your Apps Script Web App URL ending in /exec.
+  Example:
+  const API_URL = "https://script.google.com/macros/s/AKfycbxxxxxxx/exec";
+*/
+const API_URL = "https://script.google.com/macros/s/AKfycbx7iFaGeikvykjRicd8kcv6NZQAFg5oYwaRTXU3m4ylM4l8mvqaS84X-iUgLrFWiNUUrw/exec";
+
+let currentUser = null;
+let settings = {};
+let currentType = "";
+let currentProduct = null;
+let scanner = null;
+
+function setMessage(text, type = "") {
+  const el = document.getElementById("message");
+  el.className = type;
+  el.innerHTML = text || "";
+}
+
+function show(id) {
+  document.getElementById(id).classList.remove("hidden");
+}
+
+function hide(id) {
+  document.getElementById(id).classList.add("hidden");
+}
+
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function apiCall(params) {
+  return new Promise((resolve, reject) => {
+    if (!API_URL || API_URL.includes("PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE")) {
+      reject(new Error("Please replace API_URL in index.html with your Apps Script /exec URL."));
+      return;
+    }
+
+    const callbackName = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+    params.callback = callbackName;
+
+    const url = API_URL + "?" + new URLSearchParams(params).toString();
+
+    window[callbackName] = function(data) {
+      delete window[callbackName];
+      script.remove();
+      resolve(data);
+    };
+
+    const script = document.createElement("script");
+    script.src = url;
+
+    script.onerror = function() {
+      delete window[callbackName];
+      script.remove();
+      reject(new Error("API request failed. Check the Apps Script deployment access and API_URL."));
+    };
+
+    document.body.appendChild(script);
+  });
+}
+
+async function login() {
+  const pin = document.getElementById("pin").value.trim();
+
+  if (!pin) {
+    setMessage("Please enter PIN.", "error");
+    return;
+  }
+
+  setMessage("Logging in...");
+
+  try {
+    const res = await apiCall({ action: "login", pin });
+
+    if (!res.success) {
+      setMessage(res.message || "Login failed.", "error");
+      return;
+    }
+
+    currentUser = res.user;
+    settings = res.settings || {};
+
+    hide("loginCard");
+    show("homeCard");
+
+    document.getElementById("welcomeText").innerText = "Welcome, " + currentUser.name;
+    document.getElementById("userInfo").innerText =
+      "Role: " + currentUser.role + " | Location: " + currentUser.location;
+
+    setMessage("");
+  } catch (err) {
+    setMessage(err.message, "error");
+  }
+}
+
+function logout() {
+  stopCamera();
+  currentUser = null;
+  currentType = "";
+  currentProduct = null;
+
+  hide("homeCard");
+  hide("scanCard");
+  hide("productCard");
+  hide("formCard");
+  show("loginCard");
+
+  document.getElementById("pin").value = "";
+  document.getElementById("searchValue").value = "";
+  setMessage("");
+}
+
+function chooseType(type) {
+  currentType = type;
+  currentProduct = null;
+
+  hide("homeCard");
+  show("scanCard");
+  hide("productCard");
+  hide("formCard");
+
+  const titles = {
+    SALE: "Sales / Stock Out",
+    PURCHASE: "Purchase / Stock In",
+    COUNT_CHECK: "Count Check",
+    SEARCH: "Search Product Only"
+  };
+
+  document.getElementById("transactionTitle").innerText = titles[type] || "Scan Product";
+  document.getElementById("searchValue").value = "";
+
+  setTimeout(() => {
+    document.getElementById("searchValue").focus();
+  }, 300);
+}
+
+function backHome() {
+  stopCamera();
+  hide("scanCard");
+  hide("productCard");
+  hide("formCard");
+  show("homeCard");
+}
+
+async function startCamera() {
+  if (!currentUser) {
+    setMessage("Please login first.", "error");
+    return;
+  }
+
+  try {
+    setMessage("Starting camera...");
+
+    if (!window.Html5Qrcode) {
+      throw new Error("Scanner library did not load. Check internet connection.");
+    }
+
+    if (!scanner) {
+      scanner = new Html5Qrcode("reader", {
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.QR_CODE
+        ]
+      });
+    }
+
+    await scanner.start(
+      { facingMode: "environment" },
+      {
+        fps: 10,
+        qrbox: { width: 300, height: 170 },
+        aspectRatio: 1.777
+      },
+      decodedText => {
+        document.getElementById("searchValue").value = decodedText;
+        setMessage("Scanned: " + escapeHtml(decodedText), "success-text");
+        stopCamera();
+        findProduct();
+      },
+      error => {
+        // Continuous scan errors are normal while camera is searching.
+      }
+    );
+
+    setMessage("Camera started. Point at barcode.", "success-text");
+  } catch (err) {
+    setMessage(
+      "Camera failed: " + escapeHtml(err.message || err) +
+      "<br><br>Open this scanner website directly in Chrome/Safari and allow camera permission.",
+      "error"
+    );
+  }
+}
+
+async function stopCamera() {
+  try {
+    if (scanner && scanner.isScanning) {
+      await scanner.stop();
+    }
+  } catch (err) {
+    // Ignore stop errors.
+  }
+}
+
+async function findProduct() {
+  const pin = document.getElementById("pin").value.trim();
+  const searchValue = document.getElementById("searchValue").value.trim();
+
+  if (!searchValue) {
+    setMessage("Please scan or type barcode/SKU.", "error");
+    return;
+  }
+
+  setMessage("Searching product...");
+
+  try {
+    const res = await apiCall({
+      action: "findProduct",
+      pin,
+      searchValue
+    });
+
+    if (!res.success) {
+      setMessage(res.message || "Product not found.", "error");
+      return;
+    }
+
+    currentProduct = res.product;
+    renderProduct();
+    renderForm();
+    setMessage("Product found.", "success-text");
+  } catch (err) {
+    setMessage(err.message, "error");
+  }
+}
+
+function renderProduct() {
+  const p = currentProduct;
+
+  document.getElementById("productInfo").innerHTML = `
+    <strong>${escapeHtml(p.productName || "")}</strong><br>
+    SKU: ${escapeHtml(p.sku || "")}<br>
+    Barcode: ${escapeHtml(p.barcodeValue || "")}<br>
+    QBO ID: ${escapeHtml(p.qboId || "")}<br>
+    Stock Type: <span class="badge">${escapeHtml(p.stockType || "")}</span><br>
+    Location: ${escapeHtml(p.location || "")}<br>
+    Current Qty: <strong>${p.currentQty}</strong><br>
+    Average Cost: ₱${Number(p.averageCost || 0).toLocaleString()}<br>
+    Selling Price: ₱${Number(p.sellingPrice || 0).toLocaleString()}<br>
+    Inventory Status: ${escapeHtml(p.inventoryStatus || "")}
+  `;
+
+  show("productCard");
+}
+
+function renderForm() {
+  if (currentType === "SEARCH") {
+    hide("formCard");
+    return;
+  }
+
+  show("formCard");
+
+  if (currentType === "SALE") renderSaleForm();
+  if (currentType === "PURCHASE") renderPurchaseForm();
+  if (currentType === "COUNT_CHECK") renderCountCheckForm();
+}
+
+function renderSaleForm() {
+  document.getElementById("formTitle").innerText = "Sales / Stock Out Form";
+
+  document.getElementById("formFields").innerHTML = `
+    <label>Date Sold</label>
+    <input type="date" id="dateSold" value="${today()}">
+
+    <label>Sales Channel</label>
+    ${selectHtml("salesChannel", settings.salesChannels)}
+
+    <div class="row">
+      <div>
+        <label>Sold By</label>
+        ${selectHtml("soldBy", settings.staffNames, currentUser.name)}
+      </div>
+      <div>
+        <label>Released By</label>
+        ${selectHtml("releasedBy", settings.staffNames)}
+      </div>
+    </div>
+
+    <label>Packed By</label>
+    ${selectHtml("packedBy", settings.staffNames)}
+
+    <div class="row">
+      <div>
+        <label>Quantity</label>
+        <input type="number" id="quantity" min="1" value="1">
+      </div>
+      <div>
+        <label>Price Per Unit</label>
+        <input type="number" id="pricePerUnit" min="0" step="0.01" value="${Number(currentProduct.sellingPrice || 0)}">
+      </div>
+    </div>
+
+    <label>Order No.</label>
+    <input type="text" id="orderNo">
+
+    <label>Customer Name</label>
+    <input type="text" id="customerName">
+
+    <label>Payment Status</label>
+    ${selectHtml("paymentStatus", settings.paymentStatus)}
+
+    <label>Notes</label>
+    <textarea id="notes"></textarea>
+  `;
+}
+
+function renderPurchaseForm() {
+  document.getElementById("formTitle").innerText = "Purchase / Stock In Form";
+
+  document.getElementById("formFields").innerHTML = `
+    <label>Date Received</label>
+    <input type="date" id="dateReceived" value="${today()}">
+
+    <label>Supplier / Store</label>
+    <input type="text" id="supplier">
+
+    <div class="row">
+      <div>
+        <label>Received By</label>
+        ${selectHtml("receivedBy", settings.staffNames, currentUser.name)}
+      </div>
+      <div>
+        <label>Checked By</label>
+        ${selectHtml("checkedBy", settings.staffNames)}
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Quantity</label>
+        <input type="number" id="quantity" min="1" value="1">
+      </div>
+      <div>
+        <label>Cost Per Unit</label>
+        <input type="number" id="costPerUnit" min="0" step="0.01" value="${Number(currentProduct.averageCost || 0)}">
+      </div>
+    </div>
+
+    <label>Receipt / Invoice No.</label>
+    <input type="text" id="receiptNo">
+
+    <label>Payment Status</label>
+    ${selectHtml("paymentStatus", settings.paymentStatus)}
+
+    <label>Notes</label>
+    <textarea id="notes"></textarea>
+  `;
+}
+
+function renderCountCheckForm() {
+  document.getElementById("formTitle").innerText = "Count Check Form";
+
+  document.getElementById("formFields").innerHTML = `
+    <label>Date Checked</label>
+    <input type="date" id="dateChecked" value="${today()}">
+
+    <label>System Qty</label>
+    <input type="number" value="${Number(currentProduct.currentQty || 0)}" disabled>
+
+    <label>Actual Qty</label>
+    <input type="number" id="actualQty" min="0" value="${Number(currentProduct.currentQty || 0)}">
+
+    <label>Checked By</label>
+    ${selectHtml("checkedBy", settings.staffNames, currentUser.name)}
+
+    <label>Notes</label>
+    <textarea id="notes"></textarea>
+  `;
+}
+
+async function submitTransaction() {
+  if (!currentProduct) {
+    setMessage("Please find a product first.", "error");
+    return;
+  }
+
+  const pin = document.getElementById("pin").value.trim();
+  const searchValue = document.getElementById("searchValue").value.trim();
+
+  let params = { pin, searchValue };
+
+  if (currentType === "SALE") {
+    params = {
+      ...params,
+      action: "submitSale",
+      dateSold: val("dateSold"),
+      salesChannel: val("salesChannel"),
+      soldBy: val("soldBy"),
+      releasedBy: val("releasedBy"),
+      packedBy: val("packedBy"),
+      quantity: val("quantity"),
+      pricePerUnit: val("pricePerUnit"),
+      orderNo: val("orderNo"),
+      customerName: val("customerName"),
+      paymentStatus: val("paymentStatus"),
+      notes: val("notes")
+    };
+  }
+
+  if (currentType === "PURCHASE") {
+    params = {
+      ...params,
+      action: "submitPurchase",
+      dateReceived: val("dateReceived"),
+      supplier: val("supplier"),
+      receivedBy: val("receivedBy"),
+      checkedBy: val("checkedBy"),
+      quantity: val("quantity"),
+      costPerUnit: val("costPerUnit"),
+      receiptNo: val("receiptNo"),
+      paymentStatus: val("paymentStatus"),
+      notes: val("notes")
+    };
+  }
+
+  if (currentType === "COUNT_CHECK") {
+    params = {
+      ...params,
+      action: "submitCountCheck",
+      dateChecked: val("dateChecked"),
+      actualQty: val("actualQty"),
+      checkedBy: val("checkedBy"),
+      notes: val("notes")
+    };
+  }
+
+  setMessage("Submitting transaction...");
+
+  try {
+    const res = await apiCall(params);
+
+    if (!res.success) {
+      setMessage(res.message || "Transaction failed.", "error");
+      return;
+    }
+
+    let extra = "";
+
+    if (res.oldQty !== undefined && res.newQty !== undefined) {
+      extra = `<br>Old Qty: ${res.oldQty}<br>New Qty: ${res.newQty}`;
+    }
+
+    if (res.systemQty !== undefined) {
+      extra = `<br>System Qty: ${res.systemQty}<br>Actual Qty: ${res.actualQty}<br>Difference: ${res.difference}`;
+    }
+
+    if (res.affectsInventory === false) {
+      extra += `<br><span class="muted">Note: This item does not affect inventory quantity because it is not an Inventory item.</span>`;
+    }
+
+    setMessage(`${res.message}<br>Product: ${escapeHtml(res.productName || "")}${extra}`, "success-text");
+
+    hide("formCard");
+    currentProduct = null;
+    document.getElementById("searchValue").value = "";
+  } catch (err) {
+    setMessage(err.message, "error");
+  }
+}
+
+function selectHtml(id, options, selected = "") {
+  options = options || [];
+  let html = `<select id="${id}"><option value="">Select</option>`;
+
+  options.forEach(option => {
+    const isSelected = String(option) === String(selected) ? "selected" : "";
+    html += `<option value="${escapeHtml(option)}" ${isSelected}>${escapeHtml(option)}</option>`;
+  });
+
+  html += `</select>`;
+  return html;
+}
+
+function val(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : "";
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  const searchInput = document.getElementById("searchValue");
+
+  if (searchInput) {
+    searchInput.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        findProduct();
+      }
+    });
+  }
+});
+</script>
+</body>
+</html>
