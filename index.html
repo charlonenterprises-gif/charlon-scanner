@@ -199,6 +199,50 @@ let settings = {};
 let currentType = "";
 let currentProduct = null;
 let scanner = null;
+let audioCtx = null;
+
+function unlockScanSound() {
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+  } catch (err) {
+    console.log("Audio unlock failed:", err);
+  }
+}
+
+function playScanSound() {
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(950, audioCtx.currentTime);
+
+    gainNode.gain.setValueAtTime(0.25, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    oscillator.start();
+    oscillator.stop(audioCtx.currentTime + 0.18);
+
+    if (navigator.vibrate) {
+      navigator.vibrate(80);
+    }
+  } catch (err) {
+    console.log("Scan sound failed:", err);
+  }
+}
 
 function setMessage(text, type = "") {
   const el = document.getElementById("message");
@@ -333,6 +377,8 @@ function backHome() {
 }
 
 async function startCamera() {
+  unlockScanSound();
+
   if (!currentUser) {
     setMessage("Please login first.", "error");
     return;
@@ -362,13 +408,28 @@ async function startCamera() {
     await scanner.start(
       { facingMode: "environment" },
       {
-        fps: 10,
-        qrbox: { width: 300, height: 170 },
-        aspectRatio: 1.777
-      },
+        fps: 12,
+        qrbox: function(viewfinderWidth, viewfinderHeight) {
+          const width = Math.min(viewfinderWidth * 0.95, 520);
+          const height = Math.min(viewfinderHeight * 0.35, 220);
+
+          return {
+            width: Math.floor(width),
+            height: Math.floor(height)
+          };
+        },
+        aspectRatio: 1.777,
+        disableFlip: false,
+        experimentalFeatures: {
+          useBarCodeDetectorIfSupported: true
+        },
+      }
       decodedText => {
+        playScanSound();
+
         document.getElementById("searchValue").value = decodedText;
         setMessage("Scanned: " + escapeHtml(decodedText), "success-text");
+
         stopCamera();
         findProduct();
       },
