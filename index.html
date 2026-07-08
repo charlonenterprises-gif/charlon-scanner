@@ -156,7 +156,7 @@ function apiCall(params) {
       delete window[callbackName];
       if (script && script.parentNode) script.parentNode.removeChild(script);
       reject(new Error("API request timed out. Check internet, API URL, or browser blocker."));
-    }, 20000);
+    }, 50000);
 
     window[callbackName] = function(data) {
       if (finished) return;
