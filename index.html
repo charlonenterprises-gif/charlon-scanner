@@ -255,8 +255,15 @@ async function startCamera() {
       { facingMode: "environment" },
       {
         fps: 12,
-        qrbox: function(w, h) {
-          return { width: Math.floor(Math.min(w * 0.95, 520)), height: Math.floor(Math.min(h * 0.35, 220)) };
+        qrbox: function(viewfinderWidth, viewfinderHeight) {
+          const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+        
+          const qrSize = Math.floor(minEdge * 0.75);
+        
+          return {
+            width: qrSize,
+            height: qrSize
+          };
         },
         aspectRatio: 1.777,
         disableFlip: false,
