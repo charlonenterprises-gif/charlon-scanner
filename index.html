@@ -621,7 +621,7 @@ function renderReturnCancelForm() {
     ${selectHtml("returnFromLocation", settings.locations, "RELEASED / PENDING CUSTOMER")}
 
     <label>Return To Location</label>
-    ${selectHtml("returnToLocation", settings.locations, currentUser.location)}
+    ${selectHtml("returnToLocation", settings.locations, currentProduct.location || currentUser.location)}
 
     <label>Reason / Details</label>
     <select id="reason">
