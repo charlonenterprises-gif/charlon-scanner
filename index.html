@@ -17,6 +17,8 @@
     button.success { background:#198754; }
     button.danger { background:#b42318; }
     button.choice { text-align:left; padding:16px; font-size:17px; }
+    .button-grid { display:grid; grid-template-columns:1fr; gap:10px; }
+    .coming-soon { opacity:.7; }
     .hidden { display:none !important; }
     .muted { color:#666; font-size:13px; }
     .success-text { color:#198754; font-weight:700; }
@@ -34,20 +36,36 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Mini POS</h1>
-    <p class="muted">Camera scanner website · v11</p>
-    <label>Staff PIN</label>
+    <p class="muted">Camera scanner website · Staff ID login · v60</p>
+
+    <label>Staff ID</label>
+    <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
+
+    <label>PIN</label>
     <input type="password" id="pin" placeholder="Enter PIN" autocomplete="off">
+
     <button id="loginBtn" type="button">Login</button>
+  </div>
+
+  <div class="card hidden" id="changePinCard">
+    <h2>Change PIN Required</h2>
+    <p class="muted">This is required once before using the scanner.</p>
+
+    <label>New PIN</label>
+    <input type="password" id="newPin" placeholder="4 to 8 numbers" autocomplete="off" inputmode="numeric">
+
+    <label>Confirm New PIN</label>
+    <input type="password" id="confirmPin" placeholder="Re-enter new PIN" autocomplete="off" inputmode="numeric">
+
+    <button id="changePinBtn" type="button">Save New PIN</button>
+    <button class="secondary" type="button" onclick="logout()">Cancel / Logout</button>
   </div>
 
   <div class="card hidden" id="homeCard">
     <h2 id="welcomeText">Welcome</h2>
     <p id="userInfo" class="muted"></p>
-    <h3>Choose Transaction Type</h3>
-    <button class="choice" type="button" onclick="chooseType('SALE')">Sales / Stock Out</button>
-    <button class="choice" type="button" onclick="chooseType('PURCHASE')">Purchase / Stock In</button>
-    <button class="choice" type="button" onclick="chooseType('COUNT_CHECK')">Count Check</button>
-    <button class="choice secondary" type="button" onclick="chooseType('SEARCH')">Search Product Only</button>
+    <h3>Choose Action</h3>
+    <div id="homeButtons" class="button-grid"></div>
     <button class="danger" type="button" onclick="logout()">Logout</button>
   </div>
 
@@ -85,12 +103,26 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbx7iFaGeikvykjRicd8kcv6NZQAFg5oYwaRTXU3m4ylM4l8mvqaS84X-iUgLrFWiNUUrw/exec";
 
 let currentUser = null;
+let currentPin = "";
 let settings = {};
 let currentType = "";
 let currentProduct = null;
 let scanner = null;
 let audioCtx = null;
 let isSubmitting = false;
+
+const ACTION_BUTTONS = [
+  { key: "CHECKSTOCK", type: "CHECK_STOCK", label: "Check Stock", live: true },
+  { key: "SALES", type: "SALE", label: "Sales / Stock Out", live: true },
+  { key: "PURCHASES", type: "PURCHASE", label: "Purchase / Stock In", live: true },
+  { key: "COUNTCHECK", type: "COUNT_CHECK", label: "Count Check", live: true },
+  { key: "RELEASING", type: "RELEASING", label: "Releasing", live: false },
+  { key: "DELIVERY", type: "DELIVERY", label: "Delivery", live: false },
+  { key: "TRANSFER", type: "TRANSFER", label: "Transfer", live: false },
+  { key: "RETURNCANCELRELEASE", type: "RETURN_CANCEL_RELEASE", label: "Return / Cancel Release", live: false },
+  { key: "INVENTORYADJUSTMENT", type: "INVENTORY_ADJUSTMENT", label: "Inventory Adjustment", live: false },
+  { key: "REPORTSHISTORY", type: "REPORTS_HISTORY", label: "Reports / History", live: false }
+];
 
 function setStatus(text, type = "") {
   const el = document.getElementById("status");
@@ -182,17 +214,23 @@ function apiCall(params) {
 }
 
 async function login() {
+  const staffId = val("staffId").trim().toUpperCase();
   const pin = val("pin").trim();
+
+  if (!staffId) {
+    setStatus("Please enter Staff ID.", "error");
+    return;
+  }
+
   if (!pin) {
     setStatus("Please enter PIN.", "error");
     return;
   }
 
   setStatus("Logging in...", "info");
-  console.log("Login clicked. API_URL:", API_URL);
 
   try {
-    const res = await apiCall({ action: "login", pin: pin });
+    const res = await apiCall({ action: "login", staffId, pin });
     console.log("Login response:", res);
 
     if (!res || !res.success) {
@@ -201,12 +239,19 @@ async function login() {
     }
 
     currentUser = res.user;
+    currentPin = pin;
     settings = res.settings || {};
 
     hide("loginCard");
-    show("homeCard");
-    document.getElementById("welcomeText").innerText = "Welcome, " + currentUser.name;
-    document.getElementById("userInfo").innerText = "Role: " + currentUser.role + " | Location: " + currentUser.location;
+
+    if (currentUser.mustChangePin) {
+      show("changePinCard");
+      setStatus("Temporary PIN detected. Please create your own PIN.", "info");
+      setTimeout(() => document.getElementById("newPin").focus(), 200);
+      return;
+    }
+
+    openHome();
     setStatus("Login successful.", "success-text");
   } catch (err) {
     console.error("Login error:", err);
@@ -214,14 +259,106 @@ async function login() {
   }
 }
 
+async function changePin() {
+  if (!currentUser) {
+    setStatus("Please login first.", "error");
+    return;
+  }
+
+  const newPin = val("newPin").trim();
+  const confirmPin = val("confirmPin").trim();
+
+  if (!newPin || !confirmPin) {
+    setStatus("Enter and confirm your new PIN.", "error");
+    return;
+  }
+
+  setStatus("Saving new PIN...", "info");
+
+  try {
+    const res = await apiCall({
+      action: "changePin",
+      staffId: currentUser.staffId,
+      pin: currentPin,
+      newPin,
+      confirmPin
+    });
+
+    console.log("Change PIN response:", res);
+
+    if (!res || !res.success) {
+      setStatus((res && res.message) ? res.message : "PIN change failed.", "error");
+      return;
+    }
+
+    currentUser = res.user;
+    currentPin = newPin;
+    settings = res.settings || settings;
+
+    document.getElementById("pin").value = newPin;
+    document.getElementById("newPin").value = "";
+    document.getElementById("confirmPin").value = "";
+
+    hide("changePinCard");
+    openHome();
+    setStatus("PIN changed successfully. You can use this PIN for your next login.", "success-text");
+  } catch (err) {
+    console.error("Change PIN error:", err);
+    setStatus("Change PIN error: " + escapeHtml(err.message || err), "error");
+  }
+}
+
+function openHome() {
+  show("homeCard");
+  document.getElementById("welcomeText").innerText = "Welcome, " + currentUser.name;
+  document.getElementById("userInfo").innerText =
+    "Staff ID: " + currentUser.staffId +
+    " | Role: " + currentUser.role +
+    " | Location: " + currentUser.location;
+
+  renderHomeButtons();
+}
+
+function canAccess(actionKey) {
+  const allowed = (currentUser && currentUser.allowedActions) ? currentUser.allowedActions : {};
+  return allowed[actionKey] === true;
+}
+
+function renderHomeButtons() {
+  const container = document.getElementById("homeButtons");
+  container.innerHTML = "";
+
+  ACTION_BUTTONS.forEach(btn => {
+    if (!canAccess(btn.key)) return;
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = btn.live ? "choice" : "choice secondary coming-soon";
+    button.textContent = btn.live ? btn.label : btn.label + " (next update)";
+    button.onclick = function() {
+      if (!btn.live) {
+        setStatus(btn.label + " is allowed for your role, but the form is not built yet.", "info");
+        return;
+      }
+      chooseType(btn.type);
+    };
+
+    container.appendChild(button);
+  });
+}
+
 function logout() {
   stopCamera();
   currentUser = null;
+  currentPin = "";
   settings = {};
   currentType = "";
   currentProduct = null;
-  hide("homeCard"); hide("scanCard"); hide("productCard"); hide("formCard"); show("loginCard");
+  hide("homeCard"); hide("changePinCard"); hide("scanCard"); hide("productCard"); hide("formCard"); show("loginCard");
+  document.getElementById("staffId").value = "";
   document.getElementById("pin").value = "";
+  document.getElementById("newPin").value = "";
+  document.getElementById("confirmPin").value = "";
   document.getElementById("searchValue").value = "";
   setStatus("Logged out.", "muted");
 }
@@ -231,9 +368,14 @@ function chooseType(type) {
   currentProduct = null;
   hide("homeCard"); show("scanCard"); hide("productCard"); hide("formCard");
   document.getElementById("searchValue").value = "";
-  const titles = { SALE:"Sales / Stock Out", PURCHASE:"Purchase / Stock In", COUNT_CHECK:"Count Check", SEARCH:"Search Product Only" };
+  const titles = {
+    SALE:"Sales / Stock Out",
+    PURCHASE:"Purchase / Stock In",
+    COUNT_CHECK:"Count Check",
+    CHECK_STOCK:"Check Stock"
+  };
   document.getElementById("transactionTitle").innerText = titles[type] || "Scan Product";
-  setStatus("Scan or type barcode/SKU.", "muted");
+  setStatus("Scan QR code or type SKU.", "muted");
   setTimeout(() => document.getElementById("searchValue").focus(), 300);
 }
 
@@ -255,17 +397,12 @@ async function startCamera() {
       { facingMode: "environment" },
       {
         fps: 12,
-        qrbox: function(viewfinderWidth, viewfinderHeight) {
-          const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-        
+        qrbox: function(w, h) {
+          const minEdge = Math.min(w, h);
           const qrSize = Math.floor(minEdge * 0.75);
-        
-          return {
-            width: qrSize,
-            height: qrSize
-          };
+          return { width: qrSize, height: qrSize };
         },
-        aspectRatio: 1.777,
+        aspectRatio: 1.0,
         disableFlip: false,
         experimentalFeatures: { useBarCodeDetectorIfSupported: true },
         formatsToSupport: [
@@ -288,7 +425,7 @@ async function startCamera() {
       errorMessage => {}
     );
 
-    setStatus("Camera started. Point at barcode. For long barcodes, hold phone landscape.", "success-text");
+    setStatus("Camera started. Point at the QR code inside the square.", "success-text");
   } catch (err) {
     console.error("Camera error:", err);
     setStatus("Camera failed: " + escapeHtml(err.message || err), "error");
@@ -302,12 +439,11 @@ async function stopCamera() {
 }
 
 async function findProduct() {
-  const pin = val("pin").trim();
   const searchValue = val("searchValue").trim();
   if (!searchValue) { setStatus("Please scan or type barcode/SKU.", "error"); return; }
   setStatus("Searching product...", "info");
   try {
-    const res = await apiCall({ action:"findProduct", pin, searchValue });
+    const res = await apiCall({ action:"findProduct", staffId: currentUser.staffId, pin: currentPin, searchValue });
     console.log("Find product response:", res);
     if (!res || !res.success) { setStatus((res && res.message) ? res.message : "Product not found.", "error"); return; }
     currentProduct = res.product;
@@ -338,7 +474,7 @@ function renderProduct() {
 }
 
 function renderForm() {
-  if (currentType === "SEARCH") { hide("formCard"); return; }
+  if (currentType === "CHECK_STOCK") { hide("formCard"); return; }
   show("formCard");
   if (currentType === "SALE") renderSaleForm();
   if (currentType === "PURCHASE") renderPurchaseForm();
@@ -399,9 +535,8 @@ async function submitTransaction() {
   if (isSubmitting) return;
   if (!currentProduct) { setStatus("Please find a product first.", "error"); return; }
   isSubmitting = true;
-  const pin = val("pin").trim();
   const searchValue = val("searchValue").trim();
-  let params = { pin, searchValue };
+  let params = { staffId: currentUser.staffId, pin: currentPin, searchValue };
 
   if (currentType === "SALE") {
     params = { ...params, action:"submitSale", dateSold:val("dateSold"), salesChannel:val("salesChannel"), soldBy:val("soldBy"), releasedBy:val("releasedBy"), packedBy:val("packedBy"), quantity:val("quantity"), pricePerUnit:val("pricePerUnit"), orderNo:val("orderNo"), customerName:val("customerName"), paymentStatus:val("paymentStatus"), notes:val("notes") };
@@ -436,9 +571,25 @@ async function submitTransaction() {
 
 window.addEventListener("DOMContentLoaded", function() {
   document.getElementById("loginBtn").addEventListener("click", login);
-  document.getElementById("pin").addEventListener("keydown", function(e) { if (e.key === "Enter") { e.preventDefault(); login(); } });
-  document.getElementById("searchValue").addEventListener("keydown", function(e) { if (e.key === "Enter") { e.preventDefault(); findProduct(); } });
-  setStatus("Ready. If login fails, direct API ping should still work.", "muted");
+  document.getElementById("changePinBtn").addEventListener("click", changePin);
+
+  document.getElementById("staffId").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") { e.preventDefault(); document.getElementById("pin").focus(); }
+  });
+
+  document.getElementById("pin").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") { e.preventDefault(); login(); }
+  });
+
+  document.getElementById("confirmPin").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") { e.preventDefault(); changePin(); }
+  });
+
+  document.getElementById("searchValue").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") { e.preventDefault(); findProduct(); }
+  });
+
+  setStatus("Ready.", "muted");
 });
 </script>
 </body>
