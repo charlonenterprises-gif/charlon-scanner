@@ -118,7 +118,7 @@ const ACTION_BUTTONS = [
   { key: "COUNTCHECK", type: "COUNT_CHECK", label: "Count Check", live: true },
   { key: "RELEASING", type: "RELEASING", label: "Releasing", live: true },
   { key: "DELIVERY", type: "DELIVERY", label: "Delivery", live: false },
-  { key: "TRANSFER", type: "TRANSFER", label: "Transfer", live: false },
+  { key: "TRANSFER", type: "TRANSFER", label: "Transfer", live: true },
   { key: "RETURNCANCELRELEASE", type: "RETURN_CANCEL_RELEASE", label: "Return / Cancel Release", live: true },
   { key: "INVENTORYADJUSTMENT", type: "INVENTORY_ADJUSTMENT", label: "Inventory Adjustment", live: false },
   { key: "REPORTSHISTORY", type: "REPORTS_HISTORY", label: "Reports / History", live: false }
@@ -374,7 +374,8 @@ function chooseType(type) {
     COUNT_CHECK: "Count Check",
     CHECK_STOCK: "Check Stock",
     RELEASING: "Releasing",
-    RETURN_CANCEL_RELEASE: "Return / Cancel Release"
+    RETURN_CANCEL_RELEASE: "Return / Cancel Release",
+    TRANSFER: "Transfer"
   };
   document.getElementById("transactionTitle").innerText = titles[type] || "Scan Product";
   setStatus("Scan QR code or type SKU.", "muted");
@@ -483,6 +484,7 @@ function renderForm() {
   if (currentType === "COUNT_CHECK") renderCountCheckForm();
   if (currentType === "RELEASING") renderReleasingForm();
   if (currentType === "RETURN_CANCEL_RELEASE") renderReturnCancelForm();
+  if (currentType === "TRANSFER") renderTransferForm();
 }
 
 function selectHtml(id, options, selected = "") {
@@ -608,7 +610,56 @@ function renderReturnCancelForm() {
     <textarea id="notes"></textarea>
   `;
 }
-  
+
+function renderTransferForm() {
+  document.getElementById("formTitle").innerText = "Transfer Form";
+
+  document.getElementById("formFields").innerHTML = `
+    <label>Transfer Date</label>
+    <input type="date" id="transferDate" value="${today()}">
+
+    <label>Transfer No. / Reference No.</label>
+    <input type="text" id="transferNo" placeholder="Example: TRF-001">
+
+    <div class="row">
+      <div>
+        <label>From Location</label>
+        ${selectHtml("fromLocation", settings.locations, currentUser.location)}
+      </div>
+      <div>
+        <label>To Location</label>
+        ${selectHtml("toLocation", settings.locations)}
+      </div>
+    </div>
+
+    <label>Quantity</label>
+    <input type="number" id="quantity" min="1" value="1">
+
+    <div class="row">
+      <div>
+        <label>Sent By</label>
+        ${selectHtml("sentBy", settings.staffNames, currentUser.name)}
+      </div>
+      <div>
+        <label>Received By</label>
+        ${selectHtml("receivedBy", settings.staffNames)}
+      </div>
+    </div>
+
+    <label>Transfer Status</label>
+    <select id="transferStatus">
+      <option value="COMPLETED">COMPLETED</option>
+      <option value="IN TRANSIT">IN TRANSIT</option>
+      <option value="PENDING">PENDING</option>
+    </select>
+
+    <label>Courier / Driver</label>
+    <input type="text" id="courierDriver">
+
+    <label>Notes</label>
+    <textarea id="notes"></textarea>
+  `;
+}
 async function submitTransaction() {
   if (isSubmitting) return;
   if (!currentProduct) { setStatus("Please find a product first.", "error"); return; }
@@ -652,6 +703,21 @@ async function submitTransaction() {
       returnFromLocation: val("returnFromLocation"),
       returnToLocation: val("returnToLocation"),
       reason: val("reason"),
+      notes: val("notes")
+    };
+  } else if (currentType === "TRANSFER") {
+    params = {
+      ...params,
+      action: "submitTransfer",
+      transferDate: val("transferDate"),
+      transferNo: val("transferNo"),
+      fromLocation: val("fromLocation"),
+      toLocation: val("toLocation"),
+      quantity: val("quantity"),
+      sentBy: val("sentBy"),
+      receivedBy: val("receivedBy"),
+      transferStatus: val("transferStatus"),
+      courierDriver: val("courierDriver"),
       notes: val("notes")
     };
   } else {
