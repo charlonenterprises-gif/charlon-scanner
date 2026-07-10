@@ -71,7 +71,7 @@
 
   <div class="card hidden" id="scanCard">
     <h2 id="transactionTitle">Scan Product</h2>
-    <label>Barcode / SKU / QBO ID</label>
+    <label>Barcode / SKU</label>
     <input type="text" id="searchValue" placeholder="Scan or type barcode" autocomplete="off">
     <button type="button" onclick="findProduct()">Find Product</button>
     <button class="secondary" type="button" onclick="startCamera()">Start Camera Scanner</button>
@@ -113,15 +113,15 @@ let isSubmitting = false;
 
 const ACTION_BUTTONS = [
   { key: "CHECKSTOCK", type: "CHECK_STOCK", label: "Check Stock", live: true },
-  { key: "SALES", type: "SALE", label: "Sales / Stock Out", live: true },
-  { key: "PURCHASES", type: "PURCHASE", label: "Purchase / Stock In", live: true },
+  { key: "SALES", type: "SALE", label: "Sales", live: true },
+  { key: "PURCHASES", type: "PURCHASE", label: "Purchases", live: true },
   { key: "COUNTCHECK", type: "COUNT_CHECK", label: "Count Check", live: true },
-  { key: "RELEASING", type: "RELEASING", label: "Releasing", live: true },
+  { key: "RELEASING", type: "RELEASING", label: "Release Item", live: true },
   { key: "DELIVERY", type: "DELIVERY", label: "Delivery", live: false },
-  { key: "TRANSFER", type: "TRANSFER", label: "Transfer", live: true },
-  { key: "RETURNCANCELRELEASE", type: "RETURN_CANCEL_RELEASE", label: "Return / Cancel Release", live: true },
+  { key: "TRANSFER", type: "TRANSFER", label: "Move Item Location", live: true },
+  { key: "RETURNCANCELRELEASE", type: "RETURN_CANCEL_RELEASE", label: "Return / Cancelled Item", live: true },
   { key: "INVENTORYADJUSTMENT", type: "INVENTORY_ADJUSTMENT", label: "Inventory Adjustment", live: false },
-  { key: "REPORTSHISTORY", type: "REPORTS_HISTORY", label: "Reports / History", live: false }
+  { key: "REPORTSHISTORY", type: "REPORTS_HISTORY", label: "Reports", live: false }
 ];
 
 function setStatus(text, type = "") {
@@ -369,13 +369,13 @@ function chooseType(type) {
   hide("homeCard"); show("scanCard"); hide("productCard"); hide("formCard");
   document.getElementById("searchValue").value = "";
   const titles = {
-    SALE: "Sales / Stock Out",
-    PURCHASE: "Purchase / Stock In",
+    SALE: "Sales",
+    PURCHASE: "Purchase",
     COUNT_CHECK: "Count Check",
     CHECK_STOCK: "Check Stock",
-    RELEASING: "Releasing",
-    RETURN_CANCEL_RELEASE: "Return / Cancel Release",
-    TRANSFER: "Transfer"
+    RELEASING: "Release Item",
+    RETURN_CANCEL_RELEASE: "Return / Cancelled Item",
+    TRANSFER: "Move Item Location"
   };
   document.getElementById("transactionTitle").innerText = titles[type] || "Scan Product";
   setStatus("Scan QR code or type SKU.", "muted");
@@ -501,6 +501,10 @@ function selectHtml(id, options, selected = "") {
 function renderSaleForm() {
   document.getElementById("formTitle").innerText = "Sales / Stock Out Form";
   document.getElementById("formFields").innerHTML = `
+    <p class="muted">
+      Gamitin ito kapag sure na sold/paid na ang item at ilalabas na talaga sa inventory.
+    </p>
+    
     <label>Date Sold</label><input type="date" id="dateSold" value="${today()}">
     <label>Sales Channel</label>${selectHtml("salesChannel", settings.salesChannels)}
     <div class="row"><div><label>Sold By</label>${selectHtml("soldBy", settings.staffNames, currentUser.name)}</div><div><label>Released By</label>${selectHtml("releasedBy", settings.staffNames)}</div></div>
@@ -516,6 +520,10 @@ function renderSaleForm() {
 function renderPurchaseForm() {
   document.getElementById("formTitle").innerText = "Purchase / Stock In Form";
   document.getElementById("formFields").innerHTML = `
+    <p class="muted">
+      Gamitin ito kapag may bagong item na dumating.
+    </p>
+  
     <label>Date Received</label><input type="date" id="dateReceived" value="${today()}">
     <label>Supplier / Store</label><input type="text" id="supplier">
     <div class="row"><div><label>Received By</label>${selectHtml("receivedBy", settings.staffNames, currentUser.name)}</div><div><label>Checked By</label>${selectHtml("checkedBy", settings.staffNames)}</div></div>
@@ -541,6 +549,10 @@ function renderReleasingForm() {
   document.getElementById("formTitle").innerText = "Releasing Form";
 
   document.getElementById("formFields").innerHTML = `
+    <p class="muted">
+      Gamitin ito kapag kinuha na ang item para sa customer pero hindi pa sure kung tuloy ang sale/order.
+    </p>
+    
     <label>Date Released</label>
     <input type="date" id="dateReleased" value="${today()}">
 
@@ -573,6 +585,10 @@ function renderReturnCancelForm() {
   document.getElementById("formTitle").innerText = "Return / Cancel Release Form";
 
   document.getElementById("formFields").innerHTML = `
+    <p class="muted">
+      Gamitin ito kapag na-cancel ang order, mali ang item na nailabas, na-return ang item, o kailangang ibalik sa ibang location.
+    </p>
+    
     <label>Date Returned</label>
     <input type="date" id="dateReturned" value="${today()}">
 
@@ -615,6 +631,10 @@ function renderTransferForm() {
   document.getElementById("formTitle").innerText = "Transfer Form";
 
   document.getElementById("formFields").innerHTML = `
+    <p class="muted">
+      Gamitin ito kapag ililipat ang item mula sa isang location papunta sa ibang location.
+    </p>
+    
     <label>Transfer Date</label>
     <input type="date" id="transferDate" value="${today()}">
 
