@@ -36,7 +36,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Mini POS</h1>
-    <p class="muted">Staff ID login · v86</p>
+    <p class="muted">Staff ID login · v87</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -693,6 +693,81 @@ function renderTransferForm() {
     <textarea id="notes"></textarea>
   `;
 }
+
+ function buildConfirmMessage() {
+  const productName = currentProduct ? currentProduct.productName : "";
+  const sku = currentProduct ? currentProduct.sku : "";
+  const qty = val("quantity") || "";
+
+  let actionName = currentType;
+  let details = "";
+
+  if (currentType === "SALE") {
+    actionName = "Sold Item / Stock Out";
+    details =
+      "Qty: " + qty + "\n" +
+      "Order No.: " + val("orderNo") + "\n" +
+      "Customer: " + val("customerName") + "\n" +
+      "Sold By: " + val("soldBy");
+  }
+
+  if (currentType === "PURCHASE") {
+    actionName = "Stock In / New Arrival";
+    details =
+      "Qty: " + qty + "\n" +
+      "Supplier: " + val("supplier") + "\n" +
+      "Received By: " + val("receivedBy");
+  }
+
+  if (currentType === "COUNT_CHECK") {
+    actionName = "Count Actual Stock";
+    details =
+      "System Qty: " + Number(currentProduct.currentQty || 0) + "\n" +
+      "Actual Qty: " + val("actualQty") + "\n" +
+      "Checked By: " + val("checkedBy");
+  }
+
+  if (currentType === "RELEASING") {
+    actionName = "Release Item to Customer";
+    details =
+      "Qty: " + qty + "\n" +
+      "From: " + (currentProduct.location || "") + "\n" +
+      "To: " + val("releaseToLocation") + "\n" +
+      "Customer: " + val("customerName") + "\n" +
+      "Released By: " + val("releasedBy");
+  }
+
+  if (currentType === "RETURN_CANCEL_RELEASE") {
+    actionName = "Return / Cancelled Item";
+    details =
+      "Type: " + val("returnActionType") + "\n" +
+      "Qty: " + qty + "\n" +
+      "From: " + val("returnFromLocation") + "\n" +
+      "To: " + val("returnToLocation") + "\n" +
+      "Handled By: " + val("handledBy") + "\n" +
+      "Reason: " + val("reason");
+  }
+
+  if (currentType === "TRANSFER") {
+    actionName = "Move Item Location";
+    details =
+      "Qty: " + qty + "\n" +
+      "From: " + val("fromLocation") + "\n" +
+      "To: " + val("toLocation") + "\n" +
+      "Sent By: " + val("sentBy") + "\n" +
+      "Received By: " + val("receivedBy");
+  }
+
+  return (
+    "Please confirm before saving:\n\n" +
+    "Action: " + actionName + "\n" +
+    "Product: " + productName + "\n" +
+    "SKU: " + sku + "\n\n" +
+    details + "\n\n" +
+    "Continue?"
+  );
+} 
+  
 async function submitTransaction() {
   if (isSubmitting) return;
   if (!currentProduct) { setStatus("Please find a product first.", "error"); return; }
@@ -760,6 +835,14 @@ async function submitTransaction() {
     return;
   }
 
+  const confirmMessage = buildConfirmMessage();
+  
+  if (!confirm(confirmMessage)) {
+    isSubmitting = false;
+    setStatus("Transaction cancelled. Nothing was saved.", "muted");
+    return;
+  }
+  
   setStatus("Submitting transaction...", "info");
   try {
     const res = await apiCall(params);
