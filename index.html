@@ -42,7 +42,7 @@
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
 
     <label>PIN</label>
-    <input type="password" id="pin" placeholder="Enter PIN" autocomplete="off">
+    <input type="password" id="pin" placeholder="Enter PIN" autocomplete="off" inputmode="numeric" pattern="[0-9]*">
 
     <button id="loginBtn" type="button">Login</button>
   </div>
@@ -52,10 +52,10 @@
     <p class="muted">This is required once before using the scanner.</p>
 
     <label>New PIN</label>
-    <input type="password" id="newPin" placeholder="4 to 8 numbers" autocomplete="off" inputmode="numeric">
+    <input type="password" id="newPin" placeholder="4 to 8 numbers" autocomplete="off" inputmode="numeric" pattern="[0-9]*">
 
     <label>Confirm New PIN</label>
-    <input type="password" id="confirmPin" placeholder="Re-enter new PIN" autocomplete="off" inputmode="numeric">
+    <input type="password" id="confirmPin" placeholder="Re-enter new PIN" autocomplete="off" inputmode="numeric" pattern="[0-9]*">
 
     <button id="changePinBtn" type="button">Save New PIN</button>
     <button class="secondary" type="button" onclick="logout()">Cancel / Logout</button>
@@ -116,10 +116,10 @@ const ACTION_BUTTONS = [
   { key: "SALES", type: "SALE", label: "Sales / Stock Out", live: true },
   { key: "PURCHASES", type: "PURCHASE", label: "Purchase / Stock In", live: true },
   { key: "COUNTCHECK", type: "COUNT_CHECK", label: "Count Check", live: true },
-  { key: "RELEASING", type: "RELEASING", label: "Releasing", live: false },
+  { key: "RELEASING", type: "RELEASING", label: "Releasing", live: true },
   { key: "DELIVERY", type: "DELIVERY", label: "Delivery", live: false },
   { key: "TRANSFER", type: "TRANSFER", label: "Transfer", live: false },
-  { key: "RETURNCANCELRELEASE", type: "RETURN_CANCEL_RELEASE", label: "Return / Cancel Release", live: false },
+  { key: "RETURNCANCELRELEASE", type: "RETURN_CANCEL_RELEASE", label: "Return / Cancel Release", live: true },
   { key: "INVENTORYADJUSTMENT", type: "INVENTORY_ADJUSTMENT", label: "Inventory Adjustment", live: false },
   { key: "REPORTSHISTORY", type: "REPORTS_HISTORY", label: "Reports / History", live: false }
 ];
@@ -369,10 +369,12 @@ function chooseType(type) {
   hide("homeCard"); show("scanCard"); hide("productCard"); hide("formCard");
   document.getElementById("searchValue").value = "";
   const titles = {
-    SALE:"Sales / Stock Out",
-    PURCHASE:"Purchase / Stock In",
-    COUNT_CHECK:"Count Check",
-    CHECK_STOCK:"Check Stock"
+    SALE: "Sales / Stock Out",
+    PURCHASE: "Purchase / Stock In",
+    COUNT_CHECK: "Count Check",
+    CHECK_STOCK: "Check Stock",
+    RELEASING: "Releasing",
+    RETURN_CANCEL_RELEASE: "Return / Cancel Release"
   };
   document.getElementById("transactionTitle").innerText = titles[type] || "Scan Product";
   setStatus("Scan QR code or type SKU.", "muted");
@@ -479,6 +481,8 @@ function renderForm() {
   if (currentType === "SALE") renderSaleForm();
   if (currentType === "PURCHASE") renderPurchaseForm();
   if (currentType === "COUNT_CHECK") renderCountCheckForm();
+  if (currentType === "RELEASING") renderReleasingForm();
+  if (currentType === "RETURN_CANCEL_RELEASE") renderReturnCancelForm();
 }
 
 function selectHtml(id, options, selected = "") {
@@ -531,6 +535,80 @@ function renderCountCheckForm() {
   `;
 }
 
+function renderReleasingForm() {
+  document.getElementById("formTitle").innerText = "Releasing Form";
+
+  document.getElementById("formFields").innerHTML = `
+    <label>Date Released</label>
+    <input type="date" id="dateReleased" value="${today()}">
+
+    <label>Reference No. / Order No.</label>
+    <input type="text" id="referenceNo" placeholder="Example: Shopee order, FB customer, walk-in request">
+
+    <label>Customer Name</label>
+    <input type="text" id="customerName">
+
+    <div class="row">
+      <div>
+        <label>Quantity</label>
+        <input type="number" id="quantity" min="1" value="1">
+      </div>
+      <div>
+        <label>Released By</label>
+        ${selectHtml("releasedBy", settings.staffNames, currentUser.name)}
+      </div>
+    </div>
+
+    <label>Released To / Temp Location</label>
+    ${selectHtml("releaseToLocation", settings.locations, "RELEASED / PENDING CUSTOMER")}
+
+    <label>Notes</label>
+    <textarea id="notes"></textarea>
+  `;
+}
+
+function renderReturnCancelForm() {
+  document.getElementById("formTitle").innerText = "Return / Cancel Release Form";
+
+  document.getElementById("formFields").innerHTML = `
+    <label>Date Returned</label>
+    <input type="date" id="dateReturned" value="${today()}">
+
+    <label>Reference No. / Order No.</label>
+    <input type="text" id="referenceNo">
+
+    <div class="row">
+      <div>
+        <label>Quantity</label>
+        <input type="number" id="quantity" min="1" value="1">
+      </div>
+      <div>
+        <label>Handled By</label>
+        ${selectHtml("handledBy", settings.staffNames, currentUser.name)}
+      </div>
+    </div>
+
+    <label>Return From Location</label>
+    ${selectHtml("returnFromLocation", settings.locations, "RELEASED / PENDING CUSTOMER")}
+
+    <label>Return To Location</label>
+    ${selectHtml("returnToLocation", settings.locations, currentUser.location)}
+
+    <label>Reason</label>
+    <select id="reason">
+      <option value="">Select</option>
+      <option value="Customer cancelled">Customer cancelled</option>
+      <option value="Order did not push through">Order did not push through</option>
+      <option value="Wrong item released">Wrong item released</option>
+      <option value="Returned for checking">Returned for checking</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <label>Notes</label>
+    <textarea id="notes"></textarea>
+  `;
+}
+  
 async function submitTransaction() {
   if (isSubmitting) return;
   if (!currentProduct) { setStatus("Please find a product first.", "error"); return; }
@@ -543,7 +621,39 @@ async function submitTransaction() {
   } else if (currentType === "PURCHASE") {
     params = { ...params, action:"submitPurchase", dateReceived:val("dateReceived"), supplier:val("supplier"), receivedBy:val("receivedBy"), checkedBy:val("checkedBy"), quantity:val("quantity"), costPerUnit:val("costPerUnit"), receiptNo:val("receiptNo"), paymentStatus:val("paymentStatus"), notes:val("notes") };
   } else if (currentType === "COUNT_CHECK") {
-    params = { ...params, action:"submitCountCheck", dateChecked:val("dateChecked"), actualQty:val("actualQty"), checkedBy:val("checkedBy"), notes:val("notes") };
+    params = {
+      ...params,
+      action: "submitCountCheck",
+      dateChecked: val("dateChecked"),
+      actualQty: val("actualQty"),
+      checkedBy: val("checkedBy"),
+      notes: val("notes")
+    };
+  } else if (currentType === "RELEASING") {
+    params = {
+      ...params,
+      action: "submitReleasing",
+      dateReleased: val("dateReleased"),
+      referenceNo: val("referenceNo"),
+      customerName: val("customerName"),
+      quantity: val("quantity"),
+      releasedBy: val("releasedBy"),
+      releaseToLocation: val("releaseToLocation"),
+      notes: val("notes")
+    };
+  } else if (currentType === "RETURN_CANCEL_RELEASE") {
+    params = {
+      ...params,
+      action: "submitReturnCancelRelease",
+      dateReturned: val("dateReturned"),
+      referenceNo: val("referenceNo"),
+      quantity: val("quantity"),
+      handledBy: val("handledBy"),
+      returnFromLocation: val("returnFromLocation"),
+      returnToLocation: val("returnToLocation"),
+      reason: val("reason"),
+      notes: val("notes")
+    };
   } else {
     isSubmitting = false;
     setStatus("Invalid transaction type.", "error");
