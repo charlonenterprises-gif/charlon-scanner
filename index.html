@@ -582,18 +582,29 @@ function renderReleasingForm() {
 }
 
 function renderReturnCancelForm() {
-  document.getElementById("formTitle").innerText = "Return / Cancel Release Form";
+  document.getElementById("formTitle").innerText = "Return / Cancelled Item Form";
 
   document.getElementById("formFields").innerHTML = `
     <p class="muted">
-      Gamitin ito kapag na-cancel ang order, mali ang item na nailabas, na-return ang item, o kailangang ibalik sa ibang location.
+      Gamitin ito kapag na-cancel ang order, na-refund ang sale, mali ang item na nailabas,
+      na-return ang item, o kailangang ibalik sa ibang location.
     </p>
-    
+
+    <label>Ano ang nangyari?</label>
+    <select id="returnActionType">
+      <option value="">Select</option>
+      <option value="MOVE_BACK">Na-release pero na-cancel / ibabalik sa stock</option>
+      <option value="RESTOCK_SOLD">Na-sale na pero cancelled / refunded</option>
+      <option value="DELIVERY_RETURN">Galing delivery pero binalik / failed delivery</option>
+      <option value="WRONG_ITEM">Maling item ang nailabas</option>
+      <option value="OTHER">Other</option>
+    </select>
+
     <label>Date Returned</label>
     <input type="date" id="dateReturned" value="${today()}">
 
     <label>Reference No. / Order No.</label>
-    <input type="text" id="referenceNo">
+    <input type="text" id="referenceNo" placeholder="Shopee/Lazada/FB/Walk-in order no.">
 
     <div class="row">
       <div>
@@ -612,18 +623,20 @@ function renderReturnCancelForm() {
     <label>Return To Location</label>
     ${selectHtml("returnToLocation", settings.locations, currentUser.location)}
 
-    <label>Reason</label>
+    <label>Reason / Details</label>
     <select id="reason">
       <option value="">Select</option>
       <option value="Customer cancelled">Customer cancelled</option>
+      <option value="Sale cancelled / refunded">Sale cancelled / refunded</option>
       <option value="Order did not push through">Order did not push through</option>
       <option value="Wrong item released">Wrong item released</option>
+      <option value="Failed delivery">Failed delivery</option>
       <option value="Returned for checking">Returned for checking</option>
       <option value="Other">Other</option>
     </select>
 
     <label>Notes</label>
-    <textarea id="notes"></textarea>
+    <textarea id="notes" placeholder="Optional details"></textarea>
   `;
 }
 
@@ -716,6 +729,7 @@ async function submitTransaction() {
     params = {
       ...params,
       action: "submitReturnCancelRelease",
+      returnActionType: val("returnActionType"),
       dateReturned: val("dateReturned"),
       referenceNo: val("referenceNo"),
       quantity: val("quantity"),
