@@ -30,13 +30,24 @@
     .badge { display:inline-block; padding:4px 8px; border-radius:999px; background:#eee; font-size:12px; font-weight:700; }
     .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
     @media(max-width:600px){ .row{ grid-template-columns:1fr; } }
+    .cart-line {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #fafafa;
+    }
+    .cart-line strong {
+      display: block;
+      margin-bottom: 4px;
+    }
   </style>
 </head>
 <body>
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Mini POS</h1>
-    <p class="muted">Staff ID login · v88</p>
+    <p class="muted">Staff ID login · v89</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -85,6 +96,13 @@
     <div class="product-box" id="productInfo"></div>
   </div>
 
+  <div class="card hidden" id="cartCard">
+    <h3>Scanned Items</h3>
+    <p class="muted">Scan all items first. Review the list before submitting.</p>
+    <div id="cartItems"></div>
+    <button class="secondary" type="button" onclick="clearCart()">Clear Cart</button>
+  </div>
+
   <div class="card hidden" id="formCard">
     <h3 id="formTitle">Transaction Form</h3>
     <div id="formFields"></div>
@@ -110,20 +128,76 @@ let currentProduct = null;
 let scanner = null;
 let audioCtx = null;
 let isSubmitting = false;
+let cartItems = [];
 
-const ACTION_BUTTONS = [
-  { key: "CHECKSTOCK", type: "CHECK_STOCK", label: "Check Stock", live: true },
-  { key: "SALES", type: "SALE", label: "Sales", live: true },
-  { key: "PURCHASES", type: "PURCHASE", label: "Purchases", live: true },
-  { key: "COUNTCHECK", type: "COUNT_CHECK", label: "Count Check", live: true },
-  { key: "RELEASING", type: "RELEASING", label: "Release Item", live: true },
-  { key: "DELIVERY", type: "DELIVERY", label: "Delivery", live: false },
-  { key: "TRANSFER", type: "TRANSFER", label: "Move Item Location", live: true },
-  { key: "RETURNCANCELRELEASE", type: "RETURN_CANCEL_RELEASE", label: "Return / Cancelled Item", live: true },
-  { key: "INVENTORYADJUSTMENT", type: "INVENTORY_ADJUSTMENT", label: "Inventory Adjustment", live: false },
-  { key: "REPORTSHISTORY", type: "REPORTS_HISTORY", label: "Reports", live: false }
+const CART_TRANSACTION_TYPES = [
+  "SALE",
+  "PURCHASE",
+  "RELEASING"
 ];
 
+const NEW_TRANSACTION_OPTIONS = [
+  {
+    key: "RELEASING",
+    type: "RELEASING",
+    label: "Customer Order / Release Item",
+    helper: "Gamitin kapag may item na ipapakuha o ihahanda para sa customer.",
+    live: true
+  },
+  {
+    key: "SALES",
+    type: "SALE",
+    label: "Sold Immediately",
+    helper: "Gamitin kapag sure na sold/paid na agad ang item.",
+    live: true
+  },
+  {
+    key: "PURCHASES",
+    type: "PURCHASE",
+    label: "Stock In / New Arrival",
+    helper: "Gamitin kapag may bagong dating na stock.",
+    live: true
+  },
+  {
+    key: "COUNTCHECK",
+    type: "COUNT_CHECK",
+    label: "Count Actual Stock",
+    helper: "Gamitin kapag magche-check ng actual count.",
+    live: true
+  },
+  {
+    key: "TRANSFER",
+    type: "LOCATION_NOTE",
+    label: "Location Note / Move Note",
+    helper: "Gamitin kapag gusto lang i-note kung saan nilagay o nilipat ang item.",
+    live: false
+  }
+];
+
+const FOLLOW_UP_OPTIONS = [
+  {
+    key: "RETURNCANCELRELEASE",
+    type: "RETURN_CANCEL_RELEASE",
+    label: "Return / Refund / Cancel Item",
+    helper: "Gamitin kapag na-cancel, na-refund, or binalik ang item.",
+    live: true
+  },
+  {
+    key: "SALES",
+    type: "COMPLETE_SALE_TICKET",
+    label: "Complete Sale from Release Ticket",
+    helper: "For next update: gamitin kapag tuloy ang sale gamit ang Release No.",
+    live: false
+  },
+  {
+    key: "DELIVERY",
+    type: "DELIVERY_UPDATE",
+    label: "Delivery Update",
+    helper: "For next update: gamitin kapag for delivery, delivered, or failed delivery.",
+    live: false
+  }
+];
+  
 function setStatus(text, type = "") {
   const el = document.getElementById("status");
   el.className = type || "muted";
@@ -324,29 +398,133 @@ function canAccess(actionKey) {
   return allowed[actionKey] === true;
 }
 
+function canAccessAny(actionKeys) {
+  return actionKeys.some(actionKey => canAccess(actionKey));
+}
+
+function renderHomeButtons() {
 function renderHomeButtons() {
   const container = document.getElementById("homeButtons");
   container.innerHTML = "";
 
-  ACTION_BUTTONS.forEach(btn => {
-    if (!canAccess(btn.key)) return;
-
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = btn.live ? "choice" : "choice secondary coming-soon";
-    button.textContent = btn.live ? btn.label : btn.label + " (next update)";
-    button.onclick = function() {
-      if (!btn.live) {
-        setStatus(btn.label + " is allowed for your role, but the form is not built yet.", "info");
-        return;
+  if (canAccess("CHECKSTOCK")) {
+    container.appendChild(makeMenuButton(
+      "Check Stock",
+      "Tingnan ang product, total stock, reserved qty, at notes.",
+      function() {
+        chooseType("CHECK_STOCK");
       }
-      chooseType(btn.type);
-    };
+    ));
+  }
 
-    container.appendChild(button);
-  });
+  if (canAccessAny(["RELEASING", "SALES", "PURCHASES", "COUNTCHECK", "TRANSFER"])) {
+    container.appendChild(makeMenuButton(
+      "New Transaction",
+      "Gamitin kapag may bagong order, sale, purchase, stock count, or location note.",
+      showNewTransactionOptions
+    ));
+  }
+
+  if (canAccessAny(["RETURNCANCELRELEASE", "SALES", "DELIVERY"])) {
+    container.appendChild(makeMenuButton(
+      "Transaction Follow-up",
+      "Gamitin kapag may nangyari after release/sale: cancel, refund, return, or delivery update.",
+      showFollowUpOptions
+    ));
+  }
+
+  if (canAccess("REPORTSHISTORY")) {
+    container.appendChild(makeMenuButton(
+      "Reports / History",
+      "For manager/admin checking only.",
+      function() {
+        setStatus("Reports / History is for next update.", "info");
+      },
+      false
+    ));
+  }
 }
 
+function makeMenuButton(label, helper, onClick, live = true) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = live ? "choice" : "choice secondary coming-soon";
+
+  button.innerHTML = `
+    <div>${escapeHtml(label)}${live ? "" : " (next update)"}</div>
+    <div class="muted" style="margin-top:4px;">${escapeHtml(helper)}</div>
+  `;
+
+  button.onclick = function() {
+    if (!live) {
+      setStatus(label + " is not ready yet.", "info");
+      return;
+    }
+
+    onClick();
+  };
+
+  return button;
+}
+
+function showNewTransactionOptions() {
+  const container = document.getElementById("homeButtons");
+  container.innerHTML = "";
+
+  const intro = document.createElement("p");
+  intro.className = "muted";
+  intro.innerText = "Piliin kung anong bagong transaction ang gagawin.";
+  container.appendChild(intro);
+
+  NEW_TRANSACTION_OPTIONS.forEach(option => {
+    if (!canAccess(option.key)) return;
+
+    container.appendChild(makeMenuButton(
+      option.label,
+      option.helper,
+      function() {
+        chooseType(option.type);
+      },
+      option.live
+    ));
+  });
+
+  container.appendChild(makeMenuButton(
+    "Back",
+    "Bumalik sa main menu.",
+    renderHomeButtons
+  ));
+}
+
+function showFollowUpOptions() {
+  const container = document.getElementById("homeButtons");
+  container.innerHTML = "";
+
+  const intro = document.createElement("p");
+  intro.className = "muted";
+  intro.innerText = "Piliin kung ano ang nangyari after ng release, sale, or order.";
+  container.appendChild(intro);
+
+  FOLLOW_UP_OPTIONS.forEach(option => {
+    if (!canAccess(option.key)) return;
+
+    container.appendChild(makeMenuButton(
+      option.label,
+      option.helper,
+      function() {
+        chooseType(option.type);
+      },
+      option.live
+    ));
+  });
+
+  container.appendChild(makeMenuButton(
+    "Back",
+    "Bumalik sa main menu.",
+    renderHomeButtons
+  ));
+}
+  
 function logout() {
   stopCamera();
   currentUser = null;
@@ -354,7 +532,7 @@ function logout() {
   settings = {};
   currentType = "";
   currentProduct = null;
-  hide("homeCard"); hide("changePinCard"); hide("scanCard"); hide("productCard"); hide("formCard"); show("loginCard");
+  hide("homeCard"); hide("changePinCard"); hide("scanCard"); hide("productCard"); hide("cartCard"); hide("formCard"); show("loginCard");
   document.getElementById("staffId").value = "";
   document.getElementById("pin").value = "";
   document.getElementById("newPin").value = "";
@@ -366,15 +544,15 @@ function logout() {
 function chooseType(type) {
   currentType = type;
   currentProduct = null;
-  hide("homeCard"); show("scanCard"); hide("productCard"); hide("formCard");
+  hide("homeCard"); show("scanCard"); hide("productCard"); hide("cartCard"); hide("formCard");
   document.getElementById("searchValue").value = "";
   const titles = {
-    SALE: "Sales",
-    PURCHASE: "Purchase",
-    COUNT_CHECK: "Count Check",
+    SALE: "Sold Immediately",
+    PURCHASE: "Stock In / New Arrival",
+    COUNT_CHECK: "Count Actual Stock",
     CHECK_STOCK: "Check Stock",
-    RELEASING: "Release Item",
-    RETURN_CANCEL_RELEASE: "Return / Cancelled Item",
+    RELEASING: "Customer Order / Release Item",
+    RETURN_CANCEL_RELEASE: "Return / Refund / Cancel Item",
     TRANSFER: "Move Item Location"
   };
   document.getElementById("transactionTitle").innerText = titles[type] || "Scan Product";
@@ -383,7 +561,7 @@ function chooseType(type) {
 }
 
 function backHome() {
-  stopCamera(); hide("scanCard"); hide("productCard"); hide("formCard"); show("homeCard");
+  stopCamera(); hide("scanCard"); hide("productCard"); hide("cartCard"); hide("formCard"); show("homeCard");
   setStatus("Choose transaction type.", "muted");
 }
 
@@ -441,18 +619,173 @@ async function stopCamera() {
   } catch (err) { console.log("Stop camera ignored:", err); }
 }
 
+function isCartTransactionType(type) {
+  return CART_TRANSACTION_TYPES.includes(type);
+}
+
+function getProductCartKey(product) {
+  return String(
+    product.barcodeValue ||
+    product.sku ||
+    product.qboId ||
+    product.productName ||
+    ""
+  ).trim().toUpperCase();
+}
+
+function addProductToCart(product) {
+  const key = getProductCartKey(product);
+
+  if (!key) {
+    setStatus("Cannot add product to cart. Missing SKU/barcode.", "error");
+    return;
+  }
+
+  const existing = cartItems.find(item => item.key === key);
+
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    cartItems.push({
+      key,
+      product,
+      quantity: 1,
+      pricePerUnit: Number(product.sellingPrice || 0),
+      costPerUnit: Number(product.averageCost || 0)
+    });
+  }
+
+  renderCart();
+}
+
+function renderCart() {
+  const container = document.getElementById("cartItems");
+
+  if (!cartItems.length) {
+    container.innerHTML = `<p class="muted">No items scanned yet.</p>`;
+    hide("cartCard");
+    return;
+  }
+
+  let html = "";
+
+  cartItems.forEach((item, index) => {
+    const p = item.product || {};
+
+    html += `
+      <div class="cart-line">
+        <strong>${escapeHtml(p.productName || "")}</strong>
+        <div class="muted">
+          SKU: ${escapeHtml(p.sku || "")}<br>
+          Barcode: ${escapeHtml(p.barcodeValue || "")}<br>
+          Current Qty: ${escapeHtml(p.currentQty)}
+        </div>
+
+        <label>Quantity</label>
+        <input type="number" min="1" value="${item.quantity}" onchange="updateCartQty(${index}, this.value)">
+
+        ${
+          currentType === "SALE"
+            ? `
+              <label>Price Per Unit</label>
+              <input type="number" min="0" step="0.01" value="${item.pricePerUnit}" onchange="updateCartPrice(${index}, this.value)">
+            `
+            : ""
+        }
+
+        ${
+          currentType === "PURCHASE"
+            ? `
+              <label>Cost Per Unit</label>
+              <input type="number" min="0" step="0.01" value="${item.costPerUnit}" onchange="updateCartCost(${index}, this.value)">
+            `
+            : ""
+        }
+
+        <button class="danger" type="button" onclick="removeCartItem(${index})">Remove Item</button>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+  show("cartCard");
+}
+
+function updateCartQty(index, value) {
+  const qty = Number(value || 0);
+
+  if (qty <= 0) {
+    cartItems[index].quantity = 1;
+  } else {
+    cartItems[index].quantity = qty;
+  }
+
+  renderCart();
+}
+
+function updateCartPrice(index, value) {
+  cartItems[index].pricePerUnit = Number(value || 0);
+}
+
+function updateCartCost(index, value) {
+  cartItems[index].costPerUnit = Number(value || 0);
+}
+
+function removeCartItem(index) {
+  cartItems.splice(index, 1);
+  renderCart();
+  renderForm();
+}
+
+function clearCart() {
+  cartItems = [];
+  renderCart();
+  renderForm();
+  setStatus("Cart cleared.", "muted");
+}
+  
 async function findProduct() {
   const searchValue = val("searchValue").trim();
-  if (!searchValue) { setStatus("Please scan or type barcode/SKU.", "error"); return; }
+
+  if (!searchValue) {
+    setStatus("Please scan or type barcode/SKU.", "error");
+    return;
+  }
+
   setStatus("Searching product...", "info");
+
   try {
-    const res = await apiCall({ action:"findProduct", staffId: currentUser.staffId, pin: currentPin, searchValue });
+    const res = await apiCall({
+      action: "findProduct",
+      staffId: currentUser.staffId,
+      pin: currentPin,
+      searchValue
+    });
+
     console.log("Find product response:", res);
-    if (!res || !res.success) { setStatus((res && res.message) ? res.message : "Product not found.", "error"); return; }
+
+    if (!res || !res.success) {
+      setStatus((res && res.message) ? res.message : "Product not found.", "error");
+      return;
+    }
+
     currentProduct = res.product;
     renderProduct();
+
+    if (isCartTransactionType(currentType)) {
+      addProductToCart(currentProduct);
+      renderForm();
+
+      document.getElementById("searchValue").value = "";
+      setTimeout(() => document.getElementById("searchValue").focus(), 200);
+
+      setStatus("Added to cart. Scan next item or review cart.", "success-text");
+      return;
+    }
+
     renderForm();
     setStatus("Product found.", "success-text");
+
   } catch (err) {
     console.error("Find product error:", err);
     setStatus("Find product error: " + escapeHtml(err.message || err), "error");
@@ -477,14 +810,129 @@ function renderProduct() {
 }
 
 function renderForm() {
-  if (currentType === "CHECK_STOCK") { hide("formCard"); return; }
+  if (currentType === "CHECK_STOCK") {
+    hide("formCard");
+    return;
+  }
+
   show("formCard");
-  if (currentType === "SALE") renderSaleForm();
-  if (currentType === "PURCHASE") renderPurchaseForm();
+
+  if (isCartTransactionType(currentType)) {
+    renderCartForm();
+    return;
+  }
+
   if (currentType === "COUNT_CHECK") renderCountCheckForm();
-  if (currentType === "RELEASING") renderReleasingForm();
   if (currentType === "RETURN_CANCEL_RELEASE") renderReturnCancelForm();
   if (currentType === "TRANSFER") renderTransferForm();
+}
+
+function renderCartForm() {
+  if (currentType === "SALE") {
+    document.getElementById("formTitle").innerText = "Sold Immediately - Cart";
+
+    document.getElementById("formFields").innerHTML = `
+      <p class="muted">
+        Scan lahat ng sold items. Kapag kumpleto na, saka i-submit isang beses.
+      </p>
+
+      <label>Date Sold</label>
+      <input type="date" id="dateSold" value="${today()}">
+
+      <label>Sales Channel</label>
+      ${selectHtml("salesChannel", settings.salesChannels)}
+
+      <div class="row">
+        <div>
+          <label>Sold By</label>
+          ${selectHtml("soldBy", settings.staffNames, currentUser.name)}
+        </div>
+        <div>
+          <label>Released By</label>
+          ${selectHtml("releasedBy", settings.staffNames)}
+        </div>
+      </div>
+
+      <label>Packed By</label>
+      ${selectHtml("packedBy", settings.staffNames)}
+
+      <label>Order No.</label>
+      <input type="text" id="orderNo">
+
+      <label>Customer Name</label>
+      <input type="text" id="customerName">
+
+      <label>Payment Status</label>
+      ${selectHtml("paymentStatus", settings.paymentStatus)}
+
+      <label>Notes</label>
+      <textarea id="notes"></textarea>
+    `;
+  }
+
+  if (currentType === "PURCHASE") {
+    document.getElementById("formTitle").innerText = "Stock In / New Arrival - Cart";
+
+    document.getElementById("formFields").innerHTML = `
+      <p class="muted">
+        Scan lahat ng bagong dating na items. Kapag kumpleto na, saka i-submit isang beses.
+      </p>
+
+      <label>Date Received</label>
+      <input type="date" id="dateReceived" value="${today()}">
+
+      <label>Supplier / Store</label>
+      <input type="text" id="supplier">
+
+      <div class="row">
+        <div>
+          <label>Received By</label>
+          ${selectHtml("receivedBy", settings.staffNames, currentUser.name)}
+        </div>
+        <div>
+          <label>Checked By</label>
+          ${selectHtml("checkedBy", settings.staffNames)}
+        </div>
+      </div>
+
+      <label>Receipt / Invoice No.</label>
+      <input type="text" id="receiptNo">
+
+      <label>Payment Status</label>
+      ${selectHtml("paymentStatus", settings.paymentStatus)}
+
+      <label>Notes</label>
+      <textarea id="notes"></textarea>
+    `;
+  }
+
+  if (currentType === "RELEASING") {
+    document.getElementById("formTitle").innerText = "Customer Order / Release Item - Cart";
+
+    document.getElementById("formFields").innerHTML = `
+      <p class="muted">
+        Scan lahat ng items na ihahanda para sa customer. System will create one release transaction later.
+      </p>
+
+      <label>Date Released</label>
+      <input type="date" id="dateReleased" value="${today()}">
+
+      <label>Reference No. / Order No.</label>
+      <input type="text" id="referenceNo" placeholder="Shopee/Lazada/FB/Walk-in order no.">
+
+      <label>Customer Name</label>
+      <input type="text" id="customerName">
+
+      <label>Released By</label>
+      ${selectHtml("releasedBy", settings.staffNames, currentUser.name)}
+
+      <label>Location Note / Temp Location</label>
+      ${selectHtml("releaseToLocation", settings.locations, "RELEASED / PENDING CUSTOMER")}
+
+      <label>Notes</label>
+      <textarea id="notes"></textarea>
+    `;
+  }
 }
 
 function selectHtml(id, options, selected = "") {
@@ -767,11 +1215,39 @@ function renderTransferForm() {
     "Continue?"
   );
 } 
+
+function submitCartTransaction() {
+  if (!cartItems.length) {
+    setStatus("Please scan at least one item before submitting.", "error");
+    return;
+  }
+
+  console.log("Cart ready for backend:", {
+    type: currentType,
+    cartItems
+  });
+
+  setStatus(
+    "Cart is ready. Next part is backend batch submit, so this will save all items under one transaction.",
+    "info"
+  );
+}
   
 async function submitTransaction() {
   if (isSubmitting) return;
-  if (!currentProduct) { setStatus("Please find a product first.", "error"); return; }
+
+  if (isCartTransactionType(currentType)) {
+    submitCartTransaction();
+    return;
+  }
+
+  if (!currentProduct) {
+    setStatus("Please find a product first.", "error");
+    return;
+  }
+
   isSubmitting = true;
+
   const searchValue = val("searchValue").trim();
   let params = { staffId: currentUser.staffId, pin: currentPin, searchValue };
 
