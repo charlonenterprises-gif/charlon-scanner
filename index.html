@@ -683,7 +683,7 @@ function renderCart() {
         <div class="muted">
           SKU: ${escapeHtml(p.sku || "")}<br>
           Barcode: ${escapeHtml(p.barcodeValue || "")}<br>
-          Current Qty: ${escapeHtml(p.currentQty)}
+          Available Qty: ${escapeHtml(p.availableQty !== undefined ? p.availableQty : p.currentQty)}
         </div>
 
         <label>Quantity</label>
@@ -799,18 +799,30 @@ async function findProduct() {
 
 function renderProduct() {
   const p = currentProduct || {};
+
+  const totalQty = Number(p.posTotalQty || 0);
+  const reservedQty = Number(p.reservedQty || 0);
+  const availableQty = Number(
+    p.availableQty !== undefined ? p.availableQty : p.currentQty || 0
+  );
+
   document.getElementById("productInfo").innerHTML = `
     <strong>${escapeHtml(p.productName || "")}</strong><br>
     SKU: ${escapeHtml(p.sku || "")}<br>
     Barcode: ${escapeHtml(p.barcodeValue || "")}<br>
     QBO ID: ${escapeHtml(p.qboId || "")}<br>
-    Stock Type: <span class="badge">${escapeHtml(p.stockType || "")}</span><br>
-    Location: ${escapeHtml(p.location || "")}<br>
-    Current Qty: <strong>${p.currentQty}</strong><br>
-    Average Cost: ₱${Number(p.averageCost || 0).toLocaleString()}<br>
+    Stock Type: <span class="badge">${escapeHtml(p.stockType || "")}</span><br><br>
+
+    Total Stock: <strong>${totalQty}</strong><br>
+    Reserved / Released Qty: <strong>${reservedQty}</strong><br>
+    Available Qty: <strong>${availableQty}</strong><br><br>
+
+    Location Notes: ${escapeHtml(p.locationNotes || "UNKNOWN / NOT CHECKED")}<br>
+    Average Cost Ref: ₱${Number(p.averageCost || 0).toLocaleString()}<br>
     Selling Price: ₱${Number(p.sellingPrice || 0).toLocaleString()}<br>
-    Inventory Status: ${escapeHtml(p.inventoryStatus || "")}
+    Status: ${escapeHtml(p.inventoryStatus || "")}
   `;
+
   show("productCard");
 }
 
