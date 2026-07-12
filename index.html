@@ -403,7 +403,6 @@ function canAccessAny(actionKeys) {
 }
 
 function renderHomeButtons() {
-function renderHomeButtons() {
   const container = document.getElementById("homeButtons");
   container.innerHTML = "";
 
@@ -544,7 +543,13 @@ function logout() {
 function chooseType(type) {
   currentType = type;
   currentProduct = null;
-  hide("homeCard"); show("scanCard"); hide("productCard"); hide("cartCard"); hide("formCard");
+  cartItems = [];
+
+  hide("homeCard");
+  show("scanCard");
+  hide("productCard");
+  hide("cartCard");
+  hide("formCard");
   document.getElementById("searchValue").value = "";
   const titles = {
     SALE: "Sold Immediately",
