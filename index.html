@@ -1233,21 +1233,138 @@ function renderTransferForm() {
   );
 } 
 
-function submitCartTransaction() {
+async function submitCartTransaction() {
+  if (isSubmitting) return;
+
   if (!cartItems.length) {
     setStatus("Please scan at least one item before submitting.", "error");
     return;
   }
 
-  console.log("Cart ready for backend:", {
-    type: currentType,
-    cartItems
+  const cleanItems = cartItems.map(item => {
+    const p = item.product || {};
+
+    return {
+      qboId: p.qboId || "",
+      sku: p.sku || "",
+      barcodeValue: p.barcodeValue || "",
+      productName: p.productName || "",
+      quantity: Number(item.quantity || 0),
+      pricePerUnit: Number(item.pricePerUnit || 0),
+      costPerUnit: Number(item.costPerUnit || 0)
+    };
   });
 
-  setStatus(
-    "Cart is ready. Next part is backend batch submit, so this will save all items under one transaction.",
-    "info"
-  );
+  let params = {
+    action: "submitCartTransaction",
+    staffId: currentUser.staffId,
+    pin: currentPin,
+    transactionType: currentType,
+    cartItems: JSON.stringify(cleanItems),
+    notes: val("notes")
+  };
+
+  if (currentType === "SALE") {
+    params = {
+      ...params,
+      dateSold: val("dateSold"),
+      salesChannel: val("salesChannel"),
+      soldBy: val("soldBy"),
+      releasedBy: val("releasedBy"),
+      packedBy: val("packedBy"),
+      orderNo: val("orderNo"),
+      customerName: val("customerName"),
+      paymentStatus: val("paymentStatus")
+    };
+  }
+
+  if (currentType === "PURCHASE") {
+    params = {
+      ...params,
+      dateReceived: val("dateReceived"),
+      supplier: val("supplier"),
+      receivedBy: val("receivedBy"),
+      checkedBy: val("checkedBy"),
+      receiptNo: val("receiptNo"),
+      paymentStatus: val("paymentStatus")
+    };
+  }
+
+  if (currentType === "RELEASING") {
+    params = {
+      ...params,
+      dateReleased: val("dateReleased"),
+      referenceNo: val("referenceNo"),
+      customerName: val("customerName"),
+      releasedBy: val("releasedBy"),
+      releaseToLocation: val("releaseToLocation")
+    };
+  }
+
+  const itemSummary = cleanItems
+    .map(item => `- ${item.productName} | Qty: ${item.quantity}`)
+    .join("\n");
+
+  const confirmMessage =
+    "Please confirm cart transaction:\n\n" +
+    "Type: " + currentType + "\n" +
+    "Items:\n" + itemSummary + "\n\n" +
+    "Continue?";
+
+  if (!confirm(confirmMessage)) {
+    setStatus("Cart transaction cancelled. Nothing was saved.", "muted");
+    return;
+  }
+
+  isSubmitting = true;
+  setStatus("Submitting cart transaction...", "info");
+
+  try {
+    const res = await apiCall(params);
+    console.log("Cart submit response:", res);
+
+    if (!res || !res.success) {
+      setStatus((res && res.message) ? res.message : "Cart transaction failed.", "error");
+      return;
+    }
+
+    let resultHtml = `
+      ${escapeHtml(res.message)}<br>
+      Ticket No.: <strong>${escapeHtml(res.ticketNo || "")}</strong><br>
+      Items Saved: ${escapeHtml(res.itemCount || 0)}
+    `;
+
+    if (Array.isArray(res.results)) {
+      resultHtml += "<br><br>";
+
+      res.results.forEach(item => {
+        resultHtml += `
+          ${escapeHtml(item.productName || "")}<br>
+          Qty: ${escapeHtml(item.qty)}<br>
+          Total Qty: ${escapeHtml(item.oldTotalQty)} → ${escapeHtml(item.newTotalQty)}<br>
+          Reserved Qty: ${escapeHtml(item.oldReservedQty)} → ${escapeHtml(item.newReservedQty)}<br>
+          Available Qty: ${escapeHtml(item.oldAvailableQty)} → ${escapeHtml(item.newAvailableQty)}<br><br>
+        `;
+      });
+    }
+
+    setStatus(resultHtml, "success-text");
+
+    cartItems = [];
+    currentProduct = null;
+    renderCart();
+
+    hide("productCard");
+    hide("formCard");
+    document.getElementById("searchValue").value = "";
+    setTimeout(() => document.getElementById("searchValue").focus(), 200);
+
+  } catch (err) {
+    console.error("Cart submit error:", err);
+    setStatus("Cart submit error: " + escapeHtml(err.message || err), "error");
+  } finally {
+    isSubmitting = false;
+  }
 }
   
 async function submitTransaction() {
