@@ -707,15 +707,26 @@ function renderTicket(res) {
   if (!lines.length) {
     html += `<p class="muted">No items found under this ticket.</p>`;
   } else {
-    lines.forEach(line => {
+    lines.forEach((line, index) => {
       html += `
         <div class="cart-line">
           <strong>${escapeHtml(line.productName || "")}</strong>
           SKU: ${escapeHtml(line.sku || "")}<br>
           Barcode: ${escapeHtml(line.barcodeValue || "")}<br>
-          Qty: <strong>${escapeHtml(line.quantity)}</strong><br>
+          Qty Sold: <strong>${escapeHtml(line.quantity)}</strong><br>
+          Returned Qty: ${escapeHtml(line.returnedQty || 0)}<br>
+          Remaining Returnable: ${escapeHtml(line.remainingQty || 0)}<br>
           Line Status: ${escapeHtml(line.lineStatus || "")}<br>
           Location Note: ${escapeHtml(line.locationNote || "")}
+          
+          ${
+            res.canReturnRefund && Number(line.remainingQty || 0) > 0
+              ? `
+                <label>Return Qty</label>
+                <input type="number" id="returnQty_${index}" min="0" max="${escapeHtml(line.remainingQty)}" value="${escapeHtml(line.remainingQty)}">
+              `
+              : ""
+          }
         </div>
       `;
     });
@@ -743,7 +754,7 @@ function renderTicket(res) {
   
   if (res.canReturnRefund) {
     actionsHtml += `
-      <button class="danger" type="button" onclick="ticketActionComingSoon('Return / Refund')">
+      <button class="danger" type="button" onclick="submitReturnRefundTicket()">
         Return / Refund Sale
       </button>
     `;
@@ -858,6 +869,104 @@ async function stopCamera() {
   } catch (err) { console.log("Stop camera ignored:", err); }
 }
 
+async function submitReturnRefundTicket() {
+  if (isSubmitting) return;
+
+  if (!currentTicket || !currentTicket.ticketNo) {
+    setStatus("Please find a ticket first.", "error");
+    return;
+  }
+
+  const returnItems = [];
+
+  currentTicketLines.forEach((line, index) => {
+    const qty = Number(val("returnQty_" + index) || 0);
+
+    if (qty > 0) {
+      returnItems.push({
+        lineNo: line.lineNo,
+        sku: line.sku || "",
+        barcodeValue: line.barcodeValue || "",
+        productName: line.productName || "",
+        quantity: qty
+      });
+    }
+  });
+
+  if (!returnItems.length) {
+    setStatus("Please enter at least one return quantity.", "error");
+    return;
+  }
+
+  const itemSummary = returnItems
+    .map(item => `- ${item.productName} | Return Qty: ${item.quantity}`)
+    .join("\n");
+
+  const confirmMessage =
+    "Please confirm Return / Refund:\n\n" +
+    "Ticket No.: " + currentTicket.ticketNo + "\n\n" +
+    "Items:\n" + itemSummary + "\n\n" +
+    "Continue?";
+
+  if (!confirm(confirmMessage)) {
+    setStatus("Return / Refund cancelled. Nothing was saved.", "muted");
+    return;
+  }
+
+  isSubmitting = true;
+  setStatus("Submitting Return / Refund...", "info");
+
+  try {
+    const res = await apiCall({
+      action: "submitTicketFollowUp",
+      staffId: currentUser.staffId,
+      pin: currentPin,
+      ticketNo: currentTicket.ticketNo,
+      followUpAction: "RETURN_REFUND",
+      returnItems: JSON.stringify(returnItems),
+      notes: val("followUpNotes")
+    });
+
+    console.log("Return refund response:", res);
+
+    if (!res || !res.success) {
+      setStatus((res && res.message) ? res.message : "Return / Refund failed.", "error");
+      return;
+    }
+
+    let resultHtml = `
+      ${escapeHtml(res.message)}<br>
+      Ticket No.: <strong>${escapeHtml(res.ticketNo || "")}</strong><br>
+      New Status: <strong>${escapeHtml(res.status || "")}</strong><br>
+      Items Updated: ${escapeHtml(res.itemCount || 0)}
+    `;
+
+    if (Array.isArray(res.results)) {
+      resultHtml += "<br><br>";
+
+      res.results.forEach(item => {
+        resultHtml += `
+          ${escapeHtml(item.productName || "")}<br>
+          Returned Qty: ${escapeHtml(item.qty)}<br>
+          Total Qty: ${escapeHtml(item.oldTotalQty)} → ${escapeHtml(item.newTotalQty)}<br>
+          Reserved Qty: ${escapeHtml(item.oldReservedQty)} → ${escapeHtml(item.newReservedQty)}<br>
+          Available Qty: ${escapeHtml(item.oldAvailableQty)} → ${escapeHtml(item.newAvailableQty)}<br><br>
+        `;
+      });
+    }
+
+    setStatus(resultHtml, "success-text");
+
+    await findTicket();
+
+  } catch (err) {
+    console.error("Return refund error:", err);
+    setStatus("Return refund error: " + escapeHtml(err.message || err), "error");
+  } finally {
+    isSubmitting = false;
+  }
+}
+  
 function isCartTransactionType(type) {
   return CART_TRANSACTION_TYPES.includes(type);
 }
