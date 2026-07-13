@@ -263,6 +263,87 @@ function playScanSound() {
   }
 }
 
+async function submitTicketFollowUp(followUpAction) {
+  if (isSubmitting) return;
+
+  if (!currentTicket || !currentTicket.ticketNo) {
+    setStatus("Please find a ticket first.", "error");
+    return;
+  }
+
+  const actionLabel = followUpAction === "COMPLETE_SALE"
+    ? "Complete Sale"
+    : "Cancel Release";
+
+  const itemSummary = currentTicketLines
+    .map(line => `- ${line.productName} | Qty: ${line.quantity}`)
+    .join("\n");
+
+  const confirmMessage =
+    "Please confirm follow-up:\n\n" +
+    "Action: " + actionLabel + "\n" +
+    "Ticket No.: " + currentTicket.ticketNo + "\n\n" +
+    "Items:\n" + itemSummary + "\n\n" +
+    "Continue?";
+
+  if (!confirm(confirmMessage)) {
+    setStatus("Follow-up cancelled. Nothing was saved.", "muted");
+    return;
+  }
+
+  isSubmitting = true;
+  setStatus("Submitting follow-up...", "info");
+
+  try {
+    const res = await apiCall({
+      action: "submitTicketFollowUp",
+      staffId: currentUser.staffId,
+      pin: currentPin,
+      ticketNo: currentTicket.ticketNo,
+      followUpAction,
+      notes: val("followUpNotes")
+    });
+
+    console.log("Ticket follow-up response:", res);
+
+    if (!res || !res.success) {
+      setStatus((res && res.message) ? res.message : "Follow-up failed.", "error");
+      return;
+    }
+
+    let resultHtml = `
+      ${escapeHtml(res.message)}<br>
+      Ticket No.: <strong>${escapeHtml(res.ticketNo || "")}</strong><br>
+      New Status: <strong>${escapeHtml(res.status || "")}</strong><br>
+      Items Updated: ${escapeHtml(res.itemCount || 0)}
+    `;
+
+    if (Array.isArray(res.results)) {
+      resultHtml += "<br><br>";
+
+      res.results.forEach(item => {
+        resultHtml += `
+          ${escapeHtml(item.productName || "")}<br>
+          Qty: ${escapeHtml(item.qty)}<br>
+          Total Qty: ${escapeHtml(item.oldTotalQty)} → ${escapeHtml(item.newTotalQty)}<br>
+          Reserved Qty: ${escapeHtml(item.oldReservedQty)} → ${escapeHtml(item.newReservedQty)}<br>
+          Available Qty: ${escapeHtml(item.oldAvailableQty)} → ${escapeHtml(item.newAvailableQty)}<br><br>
+        `;
+      });
+    }
+
+    setStatus(resultHtml, "success-text");
+
+    await findTicket();
+
+  } catch (err) {
+    console.error("Ticket follow-up error:", err);
+    setStatus("Ticket follow-up error: " + escapeHtml(err.message || err), "error");
+  } finally {
+    isSubmitting = false;
+  }
+}
+
 function apiCall(params) {
   return new Promise((resolve, reject) => {
     const callbackName = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
@@ -646,20 +727,20 @@ function renderTicket(res) {
 
   if (res.canCompleteSale) {
     actionsHtml += `
-      <button class="success" type="button" onclick="ticketActionComingSoon('Complete Sale')">
+      <button class="success" type="button" onclick="submitTicketFollowUp('COMPLETE_SALE')">
         Complete Sale
       </button>
     `;
   }
-
+  
   if (res.canCancelRelease) {
     actionsHtml += `
-      <button class="danger" type="button" onclick="ticketActionComingSoon('Cancel Release')">
+      <button class="danger" type="button" onclick="submitTicketFollowUp('CANCEL_RELEASE')">
         Cancel Release / Did Not Push Through
       </button>
     `;
   }
-
+  
   if (res.canReturnRefund) {
     actionsHtml += `
       <button class="danger" type="button" onclick="ticketActionComingSoon('Return / Refund')">
@@ -667,7 +748,7 @@ function renderTicket(res) {
       </button>
     `;
   }
-
+  
   if (!actionsHtml) {
     actionsHtml = `<p class="muted">No follow-up action available for this ticket status yet.</p>`;
   }
