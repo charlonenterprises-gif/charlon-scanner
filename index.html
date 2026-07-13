@@ -103,6 +103,21 @@
     <button class="secondary" type="button" onclick="clearCart()">Clear Cart</button>
   </div>
 
+  <div class="card hidden" id="ticketCard">
+    <h3>Transaction Follow-up</h3>
+    <p class="muted">
+      Enter the Ticket No. / Release No. to view the order and its items.
+    </p>
+  
+    <label>Ticket No. / Release No.</label>
+    <input type="text" id="ticketNo" placeholder="Example: REL-20260713-0001" autocomplete="off">
+  
+    <button type="button" onclick="findTicket()">Find Ticket</button>
+  
+    <div id="ticketInfo" class="product-box"></div>
+    <div id="ticketActions"></div>
+  </div>
+
   <div class="card hidden" id="formCard">
     <h3 id="formTitle">Transaction Form</h3>
     <div id="formFields"></div>
@@ -129,6 +144,8 @@ let scanner = null;
 let audioCtx = null;
 let isSubmitting = false;
 let cartItems = [];
+let currentTicket = null;
+let currentTicketLines = [];
 
 const CART_TRANSACTION_TYPES = [
   "SALE",
@@ -428,7 +445,7 @@ function renderHomeButtons() {
     container.appendChild(makeMenuButton(
       "Transaction Follow-up",
       "Gamitin kapag may nangyari after release/sale: cancel, refund, return, or delivery update.",
-      showFollowUpOptions
+      openTicketLookup
     ));
   }
 
@@ -523,6 +540,147 @@ function showFollowUpOptions() {
     renderHomeButtons
   ));
 }
+
+function openTicketLookup() {
+  currentType = "TICKET_FOLLOW_UP";
+  currentProduct = null;
+  currentTicket = null;
+  currentTicketLines = [];
+  cartItems = [];
+
+  hide("homeCard");
+  hide("scanCard");
+  hide("productCard");
+  hide("cartCard");
+  hide("formCard");
+  show("ticketCard");
+
+  document.getElementById("ticketNo").value = "";
+  document.getElementById("ticketInfo").innerHTML = "";
+  document.getElementById("ticketActions").innerHTML = "";
+
+  setStatus("Enter Ticket No. / Release No.", "muted");
+
+  setTimeout(() => document.getElementById("ticketNo").focus(), 200);
+}
+
+async function findTicket() {
+  const ticketNo = val("ticketNo").trim();
+
+  if (!ticketNo) {
+    setStatus("Please enter Ticket No. / Release No.", "error");
+    return;
+  }
+
+  setStatus("Searching ticket...", "info");
+
+  try {
+    const res = await apiCall({
+      action: "getTicketDetails",
+      staffId: currentUser.staffId,
+      pin: currentPin,
+      ticketNo
+    });
+
+    console.log("Ticket response:", res);
+
+    if (!res || !res.success) {
+      setStatus((res && res.message) ? res.message : "Ticket not found.", "error");
+      return;
+    }
+
+    currentTicket = res.ticket;
+    currentTicketLines = res.lines || [];
+
+    renderTicket(res);
+    setStatus("Ticket found.", "success-text");
+
+  } catch (err) {
+    console.error("Ticket lookup error:", err);
+    setStatus("Ticket lookup error: " + escapeHtml(err.message || err), "error");
+  }
+}
+
+function renderTicket(res) {
+  const ticket = res.ticket || {};
+  const lines = res.lines || [];
+
+  let html = `
+    <hr>
+    <strong>Ticket No.: ${escapeHtml(ticket.ticketNo || "")}</strong><br>
+    Type: <span class="badge">${escapeHtml(ticket.ticketType || "")}</span><br>
+    Status: <span class="badge">${escapeHtml(ticket.status || "")}</span><br>
+    Date: ${escapeHtml(ticket.date || "")}<br>
+    Order No.: ${escapeHtml(ticket.orderNo || "")}<br>
+    Customer: ${escapeHtml(ticket.customerName || "")}<br>
+    Sales Channel: ${escapeHtml(ticket.salesChannel || "")}<br>
+    Created By: ${escapeHtml(ticket.createdBy || "")}<br>
+    Released By: ${escapeHtml(ticket.releasedBy || "")}<br>
+    Sold By: ${escapeHtml(ticket.soldBy || "")}<br>
+    Location Note: ${escapeHtml(ticket.locationNote || "")}<br>
+    Notes: ${escapeHtml(ticket.notes || "")}<br>
+    <br>
+    <strong>Items:</strong>
+  `;
+
+  if (!lines.length) {
+    html += `<p class="muted">No items found under this ticket.</p>`;
+  } else {
+    lines.forEach(line => {
+      html += `
+        <div class="cart-line">
+          <strong>${escapeHtml(line.productName || "")}</strong>
+          SKU: ${escapeHtml(line.sku || "")}<br>
+          Barcode: ${escapeHtml(line.barcodeValue || "")}<br>
+          Qty: <strong>${escapeHtml(line.quantity)}</strong><br>
+          Line Status: ${escapeHtml(line.lineStatus || "")}<br>
+          Location Note: ${escapeHtml(line.locationNote || "")}
+        </div>
+      `;
+    });
+  }
+
+  document.getElementById("ticketInfo").innerHTML = html;
+
+  let actionsHtml = "";
+
+  if (res.canCompleteSale) {
+    actionsHtml += `
+      <button class="success" type="button" onclick="ticketActionComingSoon('Complete Sale')">
+        Complete Sale
+      </button>
+    `;
+  }
+
+  if (res.canCancelRelease) {
+    actionsHtml += `
+      <button class="danger" type="button" onclick="ticketActionComingSoon('Cancel Release')">
+        Cancel Release / Did Not Push Through
+      </button>
+    `;
+  }
+
+  if (res.canReturnRefund) {
+    actionsHtml += `
+      <button class="danger" type="button" onclick="ticketActionComingSoon('Return / Refund')">
+        Return / Refund Sale
+      </button>
+    `;
+  }
+
+  if (!actionsHtml) {
+    actionsHtml = `<p class="muted">No follow-up action available for this ticket status yet.</p>`;
+  }
+
+  document.getElementById("ticketActions").innerHTML = actionsHtml;
+}
+
+function ticketActionComingSoon(actionName) {
+  setStatus(
+    actionName + " button is ready in the UI. Next part will connect the stock update backend.",
+    "info"
+  );
+}
   
 function logout() {
   stopCamera();
@@ -531,7 +689,7 @@ function logout() {
   settings = {};
   currentType = "";
   currentProduct = null;
-  hide("homeCard"); hide("changePinCard"); hide("scanCard"); hide("productCard"); hide("cartCard"); hide("formCard"); show("loginCard");
+  hide("homeCard"); hide("changePinCard"); hide("scanCard"); hide("productCard"); hide("cartCard"); hide("ticketCard"); hide("formCard"); show("loginCard");
   document.getElementById("staffId").value = "";
   document.getElementById("pin").value = "";
   document.getElementById("newPin").value = "";
@@ -544,12 +702,7 @@ function chooseType(type) {
   currentType = type;
   currentProduct = null;
   cartItems = [];
-
-  hide("homeCard");
-  show("scanCard");
-  hide("productCard");
-  hide("cartCard");
-  hide("formCard");
+  hide("homeCard"); show("scanCard"); hide("productCard"); hide("cartCard"); hide("ticketCard"); hide("formCard");
   document.getElementById("searchValue").value = "";
   const titles = {
     SALE: "Sold Immediately",
@@ -566,7 +719,7 @@ function chooseType(type) {
 }
 
 function backHome() {
-  stopCamera(); hide("scanCard"); hide("productCard"); hide("cartCard"); hide("formCard"); show("homeCard");
+  stopCamera(); hide("scanCard"); hide("productCard"); hide("cartCard"); hide("ticketCard"); hide("formCard"); show("homeCard");
   setStatus("Choose transaction type.", "muted");
 }
 
@@ -1480,6 +1633,13 @@ window.addEventListener("DOMContentLoaded", function() {
     if (e.key === "Enter") { e.preventDefault(); document.getElementById("pin").focus(); }
   });
 
+  document.getElementById("ticketNo").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      findTicket();
+    }
+  });
+  
   document.getElementById("pin").addEventListener("keydown", function(e) {
     if (e.key === "Enter") { e.preventDefault(); login(); }
   });
