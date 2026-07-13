@@ -187,7 +187,7 @@ const NEW_TRANSACTION_OPTIONS = [
     type: "LOCATION_NOTE",
     label: "Location Note / Move Note",
     helper: "Gamitin kapag gusto lang i-note kung saan nilagay o nilipat ang item.",
-    live: false
+    live: true
   }
 ];
 
@@ -804,6 +804,7 @@ function chooseType(type) {
     RELEASING: "Customer Order / Release Item",
     RETURN_CANCEL_RELEASE: "Return / Refund / Cancel Item",
     TRANSFER: "Move Item Location"
+    LOCATION_NOTE: "Location Note / Move Note",
   };
   document.getElementById("transactionTitle").innerText = titles[type] || "Scan Product";
   setStatus("Scan QR code or type SKU.", "muted");
@@ -1185,6 +1186,7 @@ function renderForm() {
   if (currentType === "COUNT_CHECK") renderCountCheckForm();
   if (currentType === "RETURN_CANCEL_RELEASE") renderReturnCancelForm();
   if (currentType === "TRANSFER") renderTransferForm();
+  if (currentType === "LOCATION_NOTE") renderLocationNoteForm();
 }
 
 function renderCartForm() {
@@ -1502,7 +1504,33 @@ function renderTransferForm() {
   `;
 }
 
- function buildConfirmMessage() {
+function renderLocationNoteForm() {
+  document.getElementById("formTitle").innerText = "Location Note / Move Note";
+
+  document.getElementById("formFields").innerHTML = `
+    <p class="muted">
+      Gamitin ito kapag gusto lang i-note kung saan nakita, nilagay, o nilipat ang item.
+      Hindi ito magbabawas o magdadagdag ng stock.
+    </p>
+
+    <label>Date Noted</label>
+    <input type="date" id="dateNoted" value="${today()}">
+
+    <label>Location Note</label>
+    ${selectHtml("locationNote", settings.locations, "UNKNOWN / NOT CHECKED")}
+
+    <label>Specific Area / Details</label>
+    <input type="text" id="detailNote" placeholder="Example: near front shelf, upstairs, beside generator area">
+
+    <label>Handled By</label>
+    ${selectHtml("handledBy", settings.staffNames, currentUser.name)}
+
+    <label>Notes</label>
+    <textarea id="notes" placeholder="Optional details"></textarea>
+  `;
+}
+
+function buildConfirmMessage() {
   const productName = currentProduct ? currentProduct.productName : "";
   const sku = currentProduct ? currentProduct.sku : "";
   const qty = val("quantity") || "";
@@ -1564,6 +1592,14 @@ function renderTransferForm() {
       "To: " + val("toLocation") + "\n" +
       "Sent By: " + val("sentBy") + "\n" +
       "Received By: " + val("receivedBy");
+  }
+
+  if (currentType === "LOCATION_NOTE") {
+    actionName = "Location Note / Move Note";
+    details =
+      "Location Note: " + val("locationNote") + "\n" +
+      "Details: " + val("detailNote") + "\n" +
+      "Handled By: " + val("handledBy");
   }
 
   return (
@@ -1780,6 +1816,16 @@ async function submitTransaction() {
       receivedBy: val("receivedBy"),
       transferStatus: val("transferStatus"),
       courierDriver: val("courierDriver"),
+      notes: val("notes")
+    };
+  } else if (currentType === "LOCATION_NOTE") {
+    params = {
+      ...params,
+      action: "submitLocationNote",
+      dateNoted: val("dateNoted"),
+      locationNote: val("locationNote"),
+      detailNote: val("detailNote"),
+      handledBy: val("handledBy"),
       notes: val("notes")
     };
   } else {
