@@ -103,6 +103,49 @@
     <button class="secondary" type="button" onclick="clearCart()">Clear Cart</button>
   </div>
 
+  <div class="card hidden" id="reportsCard">
+    <h3>Reports / History</h3>
+    <p class="muted">
+      For manager/admin checking. Search by ticket no., SKU, product name, staff name, or notes.
+    </p>
+  
+    <label>Search</label>
+    <input type="text" id="historySearch" placeholder="Ticket no., SKU, product name, staff name">
+  
+    <div class="row">
+      <div>
+        <label>Date From</label>
+        <input type="date" id="historyDateFrom">
+      </div>
+      <div>
+        <label>Date To</label>
+        <input type="date" id="historyDateTo">
+      </div>
+    </div>
+  
+    <label>Action Type</label>
+    <select id="historyAction">
+      <option value="">All Actions</option>
+      <option value="SALE">SALE</option>
+      <option value="PURCHASE">PURCHASE</option>
+      <option value="RELEASING">RELEASING</option>
+      <option value="COMPLETE_SALE">COMPLETE_SALE</option>
+      <option value="CANCEL_RELEASE">CANCEL_RELEASE</option>
+      <option value="RETURN_REFUND">RETURN_REFUND</option>
+      <option value="LOCATION_NOTE">LOCATION_NOTE</option>
+      <option value="COUNT CHECK">COUNT CHECK</option>
+      <option value="TRANSFER">TRANSFER</option>
+    </select>
+  
+    <label>Limit</label>
+    <input type="number" id="historyLimit" min="10" max="200" value="50">
+  
+    <button type="button" onclick="findHistory()">Search History</button>
+    <button class="secondary" type="button" onclick="backHome()">Back</button>
+  
+    <div id="historyResults" class="product-box"></div>
+  </div>  
+  
   <div class="card hidden" id="ticketCard">
     <h3>Transaction Follow-up</h3>
     <p class="muted">
@@ -529,15 +572,12 @@ function renderHomeButtons() {
       openTicketLookup
     ));
   }
-
+  
   if (canAccess("REPORTSHISTORY")) {
     container.appendChild(makeMenuButton(
       "Reports / History",
       "For manager/admin checking only.",
-      function() {
-        setStatus("Reports / History is for next update.", "info");
-      },
-      false
+      openReportsView
     ));
   }
 }
@@ -628,11 +668,12 @@ function openTicketLookup() {
   currentTicket = null;
   currentTicketLines = [];
   cartItems = [];
-
+  
   hide("homeCard");
   hide("scanCard");
   hide("productCard");
   hide("cartCard");
+  hide("reportsCard");
   hide("formCard");
   show("ticketCard");
 
@@ -767,6 +808,125 @@ function renderTicket(res) {
   document.getElementById("ticketActions").innerHTML = actionsHtml;
 }
 
+function openReportsView() {
+  currentType = "REPORTS_HISTORY";
+  currentProduct = null;
+  currentTicket = null;
+  currentTicketLines = [];
+  cartItems = [];
+
+  hide("homeCard");
+  hide("scanCard");
+  hide("productCard");
+  hide("cartCard");
+  hide("ticketCard");
+  hide("formCard");
+  show("reportsCard");
+
+  document.getElementById("historySearch").value = "";
+  document.getElementById("historyDateFrom").value = "";
+  document.getElementById("historyDateTo").value = "";
+  document.getElementById("historyAction").value = "";
+  document.getElementById("historyLimit").value = "50";
+  document.getElementById("historyResults").innerHTML = "";
+
+  setStatus("Loading recent history...", "info");
+
+  findHistory();
+}
+
+async function findHistory() {
+  if (!currentUser) {
+    setStatus("Please login first.", "error");
+    return;
+  }
+
+  setStatus("Searching history...", "info");
+
+  try {
+    const res = await apiCall({
+      action: "getTransactionHistory",
+      staffId: currentUser.staffId,
+      pin: currentPin,
+      searchText: val("historySearch"),
+      dateFrom: val("historyDateFrom"),
+      dateTo: val("historyDateTo"),
+      actionType: val("historyAction"),
+      limit: val("historyLimit")
+    });
+
+    console.log("History response:", res);
+
+    if (!res || !res.success) {
+      setStatus((res && res.message) ? res.message : "History search failed.", "error");
+      return;
+    }
+
+    renderHistory(res);
+    setStatus("History loaded.", "success-text");
+
+  } catch (err) {
+    console.error("History error:", err);
+    setStatus("History error: " + escapeHtml(err.message || err), "error");
+  }
+}
+
+function renderHistory(res) {
+  const rows = res.rows || [];
+  const container = document.getElementById("historyResults");
+
+  let html = `
+    <hr>
+    <strong>Results:</strong> ${escapeHtml(rows.length)}<br>
+    <span class="muted">Showing latest matching records first.</span>
+  `;
+
+  if (!rows.length) {
+    html += `<p class="muted">No matching history found.</p>`;
+    container.innerHTML = html;
+    return;
+  }
+
+  rows.forEach(row => {
+    html += `
+      <div class="cart-line">
+        <strong>${escapeHtml(row.productName || "")}</strong>
+        <span class="badge">${escapeHtml(row.action || "")}</span>
+        <span class="badge">${escapeHtml(row.status || "")}</span><br><br>
+
+        Date/Time: ${escapeHtml(formatDateTime(row.dateTime))}<br>
+        Ticket No.: ${escapeHtml(row.ticketNo || "")}<br>
+        Ticket Type: ${escapeHtml(row.ticketType || "")}<br>
+        SKU: ${escapeHtml(row.sku || "")}<br>
+        Barcode: ${escapeHtml(row.barcodeValue || "")}<br>
+        Qty: <strong>${escapeHtml(row.qty)}</strong><br><br>
+
+        Total Qty: ${escapeHtml(row.oldTotalQty)} → ${escapeHtml(row.newTotalQty)}<br>
+        Reserved Qty: ${escapeHtml(row.oldReservedQty)} → ${escapeHtml(row.newReservedQty)}<br>
+        Available Qty: ${escapeHtml(row.oldAvailableQty)} → ${escapeHtml(row.newAvailableQty)}<br><br>
+
+        User: ${escapeHtml(row.user || "")}<br>
+        Location Note: ${escapeHtml(row.locationNote || "")}<br>
+        Notes: ${escapeHtml(row.notes || "")}
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function formatDateTime(value) {
+  if (!value) return "";
+
+  const d = new Date(value);
+
+  if (isNaN(d.getTime())) {
+    return String(value);
+  }
+
+  return d.toLocaleString();
+}
+  
 function ticketActionComingSoon(actionName) {
   setStatus(
     actionName + " button is ready in the UI. Next part will connect the stock update backend.",
@@ -781,7 +941,7 @@ function logout() {
   settings = {};
   currentType = "";
   currentProduct = null;
-  hide("homeCard"); hide("changePinCard"); hide("scanCard"); hide("productCard"); hide("cartCard"); hide("ticketCard"); hide("formCard"); show("loginCard");
+  hide("homeCard"); hide("changePinCard"); hide("scanCard"); hide("productCard"); hide("cartCard"); hide("ticketCard"); hide("reportsCard"); hide("formCard"); show("loginCard");
   document.getElementById("staffId").value = "";
   document.getElementById("pin").value = "";
   document.getElementById("newPin").value = "";
@@ -794,7 +954,7 @@ function chooseType(type) {
   currentType = type;
   currentProduct = null;
   cartItems = [];
-  hide("homeCard"); show("scanCard"); hide("productCard"); hide("cartCard"); hide("ticketCard"); hide("formCard");
+  hide("homeCard"); show("scanCard"); hide("productCard"); hide("cartCard"); hide("ticketCard"); hide("reportsCard"); hide("formCard");
   document.getElementById("searchValue").value = "";
   const titles = {
     SALE: "Sold Immediately",
@@ -812,7 +972,7 @@ function chooseType(type) {
 }
 
 function backHome() {
-  stopCamera(); hide("scanCard"); hide("productCard"); hide("cartCard"); hide("ticketCard"); hide("formCard"); show("homeCard");
+  stopCamera(); hide("scanCard"); hide("productCard"); hide("cartCard"); hide("ticketCard"); hide("reportsCard"); hide("formCard"); show("homeCard");
   setStatus("Choose transaction type.", "muted");
 }
 
@@ -1873,6 +2033,13 @@ window.addEventListener("DOMContentLoaded", function() {
     if (e.key === "Enter") {
       e.preventDefault();
       findTicket();
+    }
+  });
+
+  document.getElementById("historySearch").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      findHistory();
     }
   });
   
