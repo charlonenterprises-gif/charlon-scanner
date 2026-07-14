@@ -276,30 +276,6 @@ const NEW_TRANSACTION_OPTIONS = [
     live: true
   }
 ];
-
-const FOLLOW_UP_OPTIONS = [
-  {
-    key: "RETURNCANCELRELEASE",
-    type: "RETURN_CANCEL_RELEASE",
-    label: "Return / Refund / Cancel Item",
-    helper: "Gamitin kapag na-cancel, na-refund, or binalik ang item.",
-    live: true
-  },
-  {
-    key: "SALES",
-    type: "COMPLETE_SALE_TICKET",
-    label: "Complete Sale from Release Ticket",
-    helper: "For next update: gamitin kapag tuloy ang sale gamit ang Release No.",
-    live: false
-  },
-  {
-    key: "DELIVERY",
-    type: "DELIVERY_UPDATE",
-    label: "Delivery Update",
-    helper: "For next update: gamitin kapag for delivery, delivered, or failed delivery.",
-    live: false
-  }
-];
   
 function setStatus(text, type = "") {
   const el = document.getElementById("status");
@@ -676,35 +652,6 @@ function showNewTransactionOptions() {
   ));
 }
 
-function showFollowUpOptions() {
-  const container = document.getElementById("homeButtons");
-  container.innerHTML = "";
-
-  const intro = document.createElement("p");
-  intro.className = "muted";
-  intro.innerText = "Piliin kung ano ang nangyari after ng release, sale, or order.";
-  container.appendChild(intro);
-
-  FOLLOW_UP_OPTIONS.forEach(option => {
-    if (!canAccess(option.key)) return;
-
-    container.appendChild(makeMenuButton(
-      option.label,
-      option.helper,
-      function() {
-        chooseType(option.type);
-      },
-      option.live
-    ));
-  });
-
-  container.appendChild(makeMenuButton(
-    "Back",
-    "Bumalik sa main menu.",
-    renderHomeButtons
-  ));
-}
-
 function openTicketLookup() {
   currentType = "TICKET_FOLLOW_UP";
   currentProduct = null;
@@ -968,13 +915,6 @@ function formatDateTime(value) {
   }
 
   return d.toLocaleString();
-}
-
-function ticketActionComingSoon(actionName) {
-  setStatus(
-    actionName + " button is ready in the UI. Next part will connect the stock update backend.",
-    "info"
-  );
 }
   
 function logout() {
@@ -1548,13 +1488,42 @@ function renderPurchaseForm() {
 }
 
 function renderCountCheckForm() {
-  document.getElementById("formTitle").innerText = "Count Check Form";
+  const p = currentProduct || {};
+
+  const systemTotalQty = Number(p.posTotalQty || 0);
+  const systemReservedQty = Number(p.reservedQty || 0);
+  const systemAvailableQty = Number(
+    p.availableQty !== undefined ? p.availableQty : p.currentQty || 0
+  );
+
+  document.getElementById("formTitle").innerText = "Count Actual Stock";
+
   document.getElementById("formFields").innerHTML = `
-    <label>Date Checked</label><input type="date" id="dateChecked" value="${today()}">
-    <label>System Qty</label><input type="number" value="${Number(currentProduct.currentQty || 0)}" disabled>
-    <label>Actual Qty</label><input type="number" id="actualQty" min="0" value="${Number(currentProduct.currentQty || 0)}">
-    <label>Checked By</label>${selectHtml("checkedBy", settings.staffNames, currentUser.name)}
-    <label>Notes</label><textarea id="notes"></textarea>
+    <p class="muted">
+      Gamitin ito kapag magbibilang ng actual available stock.
+      Hindi nito babaguhin ang stock automatically. Maglo-log lang ito ng difference for checking.
+    </p>
+
+    <label>Date Checked</label>
+    <input type="date" id="dateChecked" value="${today()}">
+
+    <label>System Total Qty</label>
+    <input type="number" value="${systemTotalQty}" disabled>
+
+    <label>Reserved / Released Qty</label>
+    <input type="number" value="${systemReservedQty}" disabled>
+
+    <label>System Available Qty</label>
+    <input type="number" value="${systemAvailableQty}" disabled>
+
+    <label>Actual Available Qty</label>
+    <input type="number" id="actualQty" min="0" value="${systemAvailableQty}">
+
+    <label>Checked By</label>
+    ${selectHtml("checkedBy", settings.staffNames, currentUser.name)}
+
+    <label>Notes</label>
+    <textarea id="notes" placeholder="Example: Kulang ng 1 pc, nasa CE2 daw, box damaged, etc."></textarea>
   `;
 }
 
@@ -1759,10 +1728,17 @@ function buildConfirmMessage() {
   }
 
   if (currentType === "COUNT_CHECK") {
+    const systemAvailableQty = Number(
+      currentProduct.availableQty !== undefined
+        ? currentProduct.availableQty
+        : currentProduct.currentQty || 0
+    );
+  
     actionName = "Count Actual Stock";
     details =
-      "System Qty: " + Number(currentProduct.currentQty || 0) + "\n" +
-      "Actual Qty: " + val("actualQty") + "\n" +
+      "System Available Qty: " + systemAvailableQty + "\n" +
+      "Actual Available Qty: " + val("actualQty") + "\n" +
+      "Difference: " + (Number(val("actualQty") || 0) - systemAvailableQty) + "\n" +
       "Checked By: " + val("checkedBy");
   }
 
