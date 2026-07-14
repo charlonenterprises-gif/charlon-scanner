@@ -47,7 +47,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Mini POS</h1>
-    <p class="muted">Staff ID login · v102</p>
+    <p class="muted">Staff ID login · v103</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -944,7 +944,8 @@ function renderTicket(res) {
           <strong>${escapeHtml(line.productName || "")}</strong>
           SKU: ${escapeHtml(line.sku || "")}<br>
           Barcode: ${escapeHtml(line.barcodeValue || "")}<br>
-          Qty Sold: <strong>${escapeHtml(line.quantity)}</strong><br>
+          Qty Sold: <strong>${escapeHtml(line.quantity)} ${escapeHtml(line.unit || "")}</strong><br>
+          ${line.unitDetails ? `Unit Details: ${escapeHtml(line.unitDetails)}<br>` : ""}
           Returned Qty: ${escapeHtml(line.returnedQty || 0)}<br>
           Remaining Returnable: ${escapeHtml(line.remainingQty || 0)}<br>
           Line Status: ${escapeHtml(line.lineStatus || "")}<br>
@@ -955,6 +956,7 @@ function renderTicket(res) {
               ? `
                 <label>Return Qty</label>
                 <input type="number" id="returnQty_${index}" min="0" max="${escapeHtml(line.remainingQty)}" value="${escapeHtml(line.remainingQty)}">
+                <p class="muted">Unit: ${escapeHtml(line.unit || "unit")}</p>
               `
               : ""
           }
@@ -1200,7 +1202,9 @@ function renderHistory(res) {
         Ticket Type: ${escapeHtml(row.ticketType || "")}<br>
         SKU: ${escapeHtml(row.sku || "")}<br>
         Barcode: ${escapeHtml(row.barcodeValue || "")}<br>
-        Qty: <strong>${escapeHtml(row.qty)}</strong><br><br>
+        Qty: <strong>${escapeHtml(row.qty)} ${escapeHtml(row.unit || "")}</strong><br>
+        ${row.unitDetails ? `Unit Details: ${escapeHtml(row.unitDetails)}<br>` : ""}
+        <br>
 
         Total Qty: ${escapeHtml(row.oldTotalQty)} → ${escapeHtml(row.newTotalQty)}<br>
         Reserved Qty: ${escapeHtml(row.oldReservedQty)} → ${escapeHtml(row.newReservedQty)}<br>
@@ -1355,7 +1359,9 @@ async function submitReturnRefundTicket() {
         sku: line.sku || "",
         barcodeValue: line.barcodeValue || "",
         productName: line.productName || "",
-        quantity: qty
+        quantity: qty,
+        unit: line.unit || "unit",
+        unitDetails: line.unitDetails || ""
       });
     }
   });
@@ -1366,7 +1372,7 @@ async function submitReturnRefundTicket() {
   }
 
   const itemSummary = returnItems
-    .map(item => `- ${item.productName} | Return Qty: ${item.quantity}`)
+  .map(item => `- ${item.productName} | Return Qty: ${item.quantity} ${item.unit}${item.unitDetails ? " | " + item.unitDetails : ""}`)
     .join("\n");
 
   const confirmMessage =
@@ -1414,7 +1420,8 @@ async function submitReturnRefundTicket() {
       res.results.forEach(item => {
         resultHtml += `
           ${escapeHtml(item.productName || "")}<br>
-          Returned Qty: ${escapeHtml(item.qty)}<br>
+          Returned Qty: ${escapeHtml(item.qty)} ${escapeHtml(item.unit || "")}<br>
+          ${item.unitDetails ? `Unit Details: ${escapeHtml(item.unitDetails)}<br>` : ""}
           Total Qty: ${escapeHtml(item.oldTotalQty)} → ${escapeHtml(item.newTotalQty)}<br>
           Reserved Qty: ${escapeHtml(item.oldReservedQty)} → ${escapeHtml(item.newReservedQty)}<br>
           Available Qty: ${escapeHtml(item.oldAvailableQty)} → ${escapeHtml(item.newAvailableQty)}<br><br>
@@ -1465,6 +1472,8 @@ function addProductToCart(product) {
       key,
       product,
       quantity: 1,
+      unit: "unit",
+      unitDetails: "",
       pricePerUnit: Number(product.sellingPrice || 0),
       costPerUnit: Number(product.averageCost || 0)
     });
@@ -1498,6 +1507,18 @@ function renderCart() {
 
         <label>Quantity</label>
         <input type="number" min="1" value="${item.quantity}" onchange="updateCartQty(${index}, this.value)">
+        <label>Unit</label>
+        <select onchange="updateCartUnit(${index}, this.value)">
+          ${unitOptionsHtml(item.unit || "unit")}
+        </select>
+        
+        <label>Unit Details / Remarks</label>
+        <input
+          type="text"
+          value="${escapeHtml(item.unitDetails || "")}"
+          placeholder="Example: 100m roll, per meter, full set"
+          onchange="updateCartUnitDetails(${index}, this.value)"
+        >
 
         ${
           currentType === "SALE"
@@ -1525,7 +1546,17 @@ function renderCart() {
   container.innerHTML = html;
   show("cartCard");
 }
+  
+function updateCartUnit(index, value) {
+  if (!cartItems[index]) return;
+  cartItems[index].unit = value || "unit";
+}
 
+function updateCartUnitDetails(index, value) {
+  if (!cartItems[index]) return;
+  cartItems[index].unitDetails = value || "";
+}
+  
 function updateCartQty(index, value) {
   const qty = Number(value || 0);
 
@@ -1773,6 +1804,35 @@ function selectHtml(id, options, selected = "") {
   });
   html += `</select>`;
   return html;
+}
+
+function getUnitOptions() {
+  if (settings.units && Array.isArray(settings.units) && settings.units.length) {
+    return settings.units;
+  }
+
+  return [
+    "pc",
+    "unit",
+    "m",
+    "cm",
+    "ft",
+    "roll",
+    "set",
+    "box",
+    "pair",
+    "kg",
+    "g",
+    "L",
+    "ml"
+  ];
+}
+
+function unitOptionsHtml(selected = "unit") {
+  return getUnitOptions().map(unit => {
+    const isSelected = String(unit) === String(selected) ? "selected" : "";
+    return `<option value="${escapeHtml(unit)}" ${isSelected}>${escapeHtml(unit)}</option>`;
+  }).join("");
 }
 
 function renderSaleForm() {
@@ -2231,6 +2291,8 @@ async function submitCartTransaction() {
       barcodeValue: p.barcodeValue || "",
       productName: p.productName || "",
       quantity: Number(item.quantity || 0),
+      unit: item.unit || "unit",
+      unitDetails: item.unitDetails || "",
       pricePerUnit: Number(item.pricePerUnit || 0),
       costPerUnit: Number(item.costPerUnit || 0)
     };
@@ -2283,7 +2345,7 @@ async function submitCartTransaction() {
   }
 
   const itemSummary = cleanItems
-    .map(item => `- ${item.productName} | Qty: ${item.quantity}`)
+    .map(item => `- ${item.productName} | Qty: ${item.quantity} ${item.unit}${item.unitDetails ? " | " + item.unitDetails : ""}`)
     .join("\n");
 
   const confirmMessage =
@@ -2321,7 +2383,8 @@ async function submitCartTransaction() {
       res.results.forEach(item => {
         resultHtml += `
           ${escapeHtml(item.productName || "")}<br>
-          Qty: ${escapeHtml(item.qty)}<br>
+          Qty: ${escapeHtml(item.qty)} ${escapeHtml(item.unit || "")}<br>
+          ${item.unitDetails ? `Unit Details: ${escapeHtml(item.unitDetails)}<br>` : ""}
           Total Qty: ${escapeHtml(item.oldTotalQty)} → ${escapeHtml(item.newTotalQty)}<br>
           Reserved Qty: ${escapeHtml(item.oldReservedQty)} → ${escapeHtml(item.newReservedQty)}<br>
           Available Qty: ${escapeHtml(item.oldAvailableQty)} → ${escapeHtml(item.newAvailableQty)}<br><br>
