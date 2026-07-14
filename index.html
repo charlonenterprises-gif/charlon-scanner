@@ -47,7 +47,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Mini POS</h1>
-    <p class="muted">Staff ID login · v100</p>
+    <p class="muted">Staff ID login · v101</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -136,6 +136,7 @@
       <option value="COUNT CHECK">COUNT CHECK</option>
       <option value="TRANSFER">TRANSFER</option>
       <option value="DELIVERY_UPDATE">DELIVERY_UPDATE</option>
+      <option value="INVENTORY_ADJUSTMENT">INVENTORY_ADJUSTMENT</option>
     </select>
   
     <label>Limit</label>
@@ -267,6 +268,13 @@ const NEW_TRANSACTION_OPTIONS = [
     type: "COUNT_CHECK",
     label: "Count Actual Stock",
     helper: "Gamitin kapag magche-check ng actual count.",
+    live: true
+  },
+  {
+    key: "INVENTORYADJUSTMENT",
+    type: "INVENTORY_ADJUSTMENT",
+    label: "Manager Inventory Adjustment",
+    helper: "Manager/Admin only. Gamitin kapag kailangang itama ang stock after checking.",
     live: true
   },
   {
@@ -577,7 +585,7 @@ function renderHomeButtons() {
     ));
   }
 
-  if (canAccessAny(["RELEASING", "SALES", "PURCHASES", "COUNTCHECK", "TRANSFER"])) {
+  if (canAccessAny(["RELEASING", "SALES", "PURCHASES", "COUNTCHECK", "INVENTORYADJUSTMENT", "TRANSFER"])) {
     container.appendChild(makeMenuButton(
       "New Transaction",
       "Gamitin kapag may bagong order, sale, purchase, stock count, or location note.",
@@ -1058,6 +1066,7 @@ function chooseType(type) {
     SALE: "Sold Immediately",
     PURCHASE: "Stock In / New Arrival",
     COUNT_CHECK: "Count Actual Stock",
+    INVENTORY_ADJUSTMENT: "Manager Inventory Adjustment",
     CHECK_STOCK: "Check Stock",
     RELEASING: "Customer Order / Release Item",
     RETURN_CANCEL_RELEASE: "Return / Refund / Cancel Item",
@@ -1442,6 +1451,7 @@ function renderForm() {
   }
 
   if (currentType === "COUNT_CHECK") renderCountCheckForm();
+  if (currentType === "INVENTORY_ADJUSTMENT") renderInventoryAdjustmentForm();
   if (currentType === "RETURN_CANCEL_RELEASE") renderReturnCancelForm();
   if (currentType === "TRANSFER") renderTransferForm();
   if (currentType === "LOCATION_NOTE") renderLocationNoteForm();
@@ -1600,6 +1610,87 @@ function renderPurchaseForm() {
     <label>Payment Status</label>${selectHtml("paymentStatus", settings.paymentStatus)}
     <label>Notes</label><textarea id="notes"></textarea>
   `;
+}
+
+function renderInventoryAdjustmentForm() {
+  const p = currentProduct || {};
+
+  const totalQty = Number(p.posTotalQty || 0);
+  const reservedQty = Number(p.reservedQty || 0);
+  const availableQty = Number(
+    p.availableQty !== undefined ? p.availableQty : p.currentQty || 0
+  );
+
+  document.getElementById("formTitle").innerText = "Manager Inventory Adjustment";
+
+  document.getElementById("formFields").innerHTML = `
+    <p class="muted">
+      Manager/Admin only. Gamitin lang kapag kailangan itama ang stock after checking.
+      This will change SKU_BALANCE.
+    </p>
+
+    <label>Date Adjusted</label>
+    <input type="date" id="dateAdjusted" value="${today()}">
+
+    <label>Current Total Qty</label>
+    <input type="number" value="${totalQty}" disabled>
+
+    <label>Reserved / Released Qty</label>
+    <input type="number" value="${reservedQty}" disabled>
+
+    <label>Current Available Qty</label>
+    <input type="number" value="${availableQty}" disabled>
+
+    <label>Adjustment Type</label>
+    <select id="adjustmentType" onchange="renderAdjustmentQtyField()">
+      <option value="">Select</option>
+      <option value="SET_AVAILABLE_QTY">Set Actual Available Qty</option>
+      <option value="ADD_QTY">Add Qty</option>
+      <option value="REMOVE_QTY">Remove Qty</option>
+    </select>
+
+    <div id="adjustmentQtyField"></div>
+
+    <label>Reason</label>
+    <select id="reason">
+      <option value="">Select</option>
+      <option value="Count correction">Count correction</option>
+      <option value="Missing stock">Missing stock</option>
+      <option value="Found stock">Found stock</option>
+      <option value="Damaged item">Damaged item</option>
+      <option value="Wrong previous transaction">Wrong previous transaction</option>
+      <option value="Manual correction">Manual correction</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <label>Approved By</label>
+    ${selectHtml("approvedBy", settings.staffNames, currentUser.name)}
+
+    <label>Notes</label>
+    <textarea id="notes" placeholder="Explain why this adjustment is needed."></textarea>
+  `;
+}
+
+function renderAdjustmentQtyField() {
+  const type = val("adjustmentType");
+
+  if (type === "SET_AVAILABLE_QTY") {
+    document.getElementById("adjustmentQtyField").innerHTML = `
+      <label>New Actual Available Qty</label>
+      <input type="number" id="newAvailableQty" min="0" value="0">
+    `;
+    return;
+  }
+
+  if (type === "ADD_QTY" || type === "REMOVE_QTY") {
+    document.getElementById("adjustmentQtyField").innerHTML = `
+      <label>Adjustment Qty</label>
+      <input type="number" id="adjustmentQty" min="1" value="1">
+    `;
+    return;
+  }
+
+  document.getElementById("adjustmentQtyField").innerHTML = "";
 }
 
 function renderCountCheckForm() {
@@ -1896,6 +1987,24 @@ function buildConfirmMessage() {
       "Handled By: " + val("handledBy");
   }
 
+  if (currentType === "INVENTORY_ADJUSTMENT") {
+    actionName = "Manager Inventory Adjustment";
+  
+    let qtyText = "";
+  
+    if (val("adjustmentType") === "SET_AVAILABLE_QTY") {
+      qtyText = "New Actual Available Qty: " + val("newAvailableQty");
+    } else {
+      qtyText = "Adjustment Qty: " + val("adjustmentQty");
+    }
+  
+    details =
+      "Adjustment Type: " + val("adjustmentType") + "\n" +
+      qtyText + "\n" +
+      "Reason: " + val("reason") + "\n" +
+      "Approved By: " + val("approvedBy");
+  }
+
   return (
     "Please confirm before saving:\n\n" +
     "Action: " + actionName + "\n" +
@@ -2071,6 +2180,18 @@ async function submitTransaction() {
       checkedBy: val("checkedBy"),
       notes: val("notes")
     };
+  } else if (currentType === "INVENTORY_ADJUSTMENT") {
+    params = {
+      ...params,
+      action: "submitInventoryAdjustment",
+      dateAdjusted: val("dateAdjusted"),
+      adjustmentType: val("adjustmentType"),
+      adjustmentQty: val("adjustmentQty"),
+      newAvailableQty: val("newAvailableQty"),
+      reason: val("reason"),
+      approvedBy: val("approvedBy"),
+      notes: val("notes")
+    };
   } else if (currentType === "RELEASING") {
     params = {
       ...params,
@@ -2142,7 +2263,17 @@ async function submitTransaction() {
     console.log("Submit response:", res);
     if (!res || !res.success) { setStatus((res && res.message) ? res.message : "Transaction failed.", "error"); return; }
     let extra = "";
-    if (res.oldQty !== undefined && res.newQty !== undefined) extra += `<br>Old Qty: ${res.oldQty}<br>New Qty: ${res.newQty}`;
+    if (res.oldQty !== undefined && res.newQty !== undefined) {
+      extra += `<br>Old Available Qty: ${res.oldQty}<br>New Available Qty: ${res.newQty}`;
+    }
+    
+    if (res.oldTotalQty !== undefined && res.newTotalQty !== undefined) {
+      extra += `<br>Old Total Qty: ${res.oldTotalQty}<br>New Total Qty: ${res.newTotalQty}`;
+    }
+    
+    if (res.oldReservedQty !== undefined && res.newReservedQty !== undefined) {
+      extra += `<br>Reserved Qty: ${res.oldReservedQty} → ${res.newReservedQty}`;
+    }
     if (res.systemQty !== undefined) extra += `<br>System Qty: ${res.systemQty}<br>Actual Qty: ${res.actualQty}<br>Difference: ${res.difference}`;
     if (res.affectsInventory === false) extra += `<br><span class="muted">Note: This item does not affect inventory quantity.</span>`;
     setStatus(`${escapeHtml(res.message)}<br>Product: ${escapeHtml(res.productName || "")}${extra}`, "success-text");
