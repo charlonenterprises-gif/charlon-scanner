@@ -47,7 +47,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Mini POS</h1>
-    <p class="muted">Staff ID login · v99</p>
+    <p class="muted">Staff ID login · v100</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -135,6 +135,7 @@
       <option value="LOCATION_NOTE">LOCATION_NOTE</option>
       <option value="COUNT CHECK">COUNT CHECK</option>
       <option value="TRANSFER">TRANSFER</option>
+      <option value="DELIVERY_UPDATE">DELIVERY_UPDATE</option>
     </select>
   
     <label>Limit</label>
@@ -730,6 +731,9 @@ function renderTicket(res) {
     Released By: ${escapeHtml(ticket.releasedBy || "")}<br>
     Sold By: ${escapeHtml(ticket.soldBy || "")}<br>
     Location Note: ${escapeHtml(ticket.locationNote || "")}<br>
+    Delivery Status: ${escapeHtml(ticket.deliveryStatus || "")}<br>
+    Courier / Driver: ${escapeHtml(ticket.courierDriver || "")}<br>
+    Tracking No.: ${escapeHtml(ticket.trackingNo || "")}<br>
     Notes: ${escapeHtml(ticket.notes || "")}<br>
     <br>
     <strong>Items:</strong>
@@ -790,6 +794,44 @@ function renderTicket(res) {
       </button>
     `;
   }
+
+  if (res.canDeliveryUpdate) {
+    actionsHtml += `
+      <hr>
+      <h3>Delivery Update</h3>
+  
+      <label>Date Updated</label>
+      <input type="date" id="deliveryDateUpdated" value="${today()}">
+  
+      <label>Delivery Status</label>
+      <select id="deliveryStatus">
+        <option value="">Select</option>
+        <option value="FOR DELIVERY">FOR DELIVERY</option>
+        <option value="IN TRANSIT">IN TRANSIT</option>
+        <option value="DELIVERED">DELIVERED</option>
+        <option value="FAILED DELIVERY">FAILED DELIVERY</option>
+        <option value="RETURNED TO STORE">RETURNED TO STORE</option>
+        <option value="FOR PICKUP">FOR PICKUP</option>
+        <option value="PICKED UP">PICKED UP</option>
+      </select>
+  
+      <label>Courier / Driver</label>
+      <input type="text" id="courierDriver" placeholder="Example: LBC, J&T, Boyet, pickup">
+  
+      <label>Tracking No.</label>
+      <input type="text" id="trackingNo" placeholder="Optional tracking number">
+  
+      <label>Updated By</label>
+      ${selectHtml("deliveryUpdatedBy", settings.staffNames, currentUser.name)}
+  
+      <label>Delivery Notes</label>
+      <textarea id="deliveryNotes" placeholder="Optional notes"></textarea>
+  
+      <button class="success" type="button" onclick="submitDeliveryUpdate()">
+        Save Delivery Update
+      </button>
+    `;
+  }
   
   if (!actionsHtml) {
     actionsHtml = `<p class="muted">No follow-up action available for this ticket status yet.</p>`;
@@ -798,6 +840,79 @@ function renderTicket(res) {
   document.getElementById("ticketActions").innerHTML = actionsHtml;
 }
 
+async function submitDeliveryUpdate() {
+  if (isSubmitting) return;
+
+  if (!currentTicket || !currentTicket.ticketNo) {
+    setStatus("Please find a ticket first.", "error");
+    return;
+  }
+
+  const deliveryStatus = val("deliveryStatus");
+
+  if (!deliveryStatus) {
+    setStatus("Please select Delivery Status.", "error");
+    return;
+  }
+
+  const confirmMessage =
+    "Please confirm delivery update:\n\n" +
+    "Ticket No.: " + currentTicket.ticketNo + "\n" +
+    "Delivery Status: " + deliveryStatus + "\n" +
+    "Courier / Driver: " + val("courierDriver") + "\n" +
+    "Tracking No.: " + val("trackingNo") + "\n\n" +
+    "Stock quantity will NOT change.\n\n" +
+    "Continue?";
+
+  if (!confirm(confirmMessage)) {
+    setStatus("Delivery update cancelled. Nothing was saved.", "muted");
+    return;
+  }
+
+  isSubmitting = true;
+  setStatus("Submitting delivery update...", "info");
+
+  try {
+    const res = await apiCall({
+      action: "submitDeliveryUpdate",
+      staffId: currentUser.staffId,
+      pin: currentPin,
+      ticketNo: currentTicket.ticketNo,
+      dateUpdated: val("deliveryDateUpdated"),
+      deliveryStatus,
+      courierDriver: val("courierDriver"),
+      trackingNo: val("trackingNo"),
+      updatedBy: val("deliveryUpdatedBy"),
+      notes: val("deliveryNotes")
+    });
+
+    console.log("Delivery update response:", res);
+
+    if (!res || !res.success) {
+      setStatus((res && res.message) ? res.message : "Delivery update failed.", "error");
+      return;
+    }
+
+    setStatus(
+      `${escapeHtml(res.message)}<br>` +
+      `Ticket No.: <strong>${escapeHtml(res.ticketNo || "")}</strong><br>` +
+      `Delivery Status: <strong>${escapeHtml(res.deliveryStatus || "")}</strong><br>` +
+      `Courier / Driver: ${escapeHtml(res.courierDriver || "")}<br>` +
+      `Tracking No.: ${escapeHtml(res.trackingNo || "")}<br>` +
+      `<span class="muted">Stock quantity was not changed.</span>`,
+      "success-text"
+    );
+
+    await findTicket();
+
+  } catch (err) {
+    console.error("Delivery update error:", err);
+    setStatus("Delivery update error: " + escapeHtml(err.message || err), "error");
+  } finally {
+    isSubmitting = false;
+  }
+}  
+  
 function openReportsView() {
   currentType = "REPORTS_HISTORY";
   currentProduct = null;
