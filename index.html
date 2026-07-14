@@ -47,7 +47,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Mini POS</h1>
-    <p class="muted">Staff ID login · v101</p>
+    <p class="muted">Staff ID login · v102</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -204,6 +204,8 @@
   
     <div id="ticketInfo" class="product-box"></div>
     <div id="ticketActions"></div>
+    
+    <button class="secondary" type="button" onclick="backHome()">Back</button>
   </div>
 
   <div class="card hidden" id="formCard">
@@ -235,6 +237,12 @@ let cartItems = [];
 let currentTicket = null;
 let currentTicketLines = [];
 
+const SESSION_STORAGE_KEY = "charlonMiniPosSessionV1";
+const SESSION_TIMEOUT_MS = 20 * 60 * 1000;
+
+let inactivityTimer = null;
+let inactivityPromptOpen = false;
+  
 const CART_TRANSACTION_TYPES = [
   "SALE",
   "PURCHASE",
@@ -297,6 +305,182 @@ function hide(id) { document.getElementById(id).classList.add("hidden"); }
 function today() { return new Date().toISOString().slice(0, 10); }
 function val(id) { const el = document.getElementById(id); return el ? el.value : ""; }
 
+function saveLoginSession() {
+  if (!currentUser || !currentPin) return;
+
+  try {
+    const sessionData = {
+      staffId: currentUser.staffId,
+      pin: currentPin,
+      savedAt: Date.now(),
+      lastActiveAt: Date.now()
+    };
+
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionData));
+  } catch (err) {
+    console.log("Could not save login session:", err);
+  }
+}
+
+function updateSessionActivityTime() {
+  try {
+    const raw = localStorage.getItem(SESSION_STORAGE_KEY);
+    if (!raw) return;
+
+    const sessionData = JSON.parse(raw);
+    sessionData.lastActiveAt = Date.now();
+
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionData));
+  } catch (err) {
+    console.log("Could not update session activity:", err);
+  }
+}
+
+function clearLoginSession() {
+  try {
+    localStorage.removeItem(SESSION_STORAGE_KEY);
+  } catch (err) {
+    console.log("Could not clear login session:", err);
+  }
+}
+
+function startInactivityTimer() {
+  clearTimeout(inactivityTimer);
+
+  if (!currentUser) return;
+
+  inactivityTimer = setTimeout(handleInactivityTimeout, SESSION_TIMEOUT_MS);
+}
+
+function stopInactivityTimer() {
+  clearTimeout(inactivityTimer);
+  inactivityTimer = null;
+  inactivityPromptOpen = false;
+}
+
+function resetInactivityTimer() {
+  if (!currentUser) return;
+
+  updateSessionActivityTime();
+  startInactivityTimer();
+}
+
+function handleInactivityTimeout() {
+  if (!currentUser || inactivityPromptOpen) return;
+
+  inactivityPromptOpen = true;
+
+  const continueSession = confirm(
+    "You have been inactive for around 20 minutes.\n\nDo you want to continue using Charlon Mini POS?"
+  );
+
+  inactivityPromptOpen = false;
+
+  if (continueSession) {
+    setStatus("Session continued.", "success-text");
+    resetInactivityTimer();
+  } else {
+    logout();
+    setStatus("Session ended because of inactivity.", "muted");
+  }
+}
+
+function setupInactivityTracking() {
+  const events = [
+    "click",
+    "keydown",
+    "touchstart",
+    "mousemove",
+    "scroll"
+  ];
+
+  events.forEach(eventName => {
+    document.addEventListener(eventName, function() {
+      if (currentUser) {
+        resetInactivityTimer();
+      }
+    }, { passive: true });
+  });
+}
+
+async function restoreSavedLoginSession() {
+  let sessionData = null;
+
+  try {
+    const raw = localStorage.getItem(SESSION_STORAGE_KEY);
+    if (!raw) return;
+
+    sessionData = JSON.parse(raw);
+  } catch (err) {
+    clearLoginSession();
+    return;
+  }
+
+  if (!sessionData || !sessionData.staffId || !sessionData.pin) {
+    clearLoginSession();
+    return;
+  }
+
+  const lastActiveAt = Number(sessionData.lastActiveAt || sessionData.savedAt || 0);
+  const inactiveFor = Date.now() - lastActiveAt;
+
+  if (inactiveFor >= SESSION_TIMEOUT_MS) {
+    const continueSession = confirm(
+      "You have a saved login session, but it has been inactive for more than 20 minutes.\n\nDo you want to continue?"
+    );
+
+    if (!continueSession) {
+      clearLoginSession();
+      setStatus("Saved session cleared.", "muted");
+      return;
+    }
+  }
+
+  setStatus("Restoring saved login...", "info");
+
+  try {
+    const res = await apiCall({
+      action: "login",
+      staffId: sessionData.staffId,
+      pin: sessionData.pin
+    });
+
+    console.log("Restore login response:", res);
+
+    if (!res || !res.success) {
+      clearLoginSession();
+      setStatus("Saved login expired or invalid. Please login again.", "error");
+      return;
+    }
+
+    currentUser = res.user;
+    currentPin = sessionData.pin;
+    settings = res.settings || {};
+
+    document.getElementById("staffId").value = currentUser.staffId;
+    document.getElementById("pin").value = currentPin;
+
+    hide("loginCard");
+
+    if (currentUser.mustChangePin) {
+      show("changePinCard");
+      setStatus("Temporary PIN detected. Please create your own PIN.", "info");
+      return;
+    }
+
+    saveLoginSession();
+    openHome();
+    startInactivityTimer();
+
+    setStatus("Login restored.", "success-text");
+
+  } catch (err) {
+    console.error("Restore login error:", err);
+    clearLoginSession();
+    setStatus("Could not restore login. Please login again.", "error");
+  }
+}
+  
 function escapeHtml(value) {
   return String(value || "")
     .replace(/&/g, "&amp;")
@@ -494,7 +678,9 @@ async function login() {
       return;
     }
 
+    saveLoginSession();
     openHome();
+    startInactivityTimer();
     setStatus("Login successful.", "success-text");
   } catch (err) {
     console.error("Login error:", err);
@@ -541,9 +727,11 @@ async function changePin() {
     document.getElementById("pin").value = newPin;
     document.getElementById("newPin").value = "";
     document.getElementById("confirmPin").value = "";
-
+    
+    saveLoginSession();
     hide("changePinCard");
     openHome();
+    startInactivityTimer();
     setStatus("PIN changed successfully. You can use this PIN for your next login.", "success-text");
   } catch (err) {
     console.error("Change PIN error:", err);
@@ -1041,6 +1229,9 @@ function formatDateTime(value) {
 }
   
 function logout() {
+  clearLoginSession();
+  stopInactivityTimer();
+  
   stopCamera();
   currentUser = null;
   currentPin = "";
@@ -1079,9 +1270,17 @@ function chooseType(type) {
 }
 
 function backHome() {
-  stopCamera(); hide("scanCard"); hide("productCard"); hide("cartCard"); hide("ticketCard"); hide("reportsCard"); hide("formCard"); show("homeCard");
+  stopCamera();
+  hide("scanCard");
+  hide("productCard");
+  hide("cartCard");
+  hide("ticketCard");
+  hide("reportsCard");
+  hide("formCard");
+  show("homeCard");
   setStatus("Choose transaction type.", "muted");
 }
+
 
 async function startCamera() {
   unlockScanSound();
@@ -2327,7 +2526,11 @@ window.addEventListener("DOMContentLoaded", function() {
     if (e.key === "Enter") { e.preventDefault(); findProduct(); }
   });
 
-  setStatus("Ready.", "muted");
+  setupInactivityTracking();
+  restoreSavedLoginSession();
+  if (!currentUser) {
+    setStatus("Ready.", "muted");
+  }
 });
 </script>
 </body>
