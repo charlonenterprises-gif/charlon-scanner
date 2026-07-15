@@ -539,7 +539,9 @@ async function submitTicketFollowUp(followUpAction) {
           Qty: ${escapeHtml(item.qty)}<br>
           Total Qty: ${escapeHtml(item.oldTotalQty)} → ${escapeHtml(item.newTotalQty)}<br>
           Reserved Qty: ${escapeHtml(item.oldReservedQty)} → ${escapeHtml(item.newReservedQty)}<br>
-          Available Qty: ${escapeHtml(item.oldAvailableQty)} → ${escapeHtml(item.newAvailableQty)}<br><br>
+          Available Qty: ${escapeHtml(item.oldAvailableQty)} → ${escapeHtml(item.newAvailableQty)}<br>
+          ${item.negativeStockWarning ? `<span class="error">${escapeHtml(item.negativeStockWarning)}</span><br>` : ""}
+          <br>
         `;
       });
     }
@@ -2300,16 +2302,44 @@ async function submitCartTransaction() {
       releaseToLocation: val("releaseToLocation")
     };
   }
-
+  
   const itemSummary = cleanItems
-    .map(item => `- ${item.productName} | Qty: ${item.quantity} ${item.unit}${item.unitDetails ? " | " + item.unitDetails : ""}`)
+    .map(item => `- ${item.productName} | Qty: ${item.quantity} ${item.unit || ""}${item.unitDetails ? " | " + item.unitDetails : ""}`)
     .join("\n");
+  
+  let negativeWarningText = "";
+  
+  if (currentType === "SALE" || currentType === "RELEASING") {
+    const warningItems = cartItems
+      .map(item => {
+        const p = item.product || {};
+        const availableQty = Number(
+          p.availableQty !== undefined ? p.availableQty : p.currentQty || 0
+        );
+        const qty = Number(item.quantity || 0);
+  
+        if (qty > availableQty) {
+          return `- ${p.productName || ""} | Available: ${availableQty}, Transaction Qty: ${qty}`;
+        }
+  
+        return "";
+      })
+      .filter(text => text);
+  
+    if (warningItems.length) {
+      negativeWarningText =
+        "\n\nWARNING:\n" +
+        "Some items do not have enough available stock. The system will still continue and record negative stock.\n\n" +
+        warningItems.join("\n");
+    }
+  }
 
   const confirmMessage =
     "Please confirm cart transaction:\n\n" +
     "Type: " + currentType + "\n" +
-    "Items:\n" + itemSummary + "\n\n" +
-    "Continue?";
+    "Items:\n" + itemSummary +
+    negativeWarningText +
+    "\n\nContinue?";
 
   if (!confirm(confirmMessage)) {
     setStatus("Cart transaction cancelled. Nothing was saved.", "muted");
@@ -2344,7 +2374,9 @@ async function submitCartTransaction() {
           ${item.unitDetails ? `Unit Details: ${escapeHtml(item.unitDetails)}<br>` : ""}
           Total Qty: ${escapeHtml(item.oldTotalQty)} → ${escapeHtml(item.newTotalQty)}<br>
           Reserved Qty: ${escapeHtml(item.oldReservedQty)} → ${escapeHtml(item.newReservedQty)}<br>
-          Available Qty: ${escapeHtml(item.oldAvailableQty)} → ${escapeHtml(item.newAvailableQty)}<br><br>
+          Available Qty: ${escapeHtml(item.oldAvailableQty)} → ${escapeHtml(item.newAvailableQty)}<br>
+          ${item.negativeStockWarning ? `<span class="error">${escapeHtml(item.negativeStockWarning)}</span><br>` : ""}
+          <br>
         `;
       });
     }
@@ -2495,6 +2527,9 @@ async function submitTransaction() {
     }
     if (res.systemQty !== undefined) extra += `<br>System Qty: ${res.systemQty}<br>Actual Qty: ${res.actualQty}<br>Difference: ${res.difference}`;
     if (res.affectsInventory === false) extra += `<br><span class="muted">Note: This item does not affect inventory quantity.</span>`;
+    if (res.negativeStockWarning) {
+      extra += `<br><span class="error">${escapeHtml(res.negativeStockWarning)}</span>`;
+    }
     setStatus(`${escapeHtml(res.message)}<br>Product: ${escapeHtml(res.productName || "")}${extra}`, "success-text");
     hide("formCard"); currentProduct = null; document.getElementById("searchValue").value = "";
   } catch (err) {
