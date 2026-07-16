@@ -47,7 +47,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Mini POS</h1>
-    <p class="muted">Staff ID login · v104</p>
+    <p class="muted">Staff ID login · v105</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -151,11 +151,11 @@
   <div class="card hidden" id="ticketCard">
     <h3>Transaction Follow-up</h3>
     <p class="muted">
-      Enter the Ticket No. / Release No. to view the order and its items.
+      Enter the Ticket No., Order No., Receipt No., or Tracking No. to view the transaction and its items.
     </p>
   
-    <label>Ticket No. / Release No.</label>
-    <input type="text" id="ticketNo" placeholder="Example: REL-20260713-0001" autocomplete="off">
+    <label>Ticket / Order / Receipt No.</label>
+    <input type="text" id="ticketNo" placeholder="Ticket no., order no., receipt no., tracking no." autocomplete="off">
   
     <button type="button" onclick="findTicket()">Find Ticket</button>
   
@@ -840,7 +840,7 @@ async function findTicket() {
     return;
   }
 
-  setStatus("Searching ticket...", "info");
+  setStatus("Searching transaction reference...", "info");
 
   try {
     const res = await apiCall({
@@ -880,6 +880,8 @@ function renderTicket(res) {
     Status: <span class="badge">${escapeHtml(ticket.status || "")}</span><br>
     Date: ${escapeHtml(ticket.date || "")}<br>
     Order No.: ${escapeHtml(ticket.orderNo || "")}<br>
+    Receipt Type: ${escapeHtml(ticket.receiptType || "")}<br>
+    Receipt No.: ${escapeHtml(ticket.receiptNo || "")}<br>
     Customer: ${escapeHtml(ticket.customerName || "")}<br>
     Sales Channel: ${escapeHtml(ticket.salesChannel || "")}<br>
     Created By: ${escapeHtml(ticket.createdBy || "")}<br>
@@ -1159,6 +1161,9 @@ function renderHistory(res) {
         Date/Time: ${escapeHtml(formatDateTime(row.dateTime))}<br>
         Ticket No.: ${escapeHtml(row.ticketNo || "")}<br>
         Ticket Type: ${escapeHtml(row.ticketType || "")}<br>
+        Order No.: ${escapeHtml(row.orderNo || "")}<br>
+        Receipt Type: ${escapeHtml(row.receiptType || "")}<br>
+        Receipt No.: ${escapeHtml(row.receiptNo || "")}<br>
         SKU: ${escapeHtml(row.sku || "")}<br>
         Barcode: ${escapeHtml(row.barcodeValue || "")}<br>
         Qty: <strong>${escapeHtml(row.qty)} ${escapeHtml(row.unit || "")}</strong><br>
@@ -1536,6 +1541,31 @@ function updateCartCost(index, value) {
   cartItems[index].costPerUnit = Number(value || 0);
 }
 
+async function loadTicketPreview(transactionType, elementId) {
+  const el = document.getElementById(elementId);
+  if (!el || !currentUser) return;
+
+  el.value = "Generating...";
+
+  try {
+    const res = await apiCall({
+      action: "getNextTicketNo",
+      staffId: currentUser.staffId,
+      pin: currentPin,
+      transactionType
+    });
+
+    if (res && res.success) {
+      el.value = res.ticketNo || "";
+    } else {
+      el.value = "Will auto-generate on submit";
+    }
+  } catch (err) {
+    console.log("Ticket preview failed:", err);
+    el.value = "Will auto-generate on submit";
+  }
+}
+  
 function removeCartItem(index) {
   cartItems.splice(index, 1);
   renderCart();
@@ -1658,6 +1688,9 @@ function renderCartForm() {
       <label>Date Sold</label>
       <input type="date" id="dateSold" value="${today()}">
 
+      <label>System Ticket No.</label>
+      <input type="text" id="autoTicketNo" value="Generating..." disabled>
+
       <label>Sales Channel</label>
       ${selectHtml("salesChannel", settings.salesChannels)}
 
@@ -1678,6 +1711,16 @@ function renderCartForm() {
       <label>Order No.</label>
       <input type="text" id="orderNo">
 
+      <label>Receipt Type</label>
+      <select id="receiptType">
+        <option value="Sales Receipt">Sales Receipt</option>
+        <option value="Delivery Receipt">Delivery Receipt</option>
+        <option value="No Receipt">No Receipt</option>
+      </select>
+      
+      <label>Receipt No.</label>
+      <input type="text" id="receiptNo" placeholder="Actual receipt number, if any">
+
       <label>Customer Name</label>
       <input type="text" id="customerName">
 
@@ -1687,6 +1730,7 @@ function renderCartForm() {
       <label>Notes</label>
       <textarea id="notes"></textarea>
     `;
+    loadTicketPreview("SALE", "autoTicketNo");
   }
 
   if (currentType === "PURCHASE") {
@@ -1699,6 +1743,9 @@ function renderCartForm() {
 
       <label>Date Received</label>
       <input type="date" id="dateReceived" value="${today()}">
+
+      <label>System Ticket No.</label>
+      <input type="text" id="autoTicketNo" value="Generating..." disabled>
 
       <label>Supplier / Store</label>
       <input type="text" id="supplier">
@@ -1723,6 +1770,7 @@ function renderCartForm() {
       <label>Notes</label>
       <textarea id="notes"></textarea>
     `;
+    loadTicketPreview("PURCHASE", "autoTicketNo");
   }
 
   if (currentType === "RELEASING") {
@@ -1736,8 +1784,21 @@ function renderCartForm() {
       <label>Date Released</label>
       <input type="date" id="dateReleased" value="${today()}">
 
+      <label>System Ticket No.</label>
+      <input type="text" id="autoTicketNo" value="Generating..." disabled>
+
       <label>Reference No. / Order No.</label>
       <input type="text" id="referenceNo" placeholder="Shopee/Lazada/FB/Walk-in order no.">
+
+      <label>Receipt Type</label>
+      <select id="receiptType">
+        <option value="No Receipt">No Receipt</option>
+        <option value="Sales Receipt">Sales Receipt</option>
+        <option value="Delivery Receipt">Delivery Receipt</option>
+      </select>
+      
+      <label>Receipt No.</label>
+      <input type="text" id="receiptNo" placeholder="Actual receipt number, if any">
 
       <label>Customer Name</label>
       <input type="text" id="customerName">
@@ -1751,6 +1812,7 @@ function renderCartForm() {
       <label>Notes</label>
       <textarea id="notes"></textarea>
     `;
+    loadTicketPreview("RELEASING", "autoTicketNo");
   }
 }
 
@@ -2275,6 +2337,8 @@ async function submitCartTransaction() {
       releasedBy: val("releasedBy"),
       packedBy: val("packedBy"),
       orderNo: val("orderNo"),
+      receiptType: val("receiptType"),
+      receiptNo: val("receiptNo"),
       customerName: val("customerName"),
       paymentStatus: val("paymentStatus")
     };
@@ -2297,6 +2361,8 @@ async function submitCartTransaction() {
       ...params,
       dateReleased: val("dateReleased"),
       referenceNo: val("referenceNo"),
+      receiptType: val("receiptType"),
+      receiptNo: val("receiptNo"),
       customerName: val("customerName"),
       releasedBy: val("releasedBy"),
       releaseToLocation: val("releaseToLocation")
@@ -2334,9 +2400,34 @@ async function submitCartTransaction() {
     }
   }
 
+  let referenceSummary = "";
+
+  if (currentType === "SALE") {
+    referenceSummary =
+      "System Ticket No.: " + val("autoTicketNo") + "\n" +
+      "Order No.: " + val("orderNo") + "\n" +
+      "Receipt Type: " + val("receiptType") + "\n" +
+      "Receipt No.: " + val("receiptNo") + "\n";
+  }
+  
+  if (currentType === "PURCHASE") {
+    referenceSummary =
+      "System Ticket No.: " + val("autoTicketNo") + "\n" +
+      "Receipt / Invoice No.: " + val("receiptNo") + "\n";
+  }
+  
+  if (currentType === "RELEASING") {
+    referenceSummary =
+      "System Ticket No.: " + val("autoTicketNo") + "\n" +
+      "Reference / Order No.: " + val("referenceNo") + "\n" +
+      "Receipt Type: " + val("receiptType") + "\n" +
+      "Receipt No.: " + val("receiptNo") + "\n";
+  }
+
   const confirmMessage =
     "Please confirm cart transaction:\n\n" +
     "Type: " + currentType + "\n" +
+    referenceSummary + "\n" +
     "Items:\n" + itemSummary +
     negativeWarningText +
     "\n\nContinue?";
@@ -2361,6 +2452,9 @@ async function submitCartTransaction() {
     let resultHtml = `
       ${escapeHtml(res.message)}<br>
       Ticket No.: <strong>${escapeHtml(res.ticketNo || "")}</strong><br>
+      Order No.: ${escapeHtml(res.orderNo || "")}<br>
+      Receipt Type: ${escapeHtml(res.receiptType || "")}<br>
+      Receipt No.: ${escapeHtml(res.receiptNo || "")}<br>
       Items Saved: ${escapeHtml(res.itemCount || 0)}
     `;
 
