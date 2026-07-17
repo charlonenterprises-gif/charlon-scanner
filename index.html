@@ -47,7 +47,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Mini POS</h1>
-    <p class="muted">Staff ID login · v105</p>
+    <p class="muted">Staff ID login · v106</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -1465,7 +1465,8 @@ function renderCart() {
         <strong>${escapeHtml(p.productName || "")}</strong>
         <div class="muted">
           SKU: ${escapeHtml(p.sku || "")}<br>
-          Barcode: ${escapeHtml(p.barcodeValue || "")}<br>
+          QR Value: ${escapeHtml(p.qrValue || p.barcodeValue || "")}<br>
+          ${p.drNumber ? `DR Number: ${escapeHtml(p.drNumber)}<br>` : ""}
           Available Qty: ${escapeHtml(p.availableQty !== undefined ? p.availableQty : p.currentQty)}
         </div>
 
@@ -1693,6 +1694,9 @@ function renderCartForm() {
 
       <label>Sales Channel</label>
       ${selectHtml("salesChannel", settings.salesChannels)}
+
+      <label>Location / Stock Source</label>
+      ${selectHtml("saleLocation", settings.locations, currentUser.location)}
 
       <div class="row">
         <div>
@@ -2333,6 +2337,7 @@ async function submitCartTransaction() {
       ...params,
       dateSold: val("dateSold"),
       salesChannel: val("salesChannel"),
+      saleLocation: val("saleLocation"),
       soldBy: val("soldBy"),
       releasedBy: val("releasedBy"),
       packedBy: val("packedBy"),
