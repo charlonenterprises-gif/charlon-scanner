@@ -47,7 +47,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Mini POS</h1>
-    <p class="muted">Staff ID login · v106</p>
+    <p class="muted">Staff ID login · v107</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -132,6 +132,11 @@
       <option value="COMPLETE_SALE">COMPLETE_SALE</option>
       <option value="CANCEL_RELEASE">CANCEL_RELEASE</option>
       <option value="RETURN_REFUND">RETURN_REFUND</option>
+      <option value="PURCHASE_STOCK_IN">PURCHASE_STOCK_IN</option>
+      <option value="SALE_STOCK_OUT">SALE_STOCK_OUT</option>
+      <option value="RETURN_REQUEST">RETURN_REQUEST</option>
+      <option value="RETURN_APPROVED">RETURN_APPROVED</option>
+      <option value="RETURN_REJECTED">RETURN_REJECTED</option>
       <option value="LOCATION_NOTE">LOCATION_NOTE</option>
       <option value="COUNT CHECK">COUNT CHECK</option>
       <option value="TRANSFER">TRANSFER</option>
@@ -165,6 +170,36 @@
     <button class="secondary" type="button" onclick="backHome()">Back</button>
   </div>
 
+  <div class="card hidden" id="revampReturnCard">
+    <h3>Return Stock-In</h3>
+    <p class="muted">
+      Search receipt no., choose returned item/s, then submit for approval.
+      Stock will only be added after approval.
+    </p>
+
+    <label>Receipt No.</label>
+    <input type="text" id="revampReturnReceiptNo" placeholder="Enter receipt number" autocomplete="off">
+
+    <button type="button" onclick="findRevampSaleByReceipt()">Find Receipt</button>
+
+    <div id="revampReturnItems" class="product-box"></div>
+
+    <button class="secondary" type="button" onclick="backHome()">Back</button>
+  </div>
+
+  <div class="card hidden" id="approvalCard">
+    <h3>My Approvals</h3>
+    <p class="muted">
+      Approve only after physically checking that the returned item was received in your assigned location.
+    </p>
+
+    <button type="button" onclick="loadMyApprovals()">Refresh Approvals</button>
+
+    <div id="approvalList" class="product-box"></div>
+
+    <button class="secondary" type="button" onclick="backHome()">Back</button>
+  </div>
+
   <div class="card hidden" id="formCard">
     <h3 id="formTitle">Transaction Form</h3>
     <div id="formFields"></div>
@@ -193,6 +228,8 @@ let isSubmitting = false;
 let cartItems = [];
 let currentTicket = null;
 let currentTicketLines = [];
+let revampReturnLines = [];
+let revampApprovalRows = [];
 
 const SESSION_STORAGE_KEY = "charlonMiniPosSessionV1";
 const SESSION_TIMEOUT_MS = 20 * 60 * 1000;
@@ -747,7 +784,23 @@ function renderHomeButtons() {
       openTicketLookup
     ));
   }
-  
+
+  if (canAccess("RETURNCANCELRELEASE")) {
+    container.appendChild(makeMenuButton(
+      "Return Stock-In",
+      "Search receipt no., submit returned items, and wait for location approval.",
+      openRevampReturnLookup
+    ));
+  }
+
+  if (currentUser) {
+    container.appendChild(makeMenuButton(
+      "My Approvals",
+      "Approve or reject pending return requests assigned to you.",
+      openMyApprovals
+    ));
+  }
+
   if (canAccess("REPORTSHISTORY")) {
     container.appendChild(makeMenuButton(
       "Reports / History",
@@ -821,6 +874,8 @@ function openTicketLookup() {
   hide("cartCard");
   hide("reportsCard");
   hide("formCard");
+  hide("revampReturnCard");
+  hide("approvalCard");
   show("ticketCard");
 
   document.getElementById("ticketNo").value = "";
@@ -1085,6 +1140,8 @@ function openReportsView() {
   hide("cartCard");
   hide("ticketCard");
   hide("formCard");
+  hide("revampReturnCard");
+  hide("approvalCard");
   show("reportsCard");
 
   document.getElementById("historySearch").value = "";
@@ -1206,7 +1263,7 @@ function logout() {
   settings = {};
   currentType = "";
   currentProduct = null;
-  hide("homeCard"); hide("changePinCard"); hide("scanCard"); hide("productCard"); hide("cartCard"); hide("ticketCard"); hide("reportsCard"); hide("formCard"); show("loginCard");
+  hide("homeCard"); hide("changePinCard"); hide("scanCard"); hide("productCard"); hide("cartCard"); hide("ticketCard"); hide("reportsCard"); hide("formCard"); hide("revampReturnCard"); hide("approvalCard"); show("loginCard");
   document.getElementById("staffId").value = "";
   document.getElementById("pin").value = "";
   document.getElementById("newPin").value = "";
@@ -1219,7 +1276,7 @@ function chooseType(type) {
   currentType = type;
   currentProduct = null;
   cartItems = [];
-  hide("homeCard"); show("scanCard"); hide("productCard"); hide("cartCard"); hide("ticketCard"); hide("reportsCard"); hide("formCard");
+  hide("homeCard"); show("scanCard"); hide("productCard"); hide("cartCard"); hide("ticketCard"); hide("reportsCard"); hide("formCard"); hide("revampReturnCard"); hide("approvalCard");
   document.getElementById("searchValue").value = "";
   const titles = {
     SALE: "Sold Immediately",
@@ -1245,6 +1302,8 @@ function backHome() {
   hide("ticketCard");
   hide("reportsCard");
   hide("formCard");
+  hide("revampReturnCard");
+  hide("approvalCard");
   show("homeCard");
   setStatus("Choose transaction type.", "muted");
 }
@@ -2314,6 +2373,7 @@ async function submitCartTransaction() {
       qboId: p.qboId || "",
       sku: p.sku || "",
       barcodeValue: p.barcodeValue || "",
+      qrValue: p.qrValue || p.barcodeValue || "",
       productName: p.productName || "",
       quantity: Number(item.quantity || 0),
       unit: item.unit || "unit",
@@ -2499,6 +2559,381 @@ async function submitCartTransaction() {
   }
 }
   
+
+function openRevampReturnLookup() {
+  currentType = "REVAMP_RETURN";
+  revampReturnLines = [];
+
+  hide("homeCard");
+  hide("scanCard");
+  hide("productCard");
+  hide("cartCard");
+  hide("ticketCard");
+  hide("reportsCard");
+  hide("formCard");
+  hide("approvalCard");
+  show("revampReturnCard");
+
+  document.getElementById("revampReturnReceiptNo").value = "";
+  document.getElementById("revampReturnItems").innerHTML = "";
+
+  setStatus("Enter receipt no. for return stock-in.", "muted");
+
+  setTimeout(() => document.getElementById("revampReturnReceiptNo").focus(), 200);
+}
+
+async function findRevampSaleByReceipt() {
+  const receiptNo = val("revampReturnReceiptNo").trim();
+
+  if (!receiptNo) {
+    setStatus("Please enter Receipt No.", "error");
+    return;
+  }
+
+  setStatus("Searching receipt...", "info");
+
+  try {
+    const res = await apiCall({
+      action: "getRevampSaleByReceipt",
+      staffId: currentUser.staffId,
+      pin: currentPin,
+      receiptNo
+    });
+
+    console.log("Revamp receipt response:", res);
+
+    if (!res || !res.success) {
+      revampReturnLines = [];
+      document.getElementById("revampReturnItems").innerHTML = "";
+      setStatus((res && res.message) ? res.message : "Receipt not found.", "error");
+      return;
+    }
+
+    revampReturnLines = res.items || [];
+    renderRevampReturnItems(res);
+    setStatus("Receipt found.", "success-text");
+
+  } catch (err) {
+    console.error("Revamp receipt lookup error:", err);
+    setStatus("Receipt lookup error: " + escapeHtml(err.message || err), "error");
+  }
+}
+
+function renderRevampReturnItems(res) {
+  const receiptNo = res.receiptNo || "";
+  const items = res.items || [];
+
+  let html = `
+    <hr>
+    <strong>Receipt No.: ${escapeHtml(receiptNo)}</strong><br>
+    <span class="muted">Enter only the qty that is actually returned.</span><br><br>
+  `;
+
+  if (!items.length) {
+    html += `<p class="muted">No returnable items found.</p>`;
+    document.getElementById("revampReturnItems").innerHTML = html;
+    return;
+  }
+
+  items.forEach((item, index) => {
+    html += `
+      <div class="cart-line">
+        <strong>${escapeHtml(item.productName || "")}</strong>
+        SKU: ${escapeHtml(item.sku || "")}<br>
+        ${item.drNumber ? `DR Number: ${escapeHtml(item.drNumber)}<br>` : ""}
+        ${item.qrValue ? `QR Value: ${escapeHtml(item.qrValue)}<br>` : ""}
+        Sold Qty: ${escapeHtml(item.soldQty || 0)}<br>
+        Returned/Pending Qty: ${escapeHtml(item.returnedQty || 0)}<br>
+        Remaining Returnable: <strong>${escapeHtml(item.remainingQty || 0)}</strong><br>
+
+        <label>Return Qty</label>
+        <input
+          type="number"
+          id="revampReturnQty_${index}"
+          min="0"
+          max="${escapeHtml(item.remainingQty || 0)}"
+          value="0"
+        >
+      </div>
+    `;
+  });
+
+  html += `
+    <label>Date Returned</label>
+    <input type="date" id="revampDateReturned" value="${today()}">
+
+    <label>Return Location</label>
+    ${selectHtml("revampReturnLocation", settings.locations, currentUser.location)}
+
+    <label>Handled By</label>
+    ${selectHtml("revampHandledBy", settings.staffNames, currentUser.name)}
+
+    <button class="success" type="button" onclick="submitRevampReturnRequest()">
+      Submit Return for Approval
+    </button>
+  `;
+
+  document.getElementById("revampReturnItems").innerHTML = html;
+}
+
+async function submitRevampReturnRequest() {
+  if (isSubmitting) return;
+
+  const receiptNo = val("revampReturnReceiptNo").trim();
+
+  if (!receiptNo) {
+    setStatus("Missing Receipt No.", "error");
+    return;
+  }
+
+  const returnItems = [];
+
+  revampReturnLines.forEach((line, index) => {
+    const qty = Number(val("revampReturnQty_" + index) || 0);
+
+    if (qty > 0) {
+      returnItems.push({
+        sku: line.sku,
+        productName: line.productName,
+        quantity: qty
+      });
+    }
+  });
+
+  if (!returnItems.length) {
+    setStatus("Please enter at least one return qty.", "error");
+    return;
+  }
+
+  const itemSummary = returnItems
+    .map(item => `- ${item.productName} | Qty: ${item.quantity}`)
+    .join("\n");
+
+  const confirmMessage =
+    "Please confirm return request:\n\n" +
+    "Receipt No.: " + receiptNo + "\n" +
+    "Return Location: " + val("revampReturnLocation") + "\n" +
+    "Handled By: " + val("revampHandledBy") + "\n\n" +
+    "Items:\n" + itemSummary + "\n\n" +
+    "Stock will NOT be added yet. It will wait for approval.\n\n" +
+    "Continue?";
+
+  if (!confirm(confirmMessage)) {
+    setStatus("Return request cancelled.", "muted");
+    return;
+  }
+
+  isSubmitting = true;
+  setStatus("Submitting return request...", "info");
+
+  try {
+    const res = await apiCall({
+      action: "submitRevampReturnRequest",
+      staffId: currentUser.staffId,
+      pin: currentPin,
+      receiptNo,
+      dateReturned: val("revampDateReturned"),
+      returnLocation: val("revampReturnLocation"),
+      handledBy: val("revampHandledBy"),
+      returnItems: JSON.stringify(returnItems)
+    });
+
+    console.log("Submit revamp return response:", res);
+
+    if (!res || !res.success) {
+      setStatus((res && res.message) ? res.message : "Return request failed.", "error");
+      return;
+    }
+
+    let html = `
+      ${escapeHtml(res.message)}<br>
+      Receipt No.: <strong>${escapeHtml(res.receiptNo || "")}</strong><br>
+      Items Submitted: ${escapeHtml(res.itemCount || 0)}<br><br>
+    `;
+
+    if (Array.isArray(res.results)) {
+      res.results.forEach(item => {
+        html += `
+          Return ID: <strong>${escapeHtml(item.returnId || "")}</strong><br>
+          Product: ${escapeHtml(item.productName || "")}<br>
+          SKU: ${escapeHtml(item.sku || "")}<br>
+          Qty: ${escapeHtml(item.qty || 0)}<br>
+          Return Location: ${escapeHtml(item.returnLocation || "")}<br>
+          Required Approver: <strong>${escapeHtml(item.requiredApprover || "")}</strong><br>
+          Status: <strong>${escapeHtml(item.approvalStatus || "")}</strong><br><br>
+        `;
+      });
+    }
+
+    setStatus(html, "success-text");
+
+    await findRevampSaleByReceipt();
+
+  } catch (err) {
+    console.error("Submit return request error:", err);
+    setStatus("Return request error: " + escapeHtml(err.message || err), "error");
+  } finally {
+    isSubmitting = false;
+  }
+}
+
+function openMyApprovals() {
+  currentType = "MY_APPROVALS";
+  revampApprovalRows = [];
+
+  hide("homeCard");
+  hide("scanCard");
+  hide("productCard");
+  hide("cartCard");
+  hide("ticketCard");
+  hide("reportsCard");
+  hide("formCard");
+  hide("revampReturnCard");
+  show("approvalCard");
+
+  document.getElementById("approvalList").innerHTML = "";
+
+  loadMyApprovals();
+}
+
+async function loadMyApprovals() {
+  if (!currentUser) {
+    setStatus("Please login first.", "error");
+    return;
+  }
+
+  setStatus("Loading approvals...", "info");
+
+  try {
+    const res = await apiCall({
+      action: "getMyRevampApprovals",
+      staffId: currentUser.staffId,
+      pin: currentPin
+    });
+
+    console.log("My approvals response:", res);
+
+    if (!res || !res.success) {
+      setStatus((res && res.message) ? res.message : "Could not load approvals.", "error");
+      return;
+    }
+
+    revampApprovalRows = res.rows || [];
+    renderMyApprovals(res);
+    setStatus("Approvals loaded.", "success-text");
+
+  } catch (err) {
+    console.error("Load approvals error:", err);
+    setStatus("Load approvals error: " + escapeHtml(err.message || err), "error");
+  }
+}
+
+function renderMyApprovals(res) {
+  const rows = res.rows || [];
+  const container = document.getElementById("approvalList");
+
+  let html = `
+    <hr>
+    <strong>Pending Approvals:</strong> ${escapeHtml(rows.length)}<br>
+  `;
+
+  if (!rows.length) {
+    html += `<p class="muted">No pending approvals assigned to you.</p>`;
+    container.innerHTML = html;
+    return;
+  }
+
+  rows.forEach((row, index) => {
+    html += `
+      <div class="cart-line">
+        <span class="badge">${escapeHtml(row.type || "")}</span>
+        <span class="badge">${escapeHtml(row.approvalStatus || "")}</span><br><br>
+
+        Return ID: <strong>${escapeHtml(row.returnId || "")}</strong><br>
+        Receipt No.: ${escapeHtml(row.receiptNo || "")}<br>
+        Product: <strong>${escapeHtml(row.productName || "")}</strong><br>
+        SKU: ${escapeHtml(row.sku || "")}<br>
+        Qty: <strong>${escapeHtml(row.qty || 0)}</strong><br>
+        Return Location: <strong>${escapeHtml(row.returnLocation || "")}</strong><br>
+        Handled By: ${escapeHtml(row.handledBy || "")}<br>
+        Required Approver: ${escapeHtml(row.requiredApprover || "")}<br><br>
+
+        <button class="success" type="button" onclick="submitRevampApprovalByIndex(${index}, 'APPROVE')">
+          Approve
+        </button>
+
+        <button class="danger" type="button" onclick="submitRevampApprovalByIndex(${index}, 'REJECT')">
+          Reject
+        </button>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function submitRevampApprovalByIndex(index, decision) {
+  const row = revampApprovalRows[index];
+
+  if (!row || !row.returnId) {
+    setStatus("Approval row not found. Please refresh approvals.", "error");
+    return;
+  }
+
+  submitRevampApproval(row.returnId, decision);
+}
+
+async function submitRevampApproval(returnId, decision) {
+  if (isSubmitting) return;
+
+  const label = decision === "APPROVE" ? "approve" : "reject";
+
+  if (!confirm("Are you sure you want to " + label + " this return?\n\nReturn ID: " + returnId)) {
+    setStatus("Approval cancelled.", "muted");
+    return;
+  }
+
+  isSubmitting = true;
+  setStatus("Submitting approval...", "info");
+
+  try {
+    const res = await apiCall({
+      action: "submitRevampReturnApproval",
+      staffId: currentUser.staffId,
+      pin: currentPin,
+      returnId,
+      decision
+    });
+
+    console.log("Submit approval response:", res);
+
+    if (!res || !res.success) {
+      setStatus((res && res.message) ? res.message : "Approval failed.", "error");
+      return;
+    }
+
+    setStatus(
+      `${escapeHtml(res.message)}<br>` +
+      `Return ID: <strong>${escapeHtml(res.returnId || "")}</strong><br>` +
+      `Status: <strong>${escapeHtml(res.status || "")}</strong><br>` +
+      `Product: ${escapeHtml(res.productName || "")}<br>` +
+      `SKU: ${escapeHtml(res.sku || "")}<br>` +
+      `Qty: ${escapeHtml(res.qty || 0)}<br>` +
+      `Location: ${escapeHtml(res.returnLocation || "")}`,
+      "success-text"
+    );
+
+    await loadMyApprovals();
+
+  } catch (err) {
+    console.error("Approval error:", err);
+    setStatus("Approval error: " + escapeHtml(err.message || err), "error");
+  } finally {
+    isSubmitting = false;
+  }
+}
+
+
 async function submitTransaction() {
   if (isSubmitting) return;
 
@@ -2651,6 +3086,13 @@ window.addEventListener("DOMContentLoaded", function() {
     if (e.key === "Enter") {
       e.preventDefault();
       findTicket();
+    }
+  });
+
+  document.getElementById("revampReturnReceiptNo").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      findRevampSaleByReceipt();
     }
   });
 
