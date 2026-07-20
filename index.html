@@ -47,7 +47,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Mini POS</h1>
-    <p class="muted">Staff ID login · v107</p>
+    <p class="muted">Staff ID login · v108</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -1771,9 +1771,6 @@ function renderCartForm() {
       <label>Packed By</label>
       ${selectHtml("packedBy", settings.staffNames)}
 
-      <label>Order No.</label>
-      <input type="text" id="orderNo">
-
       <label>Receipt Type</label>
       <select id="receiptType">
         <option value="Sales Receipt">Sales Receipt</option>
@@ -1931,7 +1928,6 @@ function renderSaleForm() {
     <div class="row"><div><label>Sold By</label>${selectHtml("soldBy", settings.staffNames, currentUser.name)}</div><div><label>Released By</label>${selectHtml("releasedBy", settings.staffNames)}</div></div>
     <label>Packed By</label>${selectHtml("packedBy", settings.staffNames)}
     <div class="row"><div><label>Quantity</label><input type="number" id="quantity" min="1" value="1"></div><div><label>Price Per Unit</label><input type="number" id="pricePerUnit" min="0" step="0.01" value="${Number(currentProduct.sellingPrice || 0)}"></div></div>
-    <label>Order No.</label><input type="text" id="orderNo">
     <label>Customer Name</label><input type="text" id="customerName">
     <label>Payment Status</label>${selectHtml("paymentStatus", settings.paymentStatus)}
     <label>Notes</label><textarea id="notes"></textarea>
@@ -2401,7 +2397,6 @@ async function submitCartTransaction() {
       soldBy: val("soldBy"),
       releasedBy: val("releasedBy"),
       packedBy: val("packedBy"),
-      orderNo: val("orderNo"),
       receiptType: val("receiptType"),
       receiptNo: val("receiptNo"),
       customerName: val("customerName"),
@@ -2767,7 +2762,9 @@ async function submitRevampReturnRequest() {
 
     setStatus(html, "success-text");
 
-    await findRevampSaleByReceipt();
+    revampReturnLines = [];
+    document.getElementById("revampReturnItems").innerHTML = "";
+    document.getElementById("revampReturnReceiptNo").value = "";
 
   } catch (err) {
     console.error("Submit return request error:", err);
