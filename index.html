@@ -1871,12 +1871,19 @@ function renderCartForm() {
       <label>Customer Name</label>
       <input type="text" id="customerName">
 
+      <label>Source Stock Location</label>
+      ${inventoryLocationSelectHtml("sourceLocation")}
+      
       <label>Released By</label>
       ${selectHtml("releasedBy", settings.staffNames, currentUser.name)}
-
-      <label>Location Note / Temp Location</label>
-      ${selectHtml("releaseToLocation", settings.locations, "RELEASED / PENDING CUSTOMER")}
-
+      
+      <label>Released To / Temp Location</label>
+      <input
+        type="text"
+        id="releaseToLocation"
+        value="RELEASED / PENDING CUSTOMER"
+        placeholder="Example: Packing area, customer pickup, delivery"
+      >
       <label>Notes</label>
       <textarea id="notes"></textarea>
     `;
@@ -2350,7 +2357,7 @@ function buildConfirmMessage() {
     actionName = "Release Item to Customer";
     details =
       "Qty: " + qty + "\n" +
-      "From: " + (currentProduct.location || "") + "\n" +
+      "From: " + val("sourceLocation") + "\n" +
       "To: " + val("releaseToLocation") + "\n" +
       "Customer: " + val("customerName") + "\n" +
       "Released By: " + val("releasedBy");
@@ -2485,12 +2492,14 @@ async function submitCartTransaction() {
     params = {
       ...params,
       dateReleased: val("dateReleased"),
+      sourceLocation: val("sourceLocation"),
       referenceNo: val("referenceNo"),
       receiptType: val("receiptType"),
       receiptNo: val("receiptNo"),
       customerName: val("customerName"),
       releasedBy: val("releasedBy"),
       releaseToLocation: val("releaseToLocation")
+      
     };
   }
   
