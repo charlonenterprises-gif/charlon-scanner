@@ -47,7 +47,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Mini POS</h1>
-    <p class="muted">Staff ID login · v108</p>
+    <p class="muted">Staff ID login · v109</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -243,6 +243,15 @@ const CART_TRANSACTION_TYPES = [
   "RELEASING"
 ];
 
+const INVENTORY_LOCATIONS = [
+  "CE1",
+  "CE2",
+  "CE3",
+  "SOLER",
+  "VACANT",
+  "UNKNOWN"
+];
+
 const NEW_TRANSACTION_OPTIONS = [
   {
     key: "RELEASING",
@@ -281,9 +290,9 @@ const NEW_TRANSACTION_OPTIONS = [
   },
   {
     key: "TRANSFER",
-    type: "LOCATION_NOTE",
-    label: "Location Note / Move Note",
-    helper: "Gamitin kapag gusto lang i-note kung saan nilagay o nilipat ang item.",
+    type: "TRANSFER",
+    label: "Transfer Stock Location",
+    helper: "Gamitin kapag ililipat ang stock mula sa isang inventory location papunta sa iba.",
     live: true
   }
 ];
@@ -772,7 +781,7 @@ function renderHomeButtons() {
   if (canAccessAny(["RELEASING", "SALES", "PURCHASES", "COUNTCHECK", "INVENTORYADJUSTMENT", "TRANSFER"])) {
     container.appendChild(makeMenuButton(
       "New Transaction",
-      "Gamitin kapag may bagong order, sale, purchase, stock count, or location note.",
+      "Gamitin kapag may bagong order, sale, purchase, stock count, inventory adjustment, or stock transfer.",
       showNewTransactionOptions
     ));
   }
@@ -1700,7 +1709,6 @@ function renderProduct() {
     <strong>${escapeHtml(p.productName || "")}</strong><br>
     SKU: ${escapeHtml(p.sku || "")}<br>
     Barcode: ${escapeHtml(p.barcodeValue || "")}<br>
-    QBO ID: ${escapeHtml(p.qboId || "")}<br>
     Stock Type: <span class="badge">${escapeHtml(p.stockType || "")}</span><br><br>
 
     Total Stock: <strong>${totalQty}</strong><br>
@@ -1708,7 +1716,7 @@ function renderProduct() {
     Available Qty: <strong>${availableQty}</strong><br><br>
 
     Location Notes: ${escapeHtml(p.locationNotes || "UNKNOWN / NOT CHECKED")}<br>
-    Average Cost Ref: ₱${Number(p.averageCost || 0).toLocaleString()}<br>
+    Cost Per Unit: ₱${Number(p.averageCost || 0).toLocaleString()}<br>
     Selling Price: ₱${Number(p.sellingPrice || 0).toLocaleString()}<br>
     Status: ${escapeHtml(p.inventoryStatus || "")}
   `;
@@ -1755,7 +1763,7 @@ function renderCartForm() {
       ${selectHtml("salesChannel", settings.salesChannels)}
 
       <label>Location / Stock Source</label>
-      ${selectHtml("saleLocation", settings.locations, currentUser.location)}
+      ${inventoryLocationSelectHtml("saleLocation", currentUser.location)}
 
       <div class="row">
         <div>
@@ -1887,6 +1895,48 @@ function selectHtml(id, options, selected = "") {
   return html;
 }
 
+function inventoryLocationSelectHtml(id, selected = "", onchange = "") {
+  const selectedKey = String(selected || "").trim().toUpperCase();
+  const validSelected = INVENTORY_LOCATIONS.includes(selectedKey)
+    ? selectedKey
+    : "";
+
+  const changeAttr = onchange
+    ? ` onchange="${escapeHtml(onchange)}"`
+    : "";
+
+  let html = `<select id="${id}"${changeAttr}><option value="">Select stock location</option>`;
+
+  INVENTORY_LOCATIONS.forEach(location => {
+    const isSelected = location === validSelected ? "selected" : "";
+    html += `<option value="${location}" ${isSelected}>${location}</option>`;
+  });
+
+  html += `</select>`;
+  return html;
+}
+
+function getCurrentProductLocationQty(location) {
+  const p = currentProduct || {};
+  const fieldMap = {
+    CE1: "ce1Qty",
+    CE2: "ce2Qty",
+    CE3: "ce3Qty",
+    SOLER: "solerQty",
+    VACANT: "vacantQty",
+    UNKNOWN: "unknownQty"
+  };
+
+  const field = fieldMap[String(location || "").trim().toUpperCase()];
+  return field ? Number(p[field] || 0) : 0;
+}
+
+function updateAdjustmentLocationQty() {
+  const input = document.getElementById("currentAdjustmentLocationQty");
+  if (!input) return;
+  input.value = getCurrentProductLocationQty(val("adjustmentLocation"));
+}
+
 function getUnitOptions() {
   if (settings.units && Array.isArray(settings.units) && settings.units.length) {
     return settings.units;
@@ -1953,7 +2003,6 @@ function renderPurchaseForm() {
 
 function renderInventoryAdjustmentForm() {
   const p = currentProduct || {};
-
   const totalQty = Number(p.posTotalQty || 0);
   const reservedQty = Number(p.reservedQty || 0);
   const availableQty = Number(
@@ -1964,14 +2013,24 @@ function renderInventoryAdjustmentForm() {
 
   document.getElementById("formFields").innerHTML = `
     <p class="muted">
-      Manager/Admin only. Gamitin lang kapag kailangan itama ang stock after checking.
-      This will change SKU_BALANCE.
+      Manager/Admin only. Select the actual inventory location being checked.
+      This updates PRODUCT_LOCATION_LOG and the matching INVENTORY_DASHBOARD DR batch.
     </p>
 
     <label>Date Adjusted</label>
     <input type="date" id="dateAdjusted" value="${today()}">
 
-    <label>Current Total Qty</label>
+    <label>Inventory Location</label>
+    ${inventoryLocationSelectHtml(
+      "adjustmentLocation",
+      currentUser.location,
+      "updateAdjustmentLocationQty()"
+    )}
+
+    <label>Current Qty in Selected Location</label>
+    <input type="number" id="currentAdjustmentLocationQty" value="0" disabled>
+
+    <label>Current Total Qty - All Locations</label>
     <input type="number" value="${totalQty}" disabled>
 
     <label>Reserved / Released Qty</label>
@@ -1983,7 +2042,7 @@ function renderInventoryAdjustmentForm() {
     <label>Adjustment Type</label>
     <select id="adjustmentType" onchange="renderAdjustmentQtyField()">
       <option value="">Select</option>
-      <option value="SET_AVAILABLE_QTY">Set Actual Available Qty</option>
+      <option value="SET_AVAILABLE_QTY">Set Actual Location Qty</option>
       <option value="ADD_QTY">Add Qty</option>
       <option value="REMOVE_QTY">Remove Qty</option>
     </select>
@@ -2008,6 +2067,8 @@ function renderInventoryAdjustmentForm() {
     <label>Notes</label>
     <textarea id="notes" placeholder="Explain why this adjustment is needed."></textarea>
   `;
+
+  updateAdjustmentLocationQty();
 }
 
 function renderAdjustmentQtyField() {
@@ -2148,7 +2209,7 @@ function renderReturnCancelForm() {
     ${selectHtml("returnFromLocation", settings.locations, "RELEASED / PENDING CUSTOMER")}
 
     <label>Return To Location</label>
-    ${selectHtml("returnToLocation", settings.locations, currentProduct.location || currentUser.location)}
+    ${inventoryLocationSelectHtml("returnToLocation", currentProduct.location || currentUser.location)}
 
     <label>Reason / Details</label>
     <select id="reason">
@@ -2184,11 +2245,11 @@ function renderTransferForm() {
     <div class="row">
       <div>
         <label>From Location</label>
-        ${selectHtml("fromLocation", settings.locations, currentUser.location)}
+        ${inventoryLocationSelectHtml("fromLocation", currentUser.location)}
       </div>
       <div>
         <label>To Location</label>
-        ${selectHtml("toLocation", settings.locations)}
+        ${inventoryLocationSelectHtml("toLocation")}
       </div>
     </div>
 
@@ -2206,12 +2267,10 @@ function renderTransferForm() {
       </div>
     </div>
 
-    <label>Transfer Status</label>
-    <select id="transferStatus">
-      <option value="COMPLETED">COMPLETED</option>
-      <option value="IN TRANSIT">IN TRANSIT</option>
-      <option value="PENDING">PENDING</option>
-    </select>
+    <input type="hidden" id="transferStatus" value="COMPLETED">
+    <p class="muted">
+      This transfer moves the inventory location immediately after submission.
+    </p>
 
     <label>Courier / Driver</label>
     <input type="text" id="courierDriver">
@@ -2338,6 +2397,7 @@ function buildConfirmMessage() {
     }
   
     details =
+      "Inventory Location: " + val("adjustmentLocation") + "\n" +
       "Adjustment Type: " + val("adjustmentType") + "\n" +
       qtyText + "\n" +
       "Reason: " + val("reason") + "\n" +
@@ -2359,6 +2419,11 @@ async function submitCartTransaction() {
 
   if (!cartItems.length) {
     setStatus("Please scan at least one item before submitting.", "error");
+    return;
+  }
+
+  if (currentType === "SALE" && !val("saleLocation")) {
+    setStatus("Please select the stock source location.", "error");
     return;
   }
 
@@ -2658,7 +2723,7 @@ function renderRevampReturnItems(res) {
     <input type="date" id="revampDateReturned" value="${today()}">
 
     <label>Return Location</label>
-    ${selectHtml("revampReturnLocation", settings.locations, currentUser.location)}
+    ${inventoryLocationSelectHtml("revampReturnLocation", currentUser.location)}
 
     <label>Handled By</label>
     ${selectHtml("revampHandledBy", settings.staffNames, currentUser.name)}
@@ -2697,6 +2762,11 @@ async function submitRevampReturnRequest() {
 
   if (!returnItems.length) {
     setStatus("Please enter at least one return qty.", "error");
+    return;
+  }
+
+  if (!val("revampReturnLocation")) {
+    setStatus("Please select the return inventory location.", "error");
     return;
   }
 
@@ -2963,15 +3033,25 @@ async function submitTransaction() {
       notes: val("notes")
     };
   } else if (currentType === "INVENTORY_ADJUSTMENT") {
+    const adjustmentLocation = val("adjustmentLocation");
+
+    if (!adjustmentLocation) {
+      isSubmitting = false;
+      setStatus("Please select the inventory location.", "error");
+      return;
+    }
+
     params = {
       ...params,
       action: "submitInventoryAdjustment",
       dateAdjusted: val("dateAdjusted"),
+      adjustmentLocation,
       adjustmentType: val("adjustmentType"),
       adjustmentQty: val("adjustmentQty"),
       newAvailableQty: val("newAvailableQty"),
       reason: val("reason"),
       approvedBy: val("approvedBy"),
+      adjustedBy: currentUser.name,
       notes: val("notes")
     };
   } else if (currentType === "RELEASING") {
