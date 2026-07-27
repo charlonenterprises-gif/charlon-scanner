@@ -239,7 +239,6 @@ let inactivityPromptOpen = false;
   
 const CART_TRANSACTION_TYPES = [
   "SALE",
-  "PURCHASE",
   "RELEASING"
 ];
 
@@ -265,13 +264,6 @@ const NEW_TRANSACTION_OPTIONS = [
     type: "SALE",
     label: "Sold Immediately",
     helper: "Gamitin kapag sure na sold/paid na agad ang item.",
-    live: true
-  },
-  {
-    key: "PURCHASES",
-    type: "PURCHASE",
-    label: "Stock In / New Arrival",
-    helper: "Gamitin kapag may bagong dating na stock.",
     live: true
   },
   {
