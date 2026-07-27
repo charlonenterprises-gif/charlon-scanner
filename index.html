@@ -1855,9 +1855,6 @@ function renderCartForm() {
       <label>System Ticket No.</label>
       <input type="text" id="autoTicketNo" value="Generating..." disabled>
 
-      <label>Reference No. / Order No.</label>
-      <input type="text" id="referenceNo" placeholder="Shopee/Lazada/FB/Walk-in order no.">
-
       <label>Receipt Type</label>
       <select id="receiptType">
         <option value="No Receipt">No Receipt</option>
@@ -2493,7 +2490,6 @@ async function submitCartTransaction() {
       ...params,
       dateReleased: val("dateReleased"),
       sourceLocation: val("sourceLocation"),
-      referenceNo: val("referenceNo"),
       receiptType: val("receiptType"),
       receiptNo: val("receiptNo"),
       customerName: val("customerName"),
@@ -2553,7 +2549,6 @@ async function submitCartTransaction() {
   if (currentType === "RELEASING") {
     referenceSummary =
       "System Ticket No.: " + val("autoTicketNo") + "\n" +
-      "Reference / Order No.: " + val("referenceNo") + "\n" +
       "Receipt Type: " + val("receiptType") + "\n" +
       "Receipt No.: " + val("receiptNo") + "\n";
   }
