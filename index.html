@@ -47,7 +47,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Mini POS</h1>
-    <p class="muted">Staff ID login · v109</p>
+    <p class="muted">Staff ID login · v115</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -802,12 +802,30 @@ function renderHomeButtons() {
     ));
   }
 
-  if (currentUser) {
-    container.appendChild(makeMenuButton(
-      "My Approvals",
-      "Approve or reject pending return requests assigned to you.",
-      openMyApprovals
-    ));
+  const currentNameKey = String(
+    currentUser.name || ""
+  ).trim().toUpperCase();
+  
+  const approvalUserKeys = (
+    settings.approvalUsers || []
+  ).map(name => {
+    return String(name || "")
+      .trim()
+      .toUpperCase();
+  });
+  
+  if (
+    approvalUserKeys.includes(
+      currentNameKey
+    )
+  ) {
+    container.appendChild(
+      makeMenuButton(
+        "My Approvals",
+        "Approve or reject pending return requests assigned to you.",
+        openMyApprovals
+      )
+    );
   }
 
   if (canAccess("REPORTSHISTORY")) {
