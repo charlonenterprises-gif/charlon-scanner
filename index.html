@@ -47,7 +47,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Mini POS</h1>
-    <p class="muted">Staff ID login · v115</p>
+    <p class="muted">Staff ID login · v1</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -1725,7 +1725,16 @@ function renderProduct() {
     Reserved / Released Qty: <strong>${reservedQty}</strong><br>
     Available Qty: <strong>${availableQty}</strong><br><br>
 
-    Location Notes: ${escapeHtml(p.locationNotes || "UNKNOWN / NOT CHECKED")}<br>
+    <strong>Location:</strong><br>
+    <div style="margin-left:14px;">
+      CE1: <strong>${Number(p.ce1Qty || 0).toLocaleString()}</strong><br>
+      CE2: <strong>${Number(p.ce2Qty || 0).toLocaleString()}</strong><br>
+      CE3: <strong>${Number(p.ce3Qty || 0).toLocaleString()}</strong><br>
+      SOLER: <strong>${Number(p.solerQty || 0).toLocaleString()}</strong><br>
+      VACANT: <strong>${Number(p.vacantQty || 0).toLocaleString()}</strong><br>
+      UNKNOWN: <strong>${Number(p.unknownQty || 0).toLocaleString()}</strong>
+    </div>
+    <br>
     Cost Per Unit: ₱${Number(p.averageCost || 0).toLocaleString()}<br>
     Selling Price: ₱${Number(p.sellingPrice || 0).toLocaleString()}<br>
     Status: ${escapeHtml(p.inventoryStatus || "")}
