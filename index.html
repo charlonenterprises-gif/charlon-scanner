@@ -2483,6 +2483,8 @@ async function submitCartTransaction() {
   if (currentType === "SALE") {
     params = {
       ...params,
+      saleId: val("autoTicketNo"),
+      ticketNo: val("autoTicketNo"),
       dateSold: val("dateSold"),
       salesChannel: val("salesChannel"),
       saleLocation: val("saleLocation"),
