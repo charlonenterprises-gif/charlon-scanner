@@ -611,8 +611,12 @@ function apiCall(params) {
       finished = true;
       delete window[callbackName];
       if (script && script.parentNode) script.parentNode.removeChild(script);
-      reject(new Error("API request timed out. Check internet, API URL, or browser blocker."));
-    }, 50000);
+    
+      reject(new Error(
+        "The transaction is taking longer than expected. " +
+        "Do not submit it again yet. Check the transaction history first."
+      ));
+    }, 180000);
 
     window[callbackName] = function(data) {
       if (finished) return;
