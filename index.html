@@ -2324,50 +2324,43 @@ function renderCartForm() {
     loadTicketPreview("PURCHASE", "autoTicketNo");
   }
 
-  if (currentType === "RELEASING") {
-    document.getElementById("formTitle").innerText = "Customer Order / Release Item - Cart";
-
-    document.getElementById("formFields").innerHTML = `
+  if(currentType==="RELEASING"){
+    document.getElementById("formTitle").innerText=
+      "Release Item";
+  
+    document.getElementById("formFields").innerHTML=`
       <p class="muted">
-        Scan lahat ng items na ihahanda para sa customer. System will create one release transaction later.
+        Create a pending release request. Stock will not be deducted yet.
       </p>
-
-      <label>Date Released</label>
-      <input type="date" id="dateReleased" value="${today()}">
-
-      <label>System Ticket No.</label>
-      <input type="text" id="autoTicketNo" value="Generating..." disabled>
-
-      <label>Receipt Type</label>
-      <select id="receiptType">
-        <option value="No Receipt">No Receipt</option>
-        <option value="Sales Receipt">Sales Receipt</option>
-        <option value="Delivery Receipt">Delivery Receipt</option>
-      </select>
-      
-      <label>Receipt No.</label>
-      <input type="text" id="receiptNo" placeholder="Actual receipt number, if any">
-
-      <label>Customer Name</label>
-      <input type="text" id="customerName">
-
-      <label>Source Stock Location</label>
-      ${inventoryLocationSelectHtml("sourceLocation")}
-      
-      <label>Released By</label>
-      ${selectHtml("releasedBy", settings.staffNames, currentUser.name)}
-      
-      <label>Released To / Temp Location</label>
+  
+      <label>Release Ticket ID</label>
       <input
         type="text"
-        id="releaseToLocation"
-        value="RELEASED / PENDING CUSTOMER"
-        placeholder="Example: Packing area, customer pickup, delivery"
+        id="autoTicketNo"
+        value="Generating..."
+        disabled
       >
-      <label>Notes</label>
-      <textarea id="notes"></textarea>
+  
+      <label>Released By</label>
+      <input
+        type="text"
+        id="releasedBy"
+        value="${escapeHtml(currentUser.name||"")}"
+        disabled
+      >
+  
+      <label>Requested By</label>
+      ${selectHtml(
+        "requestedBy",
+        settings.staffNames,
+        ""
+      )}
     `;
-    loadTicketPreview("RELEASING", "autoTicketNo");
+  
+    loadTicketPreview(
+      "RELEASING",
+      "autoTicketNo"
+    );
   }
 }
 
@@ -2970,17 +2963,23 @@ async function submitCartTransaction() {
     };
   }
 
-  if (currentType === "RELEASING") {
-    params = {
+  if(currentType==="RELEASING"){
+    const requestedBy=val("requestedBy");
+  
+    if(!requestedBy){
+      setStatus(
+        "Please select who requested the item.",
+        "error"
+      );
+      return;
+    }
+  
+    params={
       ...params,
-      dateReleased: val("dateReleased"),
-      sourceLocation: val("sourceLocation"),
-      receiptType: val("receiptType"),
-      receiptNo: val("receiptNo"),
-      customerName: val("customerName"),
-      releasedBy: val("releasedBy"),
-      releaseToLocation: val("releaseToLocation")
-      
+      dateReleased:today(),
+      sourceLocation:currentUser.location,
+      releasedBy:currentUser.name,
+      requestedBy
     };
   }
   
@@ -3031,11 +3030,11 @@ async function submitCartTransaction() {
       "Receipt / Invoice No.: " + val("receiptNo") + "\n";
   }
   
-  if (currentType === "RELEASING") {
-    referenceSummary =
-      "System Ticket No.: " + val("autoTicketNo") + "\n" +
-      "Receipt Type: " + val("receiptType") + "\n" +
-      "Receipt No.: " + val("receiptNo") + "\n";
+  if(currentType==="RELEASING"){
+    referenceSummary=
+      "Release Ticket ID: "+val("autoTicketNo")+"\n"+
+      "Released By: "+currentUser.name+"\n"+
+      "Requested By: "+val("requestedBy")+"\n";
   }
 
   const confirmMessage =
