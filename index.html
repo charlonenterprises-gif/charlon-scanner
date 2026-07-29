@@ -1527,6 +1527,44 @@ function addProductToCart(product) {
   renderCart();
 }
 
+function displayQty(value) {
+  const number = Number(value);
+
+  return Number.isFinite(number)
+    ? number.toLocaleString()
+    : "0";
+}
+
+function getAvailableQty(product) {
+  const p = product || {};
+
+  if (
+    p.availableQty !== undefined &&
+    p.availableQty !== null &&
+    p.availableQty !== ""
+  ) {
+    return displayQty(p.availableQty);
+  }
+
+  if (
+    p.currentQty !== undefined &&
+    p.currentQty !== null &&
+    p.currentQty !== ""
+  ) {
+    return displayQty(p.currentQty);
+  }
+
+  if (
+    p.posTotalQty !== undefined &&
+    p.posTotalQty !== null &&
+    p.posTotalQty !== ""
+  ) {
+    return displayQty(p.posTotalQty);
+  }
+
+  return "0";
+}
+  
 function renderCart() {
   const container = document.getElementById("cartItems");
 
@@ -1548,7 +1586,7 @@ function renderCart() {
           SKU: ${escapeHtml(p.sku || "")}<br>
           QR Value: ${escapeHtml(p.qrValue || p.barcodeValue || "")}<br>
           ${p.drNumber ? `DR Number: ${escapeHtml(p.drNumber)}<br>` : ""}
-          Available Qty: ${escapeHtml(p.availableQty !== undefined ? p.availableQty : p.currentQty)}
+          Available Qty: <strong>${getAvailableQty(p)}</strong>
         </div>
 
         <label>Quantity</label>
@@ -1739,7 +1777,6 @@ function renderProduct() {
     </div>
     <br>
     Cost Per Unit: ₱${Number(p.averageCost || 0).toLocaleString()}<br>
-    Selling Price: ₱${Number(p.sellingPrice || 0).toLocaleString()}<br>
     Status: ${escapeHtml(p.inventoryStatus || "")}
   `;
 
