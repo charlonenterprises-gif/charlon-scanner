@@ -517,6 +517,30 @@ function selectKeywordProduct(index) {
   );
 }
 
+function backToKeywordResults(){
+  if(!keywordSearchResults.length){
+    setStatus(
+      "No previous search results available.",
+      "muted"
+    );
+    return;
+  }
+
+  show("keywordResults");
+
+  document
+    .getElementById("keywordResults")
+    .scrollIntoView({
+      behavior:"smooth",
+      block:"start"
+    });
+
+  setStatus(
+    "Showing your previous product search results.",
+    "info"
+  );
+}
+
 const SESSION_STORAGE_KEY = "charlonMiniPosSessionV1";
 const SESSION_TIMEOUT_MS = 20 * 60 * 1000;
 
@@ -2166,8 +2190,20 @@ function renderProduct() {
     <br>
     Cost Per Unit: ₱${Number(p.averageCost || 0).toLocaleString()}<br>
     Status: ${escapeHtml(p.inventoryStatus || "")}
+    ${
+      keywordSearchResults.length
+        ? `
+          <button
+            type="button"
+            class="secondary"
+            onclick="backToKeywordResults()"
+          >
+            Back to Search Results
+          </button>
+        `
+        : ""
+    }
   `;
-
   show("productCard");
 }
 
