@@ -82,9 +82,22 @@
 
   <div class="card hidden" id="scanCard">
     <h2 id="transactionTitle">Scan Product</h2>
-    <label>Barcode / SKU</label>
-    <input type="text" id="searchValue" placeholder="Scan or type barcode" autocomplete="off">
-    <button type="button" onclick="findProduct()">Find Product</button>
+    <label>Barcode / SKU / Product Keyword</label>
+    <input
+      type="text"
+      id="searchValue"
+      placeholder="Scan SKU/QR or type product keywords"
+      autocomplete="off"
+    >
+    
+    <button type="button" onclick="findProduct()">
+      Search Product
+    </button>
+    
+    <div
+      id="keywordResults"
+      class="product-box hidden"
+    ></div>
     <button class="secondary" type="button" onclick="startCamera()">Start Camera Scanner</button>
     <button class="secondary" type="button" onclick="stopCamera()">Stop Camera Scanner</button>
     <div id="reader"></div>
@@ -230,6 +243,278 @@ let currentTicket = null;
 let currentTicketLines = [];
 let revampReturnLines = [];
 let revampApprovalRows = [];
+
+async function searchProductsByKeyword() {
+  const searchValue = val(
+    "searchValue"
+  ).trim();
+
+  if (!searchValue) {
+    setStatus(
+      "Please enter product keywords.",
+      "error"
+    );
+
+    return;
+  }
+
+  setStatus(
+    "Searching products...",
+    "info"
+  );
+
+  try {
+    const res = await apiCall({
+      action: "searchProducts",
+      staffId: currentUser.staffId,
+      pin: currentPin,
+      searchValue
+    });
+
+    console.log(
+      "Keyword search response:",
+      res
+    );
+
+    if (!res || !res.success) {
+      setStatus(
+        res && res.message
+          ? res.message
+          : "Product search failed.",
+        "error"
+      );
+
+      return;
+    }
+
+    keywordSearchResults =
+      Array.isArray(res.results)
+        ? res.results
+        : [];
+
+    renderKeywordResults(
+      res.count || 0,
+      res.limited === true
+    );
+
+    if (!keywordSearchResults.length) {
+      setStatus(
+        "No products matched: " +
+        escapeHtml(searchValue),
+        "muted"
+      );
+
+      return;
+    }
+
+    setStatus(
+      "Found " +
+      Number(res.count || 0)
+        .toLocaleString() +
+      " matching product(s).",
+      "success-text"
+    );
+
+  } catch (err) {
+    console.error(
+      "Keyword product search error:",
+      err
+    );
+
+    setStatus(
+      "Product search error: " +
+      escapeHtml(
+        err.message || err
+      ),
+      "error"
+    );
+  }
+}
+
+function renderKeywordResults(
+  totalCount,
+  limited
+) {
+  const container =
+    document.getElementById(
+      "keywordResults"
+    );
+
+  if (!keywordSearchResults.length) {
+    container.innerHTML = `
+      <hr>
+      <p class="muted">
+        No matching products found.
+      </p>
+    `;
+
+    show("keywordResults");
+    return;
+  }
+
+  let html = `
+    <hr>
+    <h3>Product Search Results</h3>
+    <p class="muted">
+      Found ${Number(
+        totalCount || 0
+      ).toLocaleString()} product(s).
+      ${
+        limited
+          ? "Showing the first 50 results."
+          : ""
+      }
+    </p>
+  `;
+
+  keywordSearchResults.forEach(
+    (product, index) => {
+      const availableQty = Number(
+        product.availableQty !==
+          undefined &&
+        product.availableQty !==
+          null &&
+        product.availableQty !== ""
+          ? product.availableQty
+          : 0
+      );
+
+      html += `
+        <div class="cart-line">
+          <strong>
+            ${escapeHtml(
+              product.productName || ""
+            )}
+          </strong>
+
+          SKU:
+          ${escapeHtml(
+            product.sku || ""
+          )}<br>
+
+          ${
+            product.brand
+              ? `Brand: ${escapeHtml(
+                  product.brand
+                )}<br>`
+              : ""
+          }
+
+          ${
+            product.model
+              ? `Model: ${escapeHtml(
+                  product.model
+                )}<br>`
+              : ""
+          }
+
+          ${
+            product.mainCategory
+              ? `Category: ${escapeHtml(
+                  product.mainCategory
+                )}<br>`
+              : ""
+          }
+
+          Available Qty:
+          <strong>
+            ${availableQty.toLocaleString()}
+          </strong><br>
+
+          CE1:
+          ${Number(
+            product.ce1Qty || 0
+          ).toLocaleString()} |
+
+          CE2:
+          ${Number(
+            product.ce2Qty || 0
+          ).toLocaleString()} |
+
+          CE3:
+          ${Number(
+            product.ce3Qty || 0
+          ).toLocaleString()}<br>
+
+          SOLER:
+          ${Number(
+            product.solerQty || 0
+          ).toLocaleString()} |
+
+          VACANT:
+          ${Number(
+            product.vacantQty || 0
+          ).toLocaleString()} |
+
+          UNKNOWN:
+          ${Number(
+            product.unknownQty || 0
+          ).toLocaleString()}
+
+          <button
+            type="button"
+            onclick="selectKeywordProduct(${index})"
+          >
+            Select Product
+          </button>
+        </div>
+      `;
+    }
+  );
+
+  container.innerHTML = html;
+  show("keywordResults");
+}
+
+function selectKeywordProduct(index) {
+  const product =
+    keywordSearchResults[index];
+
+  if (!product) return;
+
+  currentProduct = product;
+
+  renderProduct();
+
+  if (
+    isCartTransactionType(
+      currentType
+    )
+  ) {
+    addProductToCart(
+      currentProduct
+    );
+
+    renderForm();
+
+    document.getElementById(
+      "searchValue"
+    ).value = "";
+
+    hide("keywordResults");
+
+    setTimeout(() => {
+      document.getElementById(
+        "searchValue"
+      ).focus();
+    }, 200);
+
+    setStatus(
+      "Product selected and added to cart.",
+      "success-text"
+    );
+
+    return;
+  }
+
+  renderForm();
+  hide("keywordResults");
+
+  setStatus(
+    "Product selected.",
+    "success-text"
+  );
+}
 
 const SESSION_STORAGE_KEY = "charlonMiniPosSessionV1";
 const SESSION_TIMEOUT_MS = 20 * 60 * 1000;
@@ -1705,50 +1990,147 @@ function clearCart() {
 }
   
 async function findProduct() {
-  const searchValue = val("searchValue").trim();
+  const searchValue=val("searchValue").trim();
 
-  if (!searchValue) {
-    setStatus("Please scan or type barcode/SKU.", "error");
+  if(!searchValue){
+    setStatus(
+      "Please scan or enter a product.",
+      "error"
+    );
     return;
   }
 
-  setStatus("Searching product...", "info");
+  keywordSearchResults=[];
+  hide("keywordResults");
 
-  try {
-    const res = await apiCall({
-      action: "findProduct",
-      staffId: currentUser.staffId,
-      pin: currentPin,
+  setStatus(
+    "Searching product...",
+    "info"
+  );
+
+  let exactResponse=null;
+
+  try{
+    exactResponse=await apiCall({
+      action:"findProduct",
+      staffId:currentUser.staffId,
+      pin:currentPin,
       searchValue
     });
+  }catch(err){
+    console.log(
+      "Exact lookup failed:",
+      err
+    );
+  }
 
-    console.log("Find product response:", res);
+  if(
+    exactResponse &&
+    exactResponse.success &&
+    exactResponse.product
+  ){
+    currentProduct=exactResponse.product;
 
-    if (!res || !res.success) {
-      setStatus((res && res.message) ? res.message : "Product not found.", "error");
-      return;
-    }
-
-    currentProduct = res.product;
     renderProduct();
 
-    if (isCartTransactionType(currentType)) {
-      addProductToCart(currentProduct);
+    if(isCartTransactionType(currentType)){
+      addProductToCart(
+        currentProduct
+      );
+
       renderForm();
 
-      document.getElementById("searchValue").value = "";
-      setTimeout(() => document.getElementById("searchValue").focus(), 200);
+      document.getElementById(
+        "searchValue"
+      ).value="";
 
-      setStatus("Added to cart. Scan next item or review cart.", "success-text");
+      setTimeout(()=>{
+        document.getElementById(
+          "searchValue"
+        ).focus();
+      },200);
+
+      setStatus(
+        "Product found and added to cart.",
+        "success-text"
+      );
+
       return;
     }
 
     renderForm();
-    setStatus("Product found.", "success-text");
 
-  } catch (err) {
-    console.error("Find product error:", err);
-    setStatus("Find product error: " + escapeHtml(err.message || err), "error");
+    setStatus(
+      "Product found.",
+      "success-text"
+    );
+
+    return;
+  }
+
+  try{
+    const keywordResponse=await apiCall({
+      action:"searchProducts",
+      staffId:currentUser.staffId,
+      pin:currentPin,
+      searchValue
+    });
+
+    if(
+      !keywordResponse ||
+      !keywordResponse.success
+    ){
+      throw new Error(
+        keywordResponse &&
+        keywordResponse.message
+          ? keywordResponse.message
+          : "Product search failed."
+      );
+    }
+
+    keywordSearchResults=
+      Array.isArray(
+        keywordResponse.results
+      )
+        ? keywordResponse.results
+        : [];
+
+    renderKeywordResults(
+      keywordResponse.count || 0,
+      keywordResponse.limited === true
+    );
+
+    if(!keywordSearchResults.length){
+      setStatus(
+        "No products found for: " +
+        escapeHtml(searchValue),
+        "muted"
+      );
+      return;
+    }
+
+    setStatus(
+      "Found " +
+      Number(
+        keywordResponse.count || 0
+      ).toLocaleString() +
+      " matching product(s).",
+      "success-text"
+    );
+
+  }catch(err){
+    console.error(
+      "Product search error:",
+      err
+    );
+
+    setStatus(
+      "Product search error: " +
+      escapeHtml(
+        err.message || err
+      ),
+      "error"
+    );
   }
 }
 
