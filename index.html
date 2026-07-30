@@ -1770,7 +1770,15 @@ async function submitCartTransaction(){
       setStatus("Please select who requested the item.", "error");
       return;
     }
-    params = {...params, dateReleased: today(), sourceLocation: releaseSourceLocation, releasedBy: currentUser.name, requestedBy};
+    params={
+      ...params,
+      releaseId:val("autoTicketNo"),
+      ticketNo:val("autoTicketNo"),
+      dateReleased:today(),
+      sourceLocation:releaseSourceLocation,
+      releasedBy:currentUser.name,
+      requestedBy
+    };
   }
   const itemSummary = cleanItems.map(item => `- ${item.productName} | Qty: ${item.quantity} ${item.unit || ""}${item.unitDetails ? " | " + item.unitDetails : ""}`).join("\n");
   let negativeWarningText = "";
