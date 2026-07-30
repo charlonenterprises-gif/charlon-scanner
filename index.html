@@ -1103,6 +1103,21 @@ function canAccessAny(actionKeys) {
   return actionKeys.some(actionKey => canAccess(actionKey));
 }
 
+function canViewMyReleaseRequests(){
+  const roleKey=String(
+    currentUser&&currentUser.role||""
+  )
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g,"");
+
+  return [
+    "MANAGER",
+    "SALES",
+    "SHOPEESTOCKCHECKER"
+  ].includes(roleKey);
+}
+
 function canUseReleaseItem(){
   const roleKey=String(
     currentUser&&currentUser.role||""
@@ -1119,21 +1134,6 @@ function canUseReleaseItem(){
       "RELEASING"
     ].includes(roleKey)
   );
-}
-
-function canViewMyReleaseRequests(){
-  const roleKey=String(
-    currentUser&&currentUser.role||""
-  )
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g,"");
-
-  return [
-    "MANAGER",
-    "SALES",
-    "SHOPEESTOCKCHECKER"
-  ].includes(roleKey);
 }
   
 function renderHomeButtons() {
