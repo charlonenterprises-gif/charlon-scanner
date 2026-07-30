@@ -1389,10 +1389,11 @@ function renderInventoryAdjustmentForm(){
       <option value="Other">Other</option>
     </select>
 
+    <label>Approved By</label>
     ${selectHtml(
       "approvedBy",
-      adjustmentApprovers,
-      defaultAdjustmentApprover
+      settings.inventoryAdjustmentApproverNames,
+      ""
     )}
 
     <label>Notes</label>
