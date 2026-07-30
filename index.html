@@ -213,6 +213,34 @@
     <button class="secondary" type="button" onclick="backHome()">Back</button>
   </div>
 
+  <div class="card hidden" id="releaseRequestsCard">
+    <h3>My Release Requests</h3>
+  
+    <p class="muted">
+      Review pending released items assigned to you.
+    </p>
+  
+    <button
+      type="button"
+      onclick="loadMyReleaseRequests()"
+    >
+      Refresh Requests
+    </button>
+  
+    <div
+      id="releaseRequestsList"
+      class="product-box"
+    ></div>
+  
+    <button
+      class="secondary"
+      type="button"
+      onclick="backHome()"
+    >
+      Back
+    </button>
+  </div>
+
   <div class="card hidden" id="formCard">
     <h3 id="formTitle">Transaction Form</h3>
     <div id="formFields"></div>
@@ -244,7 +272,8 @@ let currentTicket = null;
 let currentTicketLines = [];
 let revampReturnLines = [];
 let revampApprovalRows = [];
-
+let releaseRequestRows=[];
+  
 async function searchProductsByKeyword() {
   const searchValue = val(
     "searchValue"
@@ -1074,6 +1103,39 @@ function canAccessAny(actionKeys) {
   return actionKeys.some(actionKey => canAccess(actionKey));
 }
 
+function canUseReleaseItem(){
+  const roleKey=String(
+    currentUser&&currentUser.role||""
+  )
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g,"");
+
+  return (
+    canAccess("RELEASING")&&
+    [
+      "SALES",
+      "SHOPEESTOCKCHECKER",
+      "RELEASING"
+    ].includes(roleKey)
+  );
+}
+
+function canViewMyReleaseRequests(){
+  const roleKey=String(
+    currentUser&&currentUser.role||""
+  )
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g,"");
+
+  return [
+    "MANAGER",
+    "SALES",
+    "SHOPEESTOCKCHECKER"
+  ].includes(roleKey);
+}
+  
 function renderHomeButtons() {
   const container = document.getElementById("homeButtons");
   container.innerHTML = "";
@@ -1112,6 +1174,16 @@ function renderHomeButtons() {
     ));
   }
 
+  if(canViewMyReleaseRequests()){
+    container.appendChild(
+      makeMenuButton(
+        "My Release Requests",
+        "View pending released items requested for you.",
+        openMyReleaseRequests
+      )
+    );
+  }
+
   const currentNameKey = String(
     currentUser.name || ""
   ).trim().toUpperCase();
@@ -1147,6 +1219,187 @@ function renderHomeButtons() {
   }
 }
 
+function openMyReleaseRequests(){
+  currentType="MY_RELEASE_REQUESTS";
+  releaseRequestRows=[];
+
+  hide("homeCard");
+  hide("scanCard");
+  hide("productCard");
+  hide("cartCard");
+  hide("ticketCard");
+  hide("reportsCard");
+  hide("formCard");
+  hide("revampReturnCard");
+  hide("approvalCard");
+
+  show("releaseRequestsCard");
+
+  document.getElementById(
+    "releaseRequestsList"
+  ).innerHTML="";
+
+  loadMyReleaseRequests();
+}
+
+async function loadMyReleaseRequests(){
+  if(!currentUser){
+    setStatus(
+      "Please login first.",
+      "error"
+    );
+    return;
+  }
+
+  setStatus(
+    "Loading release requests...",
+    "info"
+  );
+
+  try{
+    const res=await apiCall({
+      action:"getMyReleaseRequests",
+      staffId:currentUser.staffId,
+      pin:currentPin
+    });
+
+    if(!res||!res.success){
+      setStatus(
+        res&&res.message
+          ?res.message
+          :"Could not load release requests.",
+        "error"
+      );
+      return;
+    }
+
+    releaseRequestRows=
+      Array.isArray(res.rows)
+        ?res.rows
+        :[];
+
+    renderMyReleaseRequests(res);
+
+    setStatus(
+      "Release requests loaded.",
+      "success-text"
+    );
+
+  }catch(err){
+    console.error(
+      "Release requests error:",
+      err
+    );
+
+    setStatus(
+      "Release requests error: "+
+      escapeHtml(err.message||err),
+      "error"
+    );
+  }
+}
+
+function renderMyReleaseRequests(res){
+  const rows=res.rows||[];
+
+  const container=document.getElementById(
+    "releaseRequestsList"
+  );
+
+  let html=`
+    <hr>
+    <strong>Pending Requests:</strong>
+    ${escapeHtml(rows.length)}
+    <br>
+  `;
+
+  if(!rows.length){
+    html+=`
+      <p class="muted">
+        No pending release requests assigned to you.
+      </p>
+    `;
+
+    container.innerHTML=html;
+    return;
+  }
+
+  rows.forEach(row=>{
+    html+=`
+      <div class="cart-line">
+        <span class="badge">
+          ${escapeHtml(row.status||"")}
+        </span>
+        <br><br>
+
+        Release Ticket ID:
+        <strong>
+          ${escapeHtml(row.ticketNo||"")}
+        </strong>
+
+        Date:
+        ${escapeHtml(row.date||"")}<br>
+
+        Released By:
+        ${escapeHtml(row.releasedBy||"")}<br>
+
+        Requested By:
+        ${escapeHtml(row.requestedBy||"")}<br>
+
+        Source Location:
+        <strong>
+          ${escapeHtml(
+            row.sourceLocation||""
+          )}
+        </strong><br>
+
+        Notes:
+        ${escapeHtml(row.notes||"")}<br><br>
+
+        <strong>Items:</strong>
+    `;
+
+    const items=Array.isArray(row.items)
+      ?row.items
+      :[];
+
+    items.forEach(item=>{
+      html+=`
+        <div class="cart-line">
+          <strong>
+            ${escapeHtml(
+              item.productName||""
+            )}
+          </strong>
+
+          SKU:
+          ${escapeHtml(item.sku||"")}<br>
+
+          Qty:
+          <strong>
+            ${escapeHtml(item.quantity)}
+            ${escapeHtml(item.unit||"")}
+          </strong><br>
+
+          ${
+            item.unitDetails
+              ?`Unit Details: ${escapeHtml(
+                  item.unitDetails
+                )}<br>`
+              :""
+          }
+        </div>
+      `;
+    });
+
+    html+=`
+      </div>
+    `;
+  });
+
+  container.innerHTML=html;
+}
+
 function makeMenuButton(label, helper, onClick, live = true) {
   const button = document.createElement("button");
   button.type = "button";
@@ -1178,8 +1431,15 @@ function showNewTransactionOptions() {
   intro.innerText = "Piliin kung anong bagong transaction ang gagawin.";
   container.appendChild(intro);
 
-  NEW_TRANSACTION_OPTIONS.forEach(option => {
-    if (!canAccess(option.key)) return;
+  NEW_TRANSACTION_OPTIONS.forEach(option=>{
+    if(!canAccess(option.key))return;
+  
+    if(
+      option.type==="RELEASING"&&
+      !canUseReleaseItem()
+    ){
+      return;
+    }
 
     container.appendChild(makeMenuButton(
       option.label,
@@ -1600,7 +1860,7 @@ function logout() {
   settings = {};
   currentType = "";
   currentProduct = null;
-  hide("homeCard"); hide("changePinCard"); hide("scanCard"); hide("productCard"); hide("cartCard"); hide("ticketCard"); hide("reportsCard"); hide("formCard"); hide("revampReturnCard"); hide("approvalCard"); show("loginCard");
+  hide("homeCard"); hide("changePinCard"); hide("scanCard"); hide("productCard"); hide("cartCard"); hide("ticketCard"); hide("reportsCard"); hide("formCard"); hide("revampReturnCard"); hide("approvalCard"); hide("releaseRequestsCard"); show("loginCard");
   document.getElementById("staffId").value = "";
   document.getElementById("pin").value = "";
   document.getElementById("newPin").value = "";
@@ -1641,6 +1901,7 @@ function backHome() {
   hide("formCard");
   hide("revampReturnCard");
   hide("approvalCard");
+  hide("releaseRequestsCard");
   show("homeCard");
   setStatus("Choose transaction type.", "muted");
 }
@@ -2251,16 +2512,23 @@ function renderCartForm() {
       <div class="row">
         <div>
           <label>Sold By</label>
-          ${selectHtml("soldBy", settings.staffNames, currentUser.name)}
+          <input
+            type="text"
+            id="soldBy"
+            value="${escapeHtml(currentUser.name||"")}"
+            disabled
+          >
         </div>
+      
         <div>
           <label>Released By</label>
-          ${selectHtml("releasedBy", settings.staffNames)}
+          ${selectHtml(
+            "releasedBy",
+            settings.releaseStaffNames,
+            ""
+          )}
         </div>
       </div>
-
-      <label>Packed By</label>
-      ${selectHtml("packedBy", settings.staffNames)}
 
       <label>Receipt Type</label>
       <select id="receiptType">
@@ -2352,7 +2620,7 @@ function renderCartForm() {
       <label>Requested By</label>
       ${selectHtml(
         "requestedBy",
-        settings.staffNames,
+        settings.releaseRequesterNames
         ""
       )}
     `;
@@ -2489,6 +2757,14 @@ function renderInventoryAdjustmentForm() {
     p.availableQty !== undefined ? p.availableQty : p.currentQty || 0
   );
 
+  const adjustmentApprovers=
+    settings.inventoryAdjustmentApproverNames||[];
+  
+  const defaultAdjustmentApprover=
+    adjustmentApprovers.includes(currentUser.name)
+      ? currentUser.name
+      : "";
+
   document.getElementById("formTitle").innerText = "Manager Inventory Adjustment";
 
   document.getElementById("formFields").innerHTML = `
@@ -2541,8 +2817,11 @@ function renderInventoryAdjustmentForm() {
       <option value="Other">Other</option>
     </select>
 
-    <label>Approved By</label>
-    ${selectHtml("approvedBy", settings.staffNames, currentUser.name)}
+    ${selectHtml(
+      "approvedBy",
+      adjustmentApprovers,
+      defaultAdjustmentApprover
+    )}
 
     <label>Notes</label>
     <textarea id="notes" placeholder="Explain why this adjustment is needed."></textarea>
@@ -2739,11 +3018,21 @@ function renderTransferForm() {
     <div class="row">
       <div>
         <label>Sent By</label>
-        ${selectHtml("sentBy", settings.staffNames, currentUser.name)}
+        <input
+          type="text"
+          id="sentBy"
+          value="${escapeHtml(currentUser.name||"")}"
+          disabled
+        >
       </div>
+    
       <div>
         <label>Received By</label>
-        ${selectHtml("receivedBy", settings.staffNames)}
+        ${selectHtml(
+          "receivedBy",
+          settings.locationApproverNames,
+          ""
+        )}
       </div>
     </div>
 
@@ -2933,6 +3222,14 @@ async function submitCartTransaction() {
     notes: val("notes")
   };
 
+  if(currentType==="SALE"&&!val("releasedBy")){
+    setStatus(
+      "Please select who released the item.",
+      "error"
+    );
+    return;
+  }
+
   if (currentType === "SALE") {
     params = {
       ...params,
@@ -2943,7 +3240,6 @@ async function submitCartTransaction() {
       saleLocation: val("saleLocation"),
       soldBy: val("soldBy"),
       releasedBy: val("releasedBy"),
-      packedBy: val("packedBy"),
       receiptType: val("receiptType"),
       receiptNo: val("receiptNo"),
       customerName: val("customerName"),
@@ -3214,7 +3510,12 @@ function renderRevampReturnItems(res) {
     ${inventoryLocationSelectHtml("revampReturnLocation", currentUser.location)}
 
     <label>Handled By</label>
-    ${selectHtml("revampHandledBy", settings.staffNames, currentUser.name)}
+    <input
+      type="text"
+      id="revampHandledBy"
+      value="${escapeHtml(currentUser.name||"")}"
+      disabled
+    >
 
     <button class="success" type="button" onclick="submitRevampReturnRequest()">
       Submit Return for Approval
@@ -3266,7 +3567,7 @@ async function submitRevampReturnRequest() {
     "Please confirm return request:\n\n" +
     "Receipt No.: " + receiptNo + "\n" +
     "Return Location: " + val("revampReturnLocation") + "\n" +
-    "Handled By: " + val("revampHandledBy") + "\n\n" +
+    "Handled By: "+currentUser.name+"\n\n"+
     "Items:\n" + itemSummary + "\n\n" +
     "Stock will NOT be added yet. It will wait for approval.\n\n" +
     "Continue?";
@@ -3287,7 +3588,7 @@ async function submitRevampReturnRequest() {
       receiptNo,
       dateReturned: val("revampDateReturned"),
       returnLocation: val("revampReturnLocation"),
-      handledBy: val("revampHandledBy"),
+      handledBy: currentUser.name,
       returnItems: JSON.stringify(returnItems)
     });
 
@@ -3577,7 +3878,7 @@ async function submitTransaction() {
       fromLocation: val("fromLocation"),
       toLocation: val("toLocation"),
       quantity: val("quantity"),
-      sentBy: val("sentBy"),
+      sentBy:currentUser.name,
       receivedBy: val("receivedBy"),
       transferStatus: val("transferStatus"),
       courierDriver: val("courierDriver"),
