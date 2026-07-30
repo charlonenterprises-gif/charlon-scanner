@@ -195,7 +195,7 @@
   <div class="card hidden" id="approvalCard">
     <h3>My Approvals</h3>
     <p class="muted">
-      Approve only after physically checking that the returned item was received in your assigned location.
+      Review pending returns and stock transfers assigned to you. Stock changes only after approval.
     </p>
 
     <button type="button" onclick="loadMyApprovals()">Refresh Approvals</button>
@@ -1562,26 +1562,32 @@ function renderReturnCancelForm(){
 }
 
 function renderTransferForm(){
-  document.getElementById("formTitle").innerText = "Transfer Form";
-  document.getElementById("formFields").innerHTML = `
+  document.getElementById("formTitle").innerText="Transfer Form";
+
+  document.getElementById("formFields").innerHTML=`
     <p class="muted">
-      Gamitin ito kapag ililipat ang item mula sa isang location papunta sa ibang location.
+      Submit a stock transfer request. Stock will move only after the destination approver approves it.
     </p>
-    
+
     <label>Transfer Date</label>
     <input type="date" id="transferDate" value="${today()}">
 
-    <label>Transfer No. / Reference No.</label>
-    <input type="text" id="transferNo" placeholder="Example: TRF-001">
+    <label>Transfer No.</label>
+    <input type="text" id="transferNo" value="Generating..." disabled>
 
     <div class="row">
       <div>
         <label>From Location</label>
-        ${inventoryLocationSelectHtml("fromLocation", currentUser.location)}
+        ${inventoryLocationSelectHtml("fromLocation",currentUser.location)}
       </div>
+
       <div>
         <label>To Location</label>
-        ${inventoryLocationSelectHtml("toLocation")}
+        ${inventoryLocationSelectHtml(
+          "toLocation",
+          "",
+          "updateTransferReceivedBy()"
+        )}
       </div>
     </div>
 
@@ -1598,20 +1604,20 @@ function renderTransferForm(){
           disabled
         >
       </div>
-    
+
       <div>
         <label>Received By</label>
-        ${selectHtml(
-          "receivedBy",
-          settings.locationApproverNames,
-          ""
-        )}
+        <input
+          type="text"
+          id="receivedBy"
+          value="Select To Location"
+          disabled
+        >
       </div>
     </div>
 
-    <input type="hidden" id="transferStatus" value="COMPLETED">
     <p class="muted">
-      This transfer moves the inventory location immediately after submission.
+      Received By is automatically assigned based on the destination location.
     </p>
 
     <label>Courier / Driver</label>
@@ -1620,6 +1626,37 @@ function renderTransferForm(){
     <label>Notes</label>
     <textarea id="notes"></textarea>
   `;
+
+  loadTicketPreview(
+    "TRANSFER",
+    "transferNo"
+  );
+
+  updateTransferReceivedBy();
+}
+
+function updateTransferReceivedBy(){
+  const location=val("toLocation")
+    .trim()
+    .toUpperCase();
+
+  const approverMap=
+    settings.locationApproverMap||{};
+
+  const approver=
+    approverMap[location]||"";
+
+  const field=document.getElementById(
+    "receivedBy"
+  );
+
+  if(!field)return;
+
+  field.value=approver||(
+    location
+      ?"No approver assigned"
+      :"Select To Location"
+  );
 }
 
 function renderLocationNoteForm(){
@@ -1845,9 +1882,66 @@ async function submitTransaction(){
   } else if(currentType === "RETURN_CANCEL_RELEASE"){
     params = {...params, action: "submitReturnCancelRelease", returnActionType: val("returnActionType"), dateReturned: val("dateReturned"), referenceNo: val("referenceNo"), quantity: val("quantity"),
     handledBy: val("handledBy"), returnFromLocation: val("returnFromLocation"), returnToLocation: val("returnToLocation"), reason: val("reason"), notes: val("notes")};
-  } else if(currentType === "TRANSFER"){
-    params = {...params, action: "submitTransfer", transferDate: val("transferDate"), transferNo: val("transferNo"), fromLocation: val("fromLocation"), toLocation: val("toLocation"), quantity: val("quantity"),
-    sentBy: currentUser.name, receivedBy: val("receivedBy"), transferStatus: val("transferStatus"), courierDriver: val("courierDriver"), notes: val("notes")};
+  }else if(currentType==="TRANSFER"){
+    const fromLocation=val("fromLocation");
+    const toLocation=val("toLocation");
+    const receivedBy=val("receivedBy");
+  
+    if(!fromLocation){
+      isSubmitting=false;
+      setStatus(
+        "Please select From Location.",
+        "error"
+      );
+      return;
+    }
+  
+    if(!toLocation){
+      isSubmitting=false;
+      setStatus(
+        "Please select To Location.",
+        "error"
+      );
+      return;
+    }
+  
+    if(
+      fromLocation.trim().toUpperCase()===
+      toLocation.trim().toUpperCase()
+    ){
+      isSubmitting=false;
+      setStatus(
+        "From Location and To Location cannot be the same.",
+        "error"
+      );
+      return;
+    }
+  
+    if(
+      !receivedBy||
+      receivedBy==="No approver assigned"||
+      receivedBy==="Select To Location"
+    ){
+      isSubmitting=false;
+      setStatus(
+        "No approver is assigned to the selected destination.",
+        "error"
+      );
+      return;
+    }
+  
+    params={
+      ...params,
+      action:"submitTransfer",
+      transferDate:val("transferDate"),
+      transferNo:val("transferNo"),
+      fromLocation,
+      toLocation,
+      quantity:val("quantity"),
+      sentBy:currentUser.name,
+      courierDriver:val("courierDriver"),
+      notes:val("notes")
+    };
   } else if(currentType === "LOCATION_NOTE"){
     params = {...params, action: "submitLocationNote", dateNoted: val("dateNoted"), locationNote: val("locationNote"), detailNote: val("detailNote"), handledBy: val("handledBy"), notes: val("notes")};
   } else{
@@ -1880,7 +1974,25 @@ async function submitTransaction(){
       extra += `<br>Reserved Qty: ${res.oldReservedQty} → ${res.newReservedQty}`;
     }
     if(res.systemQty !== undefined) extra += `<br>System Qty: ${res.systemQty}<br>Actual Qty: ${res.actualQty}<br>Difference: ${res.difference}`;
-    if(res.affectsInventory === false) extra += `<br><span class="muted">Note: This item does not affect inventory quantity.</span>`;
+    if(res.pendingApproval){
+      extra+=`
+        <br>Transfer No.:
+        <strong>${escapeHtml(res.transferNo||"")}</strong>
+        <br>Approval Status:
+        <strong>${escapeHtml(res.approvalStatus||"PENDING")}</strong>
+        <br>Required Approver:
+        <strong>${escapeHtml(res.requiredApprover||"")}</strong>
+        <br><span class="muted">
+          Stock has not moved yet. It will move only after approval.
+        </span>
+      `;
+    }else if(res.affectsInventory===false){
+      extra+=`
+        <br><span class="muted">
+          This transaction did not change inventory quantity.
+        </span>
+      `;
+    }
     if(res.negativeStockWarning){
       extra += `<br><span class="error">${escapeHtml(res.negativeStockWarning)}</span>`;
     }
@@ -2949,78 +3061,286 @@ async function loadMyApprovals(){
 }
 
 function renderMyApprovals(res){
-  const rows = res.rows || [];
-  const container = document.getElementById("approvalList");
-  let html = `
+  const rows=res.rows||[];
+  const container=document.getElementById(
+    "approvalList"
+  );
+
+  let html=`
     <hr>
-    <strong>Pending Approvals:</strong> ${escapeHtml(rows.length)}<br>
+    <strong>Pending Approvals:</strong>
+    ${escapeHtml(rows.length)}<br>
   `;
+
   if(!rows.length){
-    html += `<p class="muted">No pending approvals assigned to you.</p>`;
-    container.innerHTML = html;
+    html+=`
+      <p class="muted">
+        No pending approvals assigned to you.
+      </p>
+    `;
+
+    container.innerHTML=html;
     return;
   }
-  rows.forEach((row, index) => {
-    html += `
+
+  rows.forEach((row,index)=>{
+    const isTransfer=
+      String(row.type||"").toUpperCase()===
+      "TRANSFER";
+
+    let details="";
+
+    if(isTransfer){
+      details=`
+        Transfer No.:
+        <strong>${escapeHtml(row.transferNo||"")}</strong><br>
+
+        Product:
+        <strong>${escapeHtml(row.productName||"")}</strong><br>
+
+        SKU:
+        ${escapeHtml(row.sku||"")}<br>
+
+        Qty:
+        <strong>${escapeHtml(row.qty||0)}</strong><br>
+
+        From Location:
+        <strong>${escapeHtml(row.fromLocation||"")}</strong><br>
+
+        To Location:
+        <strong>${escapeHtml(row.toLocation||"")}</strong><br>
+
+        Sent By:
+        ${escapeHtml(row.sentBy||"")}<br>
+
+        Received By:
+        ${escapeHtml(row.receivedBy||"")}<br>
+
+        Required Approver:
+        ${escapeHtml(row.requiredApprover||"")}
+      `;
+    }else{
+      details=`
+        Return ID:
+        <strong>${escapeHtml(row.returnId||"")}</strong><br>
+
+        Receipt No.:
+        ${escapeHtml(row.receiptNo||"")}<br>
+
+        Product:
+        <strong>${escapeHtml(row.productName||"")}</strong><br>
+
+        SKU:
+        ${escapeHtml(row.sku||"")}<br>
+
+        Qty:
+        <strong>${escapeHtml(row.qty||0)}</strong><br>
+
+        Return Location:
+        <strong>${escapeHtml(row.returnLocation||"")}</strong><br>
+
+        Handled By:
+        ${escapeHtml(row.handledBy||"")}<br>
+
+        Required Approver:
+        ${escapeHtml(row.requiredApprover||"")}
+      `;
+    }
+
+    html+=`
       <div class="cart-line">
-        <span class="badge">${escapeHtml(row.type || "")}</span>
-        <span class="badge">${escapeHtml(row.approvalStatus || "")}</span><br><br>
+        <span class="badge">
+          ${escapeHtml(row.type||"")}
+        </span>
 
-        Return ID: <strong>${escapeHtml(row.returnId || "")}</strong><br>
-        Receipt No.: ${escapeHtml(row.receiptNo || "")}<br>
-        Product: <strong>${escapeHtml(row.productName || "")}</strong><br>
-        SKU: ${escapeHtml(row.sku || "")}<br>
-        Qty: <strong>${escapeHtml(row.qty || 0)}</strong><br>
-        Return Location: <strong>${escapeHtml(row.returnLocation || "")}</strong><br>
-        Handled By: ${escapeHtml(row.handledBy || "")}<br>
-        Required Approver: ${escapeHtml(row.requiredApprover || "")}<br><br>
+        <span class="badge">
+          ${escapeHtml(row.approvalStatus||"")}
+        </span><br><br>
 
-        <button class="success" type="button" onclick="submitRevampApprovalByIndex(${index}, 'APPROVE')">
+        ${details}<br><br>
+
+        <button
+          class="success"
+          type="button"
+          onclick="submitRevampApprovalByIndex(${index},'APPROVE')"
+        >
           Approve
         </button>
 
-        <button class="danger" type="button" onclick="submitRevampApprovalByIndex(${index}, 'REJECT')">
+        <button
+          class="danger"
+          type="button"
+          onclick="submitRevampApprovalByIndex(${index},'REJECT')"
+        >
           Reject
         </button>
       </div>
     `;
   });
-  container.innerHTML = html;
+
+  container.innerHTML=html;
 }
 
-function submitRevampApprovalByIndex(index, decision){
-  const row = revampApprovalRows[index];
-  if(!row || !row.returnId){
-    setStatus("Approval row not found. Please refresh approvals.", "error");
+function submitRevampApprovalByIndex(index,decision){
+  const row=revampApprovalRows[index];
+
+  if(!row){
+    setStatus(
+      "Approval row not found. Please refresh.",
+      "error"
+    );
     return;
   }
-  submitRevampApproval(row.returnId, decision);
+
+  submitRevampApproval(
+    row,
+    decision
+  );
 }
 
-async function submitRevampApproval(returnId, decision){
-  if(isSubmitting) return;
-  const label = decision === "APPROVE" ? "approve": "reject";
-  if(!confirm("Are you sure you want to " + label + " this return?\n\nReturn ID: " + returnId)){
-    setStatus("Approval cancelled.", "muted");
+async function submitRevampApproval(row,decision){
+  if(isSubmitting)return;
+
+  const isTransfer=
+    String(row.type||"").toUpperCase()===
+    "TRANSFER";
+
+  const reference=isTransfer
+    ?row.transferNo
+    :row.returnId;
+
+  const label=decision==="APPROVE"
+    ?"approve"
+    :"reject";
+
+  const transactionLabel=isTransfer
+    ?"transfer"
+    :"return";
+
+  if(!confirm(
+    "Are you sure you want to "+
+    label+
+    " this "+
+    transactionLabel+
+    "?\n\nReference: "+
+    reference
+  )){
+    setStatus(
+      "Approval cancelled.",
+      "muted"
+    );
     return;
   }
-  isSubmitting = true;
-  setStatus("Submitting approval...", "info");
+
+  isSubmitting=true;
+
+  setStatus(
+    "Submitting approval...",
+    "info"
+  );
+
   try{
-    const res = await apiCall({action: "submitRevampReturnApproval", staffId: currentUser.staffId, pin: currentPin, returnId, decision});
-    console.log("Submit approval response:", res);
-    if(!res || !res.success){
-      setStatus((res && res.message) ? res.message: "Approval failed.", "error");
+    const params={
+      action:isTransfer
+        ?"submitRevampTransferApproval"
+        :"submitRevampReturnApproval",
+      staffId:currentUser.staffId,
+      pin:currentPin,
+      decision
+    };
+
+    if(isTransfer){
+      params.transferId=row.transferId;
+    }else{
+      params.returnId=row.returnId;
+    }
+
+    const res=await apiCall(params);
+
+    if(!res||!res.success){
+      setStatus(
+        res&&res.message
+          ?res.message
+          :"Approval failed.",
+        "error"
+      );
       return;
     }
-    setStatus(`${escapeHtml(res.message)}<br>` + `Return ID: <strong>${escapeHtml(res.returnId || "")}</strong><br>` + `Status: <strong>${escapeHtml(res.status || "")}</strong><br>` + `Product: ${escapeHtml(res.productName || "")}<br>` + `SKU: ${escapeHtml(res.sku || "")}<br>` + `Qty: ${escapeHtml(res.qty || 0)}<br>` + `Location: ${escapeHtml(res.returnLocation || "")}`,
-    "success-text");
+
+    let resultHtml=`
+      ${escapeHtml(res.message)}<br>
+      Status:
+      <strong>${escapeHtml(res.status||"")}</strong>
+    `;
+
+    if(isTransfer){
+      resultHtml+=`
+        <br>Transfer No.:
+        <strong>${escapeHtml(res.transferNo||"")}</strong>
+        <br>Product:
+        ${escapeHtml(res.productName||"")}
+        <br>SKU:
+        ${escapeHtml(res.sku||"")}
+        <br>Qty:
+        ${escapeHtml(res.qty||0)}
+        <br>From:
+        ${escapeHtml(res.fromLocation||"")}
+        <br>To:
+        ${escapeHtml(res.toLocation||"")}
+      `;
+
+      if(res.affectsInventory){
+        resultHtml+=`
+          <br>${escapeHtml(res.fromLocation||"")}:
+          ${escapeHtml(res.oldFromQty)}
+          →
+          ${escapeHtml(res.newFromQty)}
+          <br>${escapeHtml(res.toLocation||"")}:
+          ${escapeHtml(res.oldToQty)}
+          →
+          ${escapeHtml(res.newToQty)}
+          <br>Total Qty:
+          ${escapeHtml(res.oldTotalQty)}
+          →
+          ${escapeHtml(res.newTotalQty)}
+        `;
+      }
+    }else{
+      resultHtml+=`
+        <br>Return ID:
+        <strong>${escapeHtml(res.returnId||"")}</strong>
+        <br>Product:
+        ${escapeHtml(res.productName||"")}
+        <br>SKU:
+        ${escapeHtml(res.sku||"")}
+        <br>Qty:
+        ${escapeHtml(res.qty||0)}
+        <br>Location:
+        ${escapeHtml(res.returnLocation||"")}
+      `;
+    }
+
     await loadMyApprovals();
-  } catch(err){
-    console.error("Approval error:", err);
-    setStatus("Approval error: " + escapeHtml(err.message || err), "error");
-  } finally{
-    isSubmitting = false;
+
+    setStatus(
+      resultHtml,
+      "success-text"
+    );
+
+  }catch(err){
+    console.error(
+      "Approval error:",
+      err
+    );
+
+    setStatus(
+      "Approval error: "+
+      escapeHtml(err.message||err),
+      "error"
+    );
+
+  }finally{
+    isSubmitting=false;
   }
 }
 
