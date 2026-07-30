@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Charlon Mini POS Scanner</title>
+  <title>Charlon Enterprises Inventory System</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
     body { font-family: Arial, sans-serif; background:#f5f6f7; margin:0; padding:16px; color:#111; }
@@ -83,21 +83,13 @@
   <div class="card hidden" id="scanCard">
     <h2 id="transactionTitle">Scan Product</h2>
     <label>Barcode / SKU / Product Keyword</label>
-    <input
-      type="text"
-      id="searchValue"
-      placeholder="Scan SKU/QR or type product keywords"
-      autocomplete="off"
-    >
+    <input type="text" id="searchValue" placeholder="Scan SKU/QR or type product keywords" autocomplete="off">
     
     <button type="button" onclick="findProduct()">
       Search Product
     </button>
     
-    <div
-      id="keywordResults"
-      class="product-box hidden"
-    ></div>
+    <div id="keywordResults" class="product-box hidden"></div>
     <button class="secondary" type="button" onclick="startCamera()">Start Camera Scanner</button>
     <button class="secondary" type="button" onclick="stopCamera()">Stop Camera Scanner</button>
     <div id="reader"></div>
@@ -220,23 +212,13 @@
       Review pending released items assigned to you.
     </p>
   
-    <button
-      type="button"
-      onclick="loadMyReleaseRequests()"
-    >
+    <button type="button" onclick="loadMyReleaseRequests()">
       Refresh Requests
     </button>
   
-    <div
-      id="releaseRequestsList"
-      class="product-box"
-    ></div>
+    <div id="releaseRequestsList" class="product-box"></div>
   
-    <button
-      class="secondary"
-      type="button"
-      onclick="backHome()"
-    >
+    <button class="secondary" type="button" onclick="backHome()">
       Back
     </button>
   </div>
@@ -255,9 +237,7 @@
 
 <script>
 'use strict';
-
 const API_URL = "https://script.google.com/macros/s/AKfycbx7iFaGeikvykjRicd8kcv6NZQAFg5oYwaRTXU3m4ylM4l8mvqaS84X-iUgLrFWiNUUrw/exec";
-
 let currentUser = null;
 let currentPin = "";
 let settings = {};
@@ -266,122 +246,579 @@ let currentProduct = null;
 let scanner = null;
 let audioCtx = null;
 let isSubmitting = false;
-let keywordSearchResults=[];
+let keywordSearchResults = [];
 let cartItems = [];
 let currentTicket = null;
 let currentTicketLines = [];
 let revampReturnLines = [];
 let revampApprovalRows = [];
-let releaseRequestRows=[];
-  
-async function searchProductsByKeyword() {
-  const searchValue = val(
-    "searchValue"
-  ).trim();
+let releaseRequestRows = [];
+const SESSION_STORAGE_KEY = "charlonMiniPosSessionV1";
+const SESSION_TIMEOUT_MS = 20 * 60 * 1000;
+let inactivityTimer = null;
+let inactivityPromptOpen = false;
+const CART_TRANSACTION_TYPES = ["SALE", "RELEASING"];
+const INVENTORY_LOCATIONS = ["CE1", "CE2", "CE3", "SOLER", "VACANT", "UNKNOWN"];
+const NEW_TRANSACTION_OPTIONS = [{key: "RELEASING", type: "RELEASING", label: "Customer Order / Release Item", helper: "Gamitin kapag may item na ipapakuha o ihahanda para sa customer.",
+live: true}, {key: "SALES", type: "SALE", label: "Sold Immediately", helper: "Gamitin kapag sure na sold/paid na agad ang item.", live: true}, {key: "COUNTCHECK", type: "COUNT_CHECK",
+label: "Count Actual Stock", helper: "Gamitin kapag magche-check ng actual count.", live: true}, {key: "INVENTORYADJUSTMENT", type: "INVENTORY_ADJUSTMENT", label: "Manager Inventory Adjustment",
+helper: "Manager/Admin only. Gamitin kapag kailangang itama ang stock after checking.", live: true}, {key: "TRANSFER", type: "TRANSFER", label: "Transfer Stock Location", helper: "Gamitin kapag ililipat ang stock mula sa isang inventory location papunta sa iba.",
+live: true}];
 
-  if (!searchValue) {
-    setStatus(
-      "Please enter product keywords.",
-      "error"
-    );
+function setStatus(text, type = ""){
+  const el = document.getElementById("status");
+  el.className = type || "muted";
+  el.innerHTML = text || "";
+}
 
+function show(id){
+  document.getElementById(id).classList.remove("hidden");
+}
+
+function hide(id){
+  document.getElementById(id).classList.add("hidden");
+}
+
+function today(){
+  return new Date().toISOString().slice(0, 10);
+}
+
+function val(id){
+  const el = document.getElementById(id);
+  return el ? el.value: "";
+}
+
+function escapeHtml(value){
+  return String(value === undefined || value === null ? "": value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+function formatDateTime(value){
+  if(!value) return "";
+  const d = new Date(value);
+  if(isNaN(d.getTime())){
+    return String(value);
+  }
+  return d.toLocaleString();
+}
+
+function selectHtml(id, options, selected = ""){
+  options = options || [];
+  let html = `<select id="${id}"><option value="">Select</option>`;
+  options.forEach(option => {
+    const isSelected = String(option) === String(selected) ? "selected": ""; html += `<option value="${escapeHtml(option)}" ${isSelected}>${escapeHtml(option)}</option>`;
+  });
+  html += `</select>`;
+  return html;
+}
+
+function inventoryLocationSelectHtml(id, selected = "", onchange = ""){
+  const selectedKey = String(selected || "").trim().toUpperCase();
+  const validSelected = INVENTORY_LOCATIONS.includes(selectedKey) ? selectedKey: "";
+  const changeAttr = onchange ? ` onchange="${escapeHtml(onchange)}"`: "";
+  let html = `<select id="${id}"${changeAttr}><option value="">Select stock location</option>`;
+  INVENTORY_LOCATIONS.forEach(location => {
+    const isSelected = location === validSelected ? "selected": ""; html += `<option value="${location}" ${isSelected}>${location}</option>`;
+  });
+  html += `</select>`;
+  return html;
+}
+
+function getUnitOptions(){
+  if(settings.units && Array.isArray(settings.units) && settings.units.length){
+    return settings.units;
+  }
+  return["pc", "unit", "m", "cm", "ft", "roll", "set", "box", "pair", "kg", "g", "L", "ml"];
+}
+
+function unitOptionsHtml(selected = "unit"){
+  return getUnitOptions().map(unit => {
+    const isSelected = String(unit) === String(selected) ? "selected": ""; return `<option value="${escapeHtml(unit)}" ${isSelected}>${escapeHtml(unit)}</option>`;
+  }).join("");
+}
+
+function displayQty(value){
+  const number = Number(value);
+  return Number.isFinite(number) ? number.toLocaleString(): "0";
+}
+
+function getAvailableQty(product){
+  const p = product || {};
+  if(p.availableQty !== undefined && p.availableQty !== null && p.availableQty !== ""){
+    return displayQty(p.availableQty);
+  }
+  if(p.currentQty !== undefined && p.currentQty !== null && p.currentQty !== ""){
+    return displayQty(p.currentQty);
+  }
+  if(p.posTotalQty !== undefined && p.posTotalQty !== null && p.posTotalQty !== ""){
+    return displayQty(p.posTotalQty);
+  }
+  return "0";
+}
+
+function apiCall(params){
+  return new Promise((resolve, reject) => {
+    const callbackName = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000); params.callback = callbackName; const url = API_URL + "?" + new URLSearchParams(params).toString(); console.log("API request:",
+    url); let finished = false; let script = document.createElement("script"); const timeout = setTimeout(() => {
+      if(finished) return; finished = true; delete window[callbackName]; if(script && script.parentNode) script.parentNode.removeChild(script); reject(new Error("The transaction is taking longer than expected. " + "Do not submit it again yet. Check the transaction history first."));
+    }, 180000); window[callbackName] = function(data){
+      if(finished) return; finished = true; clearTimeout(timeout); delete window[callbackName]; if(script && script.parentNode) script.parentNode.removeChild(script); resolve(data);
+    }; script.src = url; script.onerror = function(){
+      if(finished) return; finished = true; clearTimeout(timeout); delete window[callbackName]; if(script && script.parentNode) script.parentNode.removeChild(script); reject(new Error("API request failed. Check Apps Script deployment/access."));
+    }; document.body.appendChild(script);
+  });
+}
+
+async function login(){
+  const staffId = val("staffId").trim().toUpperCase();
+  const pin = val("pin").trim();
+  if(!staffId){
+    setStatus("Please enter Staff ID.", "error");
     return;
   }
-
-  setStatus(
-    "Searching products...",
-    "info"
-  );
-
-  try {
-    const res = await apiCall({
-      action: "searchProducts",
-      staffId: currentUser.staffId,
-      pin: currentPin,
-      searchValue
-    });
-
-    console.log(
-      "Keyword search response:",
-      res
-    );
-
-    if (!res || !res.success) {
-      setStatus(
-        res && res.message
-          ? res.message
-          : "Product search failed.",
-        "error"
-      );
-
+  if(!pin){
+    setStatus("Please enter PIN.", "error");
+    return;
+  }
+  setStatus("Logging in...", "info");
+  try{
+    const res = await apiCall({action: "login", staffId, pin});
+    console.log("Login response:", res);
+    if(!res || !res.success){
+      setStatus((res && res.message) ? res.message: "Login failed.", "error");
       return;
     }
-
-    keywordSearchResults =
-      Array.isArray(res.results)
-        ? res.results
-        : [];
-
-    renderKeywordResults(
-      res.count || 0,
-      res.limited === true
-    );
-
-    if (!keywordSearchResults.length) {
-      setStatus(
-        "No products matched: " +
-        escapeHtml(searchValue),
-        "muted"
-      );
-
+    currentUser = res.user;
+    currentPin = pin;
+    settings = res.settings || {};
+    hide("loginCard");
+    if(currentUser.mustChangePin){
+      show("changePinCard");
+      setStatus("Temporary PIN detected. Please create your own PIN.", "info");
+      setTimeout(() => document.getElementById("newPin").focus(), 200);
       return;
     }
-
-    setStatus(
-      "Found " +
-      Number(res.count || 0)
-        .toLocaleString() +
-      " matching product(s).",
-      "success-text"
-    );
-
-  } catch (err) {
-    console.error(
-      "Keyword product search error:",
-      err
-    );
-
-    setStatus(
-      "Product search error: " +
-      escapeHtml(
-        err.message || err
-      ),
-      "error"
-    );
+    saveLoginSession();
+    openHome();
+    startInactivityTimer();
+    setStatus("Login successful.", "success-text");
+  } catch(err){
+    console.error("Login error:", err);
+    setStatus("Login error: " + escapeHtml(err.message || err), "error");
   }
 }
 
-function renderKeywordResults(
-  totalCount,
-  limited
-) {
-  const container =
-    document.getElementById(
-      "keywordResults"
-    );
+async function changePin(){
+  if(!currentUser){
+    setStatus("Please login first.", "error");
+    return;
+  }
+  const newPin = val("newPin").trim();
+  const confirmPin = val("confirmPin").trim();
+  if(!newPin || !confirmPin){
+    setStatus("Enter and confirm your new PIN.", "error");
+    return;
+  }
+  setStatus("Saving new PIN...", "info");
+  try{
+    const res = await apiCall({action: "changePin", staffId: currentUser.staffId, pin: currentPin, newPin, confirmPin});
+    console.log("Change PIN response:", res);
+    if(!res || !res.success){
+      setStatus((res && res.message) ? res.message: "PIN change failed.", "error");
+      return;
+    }
+    currentUser = res.user;
+    currentPin = newPin;
+    settings = res.settings || settings;
+    document.getElementById("pin").value = newPin;
+    document.getElementById("newPin").value = "";
+    document.getElementById("confirmPin").value = "";
+    saveLoginSession();
+    hide("changePinCard");
+    openHome();
+    startInactivityTimer();
+    setStatus("PIN changed successfully. You can use this PIN for your next login.", "success-text");
+  } catch(err){
+    console.error("Change PIN error:", err);
+    setStatus("Change PIN error: " + escapeHtml(err.message || err), "error");
+  }
+}
 
-  if (!keywordSearchResults.length) {
+function saveLoginSession(){
+  if(!currentUser || !currentPin) return;
+  try{
+    const sessionData = {staffId: currentUser.staffId, pin: currentPin, savedAt: Date.now(), lastActiveAt: Date.now()};
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionData));
+  } catch(err){
+    console.log("Could not save login session:", err);
+  }
+}
+
+function updateSessionActivityTime(){
+  try{
+    const raw = localStorage.getItem(SESSION_STORAGE_KEY);
+    if(!raw) return;
+    const sessionData = JSON.parse(raw);
+    sessionData.lastActiveAt = Date.now();
+    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionData));
+  } catch(err){
+    console.log("Could not update session activity:", err);
+  }
+}
+
+function clearLoginSession(){
+  try{
+    localStorage.removeItem(SESSION_STORAGE_KEY);
+  } catch(err){
+    console.log("Could not clear login session:", err);
+  }
+}
+
+function startInactivityTimer(){
+  clearTimeout(inactivityTimer);
+  if(!currentUser) return;
+  inactivityTimer = setTimeout(handleInactivityTimeout, SESSION_TIMEOUT_MS);
+}
+
+function stopInactivityTimer(){
+  clearTimeout(inactivityTimer);
+  inactivityTimer = null;
+  inactivityPromptOpen = false;
+}
+
+function resetInactivityTimer(){
+  if(!currentUser) return;
+  updateSessionActivityTime();
+  startInactivityTimer();
+}
+
+function handleInactivityTimeout(){
+  if(!currentUser || inactivityPromptOpen) return;
+  inactivityPromptOpen = true;
+  const continueSession = confirm("You have been inactive for around 20 minutes.\n\nDo you want to continue using Charlon Mini POS?");
+  inactivityPromptOpen = false;
+  if(continueSession){
+    setStatus("Session continued.", "success-text");
+    resetInactivityTimer();
+  } else{
+    logout();
+    setStatus("Session ended because of inactivity.", "muted");
+  }
+}
+
+function setupInactivityTracking(){
+  const events = ["click", "keydown", "touchstart", "mousemove", "scroll"];
+  events.forEach(eventName => {
+    document.addEventListener(eventName, function(){
+      if(currentUser){
+        resetInactivityTimer();
+      }
+    }, {passive: true});
+  });
+}
+
+async function restoreSavedLoginSession(){
+  let sessionData = null;
+  try{
+    const raw = localStorage.getItem(SESSION_STORAGE_KEY);
+    if(!raw) return;
+    sessionData = JSON.parse(raw);
+  } catch(err){
+    clearLoginSession();
+    return;
+  }
+  if(!sessionData || !sessionData.staffId || !sessionData.pin){
+    clearLoginSession();
+    return;
+  }
+  const lastActiveAt = Number(sessionData.lastActiveAt || sessionData.savedAt || 0);
+  const inactiveFor = Date.now() - lastActiveAt;
+  if(inactiveFor >= SESSION_TIMEOUT_MS){
+    const continueSession = confirm("You have a saved login session, but it has been inactive for more than 20 minutes.\n\nDo you want to continue?");
+    if(!continueSession){
+      clearLoginSession();
+      setStatus("Saved session cleared.", "muted");
+      return;
+    }
+  }
+  setStatus("Restoring saved login...", "info");
+  try{
+    const res = await apiCall({action: "login", staffId: sessionData.staffId, pin: sessionData.pin});
+    console.log("Restore login response:", res);
+    if(!res || !res.success){
+      clearLoginSession();
+      setStatus("Saved login expired or invalid. Please login again.", "error");
+      return;
+    }
+    currentUser = res.user;
+    currentPin = sessionData.pin;
+    settings = res.settings || {};
+    document.getElementById("staffId").value = currentUser.staffId;
+    document.getElementById("pin").value = currentPin;
+    hide("loginCard");
+    if(currentUser.mustChangePin){
+      show("changePinCard");
+      setStatus("Temporary PIN detected. Please create your own PIN.", "info");
+      return;
+    }
+    saveLoginSession();
+    openHome();
+    startInactivityTimer();
+    setStatus("Login restored.", "success-text");
+  } catch(err){
+    console.error("Restore login error:", err);
+    clearLoginSession();
+    setStatus("Could not restore login. Please login again.", "error");
+  }
+}
+
+function logout(){
+  clearLoginSession();
+  stopInactivityTimer();
+  stopCamera();
+  currentUser = null;
+  currentPin = "";
+  settings = {};
+  currentType = "";
+  currentProduct = null;
+  hide("homeCard");
+  hide("changePinCard");
+  hide("scanCard");
+  hide("productCard");
+  hide("cartCard");
+  hide("ticketCard");
+  hide("reportsCard");
+  hide("formCard");
+  hide("revampReturnCard");
+  hide("approvalCard");
+  hide("releaseRequestsCard");
+  show("loginCard");
+  document.getElementById("staffId").value = "";
+  document.getElementById("pin").value = "";
+  document.getElementById("newPin").value = "";
+  document.getElementById("confirmPin").value = "";
+  document.getElementById("searchValue").value = "";
+  setStatus("Logged out.", "muted");
+}
+
+function canAccess(actionKey){
+  const allowed = (currentUser && currentUser.allowedActions) ? currentUser.allowedActions: {};
+  return allowed[actionKey] === true;
+}
+
+function canAccessAny(actionKeys){
+  return actionKeys.some(actionKey => canAccess(actionKey));
+}
+
+function canViewMyReleaseRequests(){
+  const roleKey = String(currentUser && currentUser.role || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return["MANAGER", "SALES", "SHOPEESTOCKCHECKER"].includes(roleKey);
+}
+
+function canUseReleaseItem(){
+  const roleKey = String(currentUser && currentUser.role || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return(canAccess("RELEASING") && ["SALES", "SHOPEESTOCKCHECKER", "RELEASING"].includes(roleKey));
+}
+
+function openHome(){
+  show("homeCard");
+  document.getElementById("welcomeText").innerText = "Welcome, " + currentUser.name;
+  document.getElementById("userInfo").innerText = "Staff ID: " + currentUser.staffId + " | Role: " + currentUser.role;
+  renderHomeButtons();
+}
+
+function renderHomeButtons(){
+  const container = document.getElementById("homeButtons");
+  container.innerHTML = "";
+  if(canAccess("CHECKSTOCK")){
+    container.appendChild(makeMenuButton("Check Stock", "Tingnan ang product, total stock, reserved qty, at notes.", function(){
+      chooseType("CHECK_STOCK");
+    }));
+  }
+  if(canAccessAny(["RELEASING", "SALES", "PURCHASES", "COUNTCHECK", "INVENTORYADJUSTMENT", "TRANSFER"])){
+    container.appendChild(makeMenuButton("New Transaction", "Gamitin kapag may bagong order, sale, purchase, stock count, inventory adjustment, or stock transfer.", showNewTransactionOptions));
+  }
+  if(canAccessAny(["RETURNCANCELRELEASE", "SALES", "DELIVERY"])){
+    container.appendChild(makeMenuButton("Transaction Follow-up", "Gamitin kapag may nangyari after release/sale: cancel, refund, return, or delivery update.", openTicketLookup));
+  }
+  if(canAccess("RETURNCANCELRELEASE")){
+    container.appendChild(makeMenuButton("Return Stock-In", "Search receipt no., submit returned items, and wait for location approval.", openRevampReturnLookup));
+  }
+  if(canViewMyReleaseRequests()){
+    container.appendChild(makeMenuButton("My Release Requests", "View pending released items requested for you.", openMyReleaseRequests));
+  }
+  const currentNameKey = String(currentUser.name || "").trim().toUpperCase();
+  const approvalUserKeys = (settings.approvalUsers || []).map(name => {
+    return String(name || "").trim().toUpperCase();
+  });
+  if(approvalUserKeys.includes(currentNameKey)){
+    container.appendChild(makeMenuButton("My Approvals", "Approve or reject pending return requests assigned to you.", openMyApprovals));
+  }
+  if(canAccess("REPORTSHISTORY")){
+    container.appendChild(makeMenuButton("Reports / History", "For manager/admin checking only.", openReportsView));
+  }
+}
+
+function makeMenuButton(label, helper, onClick, live = true){
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = live ? "choice": "choice secondary coming-soon";
+  button.innerHTML = `
+    <div>${escapeHtml(label)}${live ? "" : " (next update)"}</div>
+    <div class="muted" style="margin-top:4px;">${escapeHtml(helper)}</div>
+  `;
+  button.onclick = function(){
+    if(!live){
+      setStatus(label + " is not ready yet.", "info");
+      return;
+    }
+    onClick();
+  };
+  return button;
+}
+
+function showNewTransactionOptions(){
+  const container = document.getElementById("homeButtons");
+  container.innerHTML = "";
+  const intro = document.createElement("p");
+  intro.className = "muted";
+  intro.innerText = "Piliin kung anong bagong transaction ang gagawin.";
+  container.appendChild(intro);
+  NEW_TRANSACTION_OPTIONS.forEach(option => {
+    if(!canAccess(option.key)) return; if(option.type === "RELEASING" && !canUseReleaseItem()){
+      return;
+    }
+    container.appendChild(makeMenuButton(option.label, option.helper, function(){
+      chooseType(option.type);
+    }, option.live));
+  });
+  container.appendChild(makeMenuButton("Back", "Bumalik sa main menu.", renderHomeButtons));
+}
+
+function chooseType(type){
+  currentType = type;
+  currentProduct = null;
+  cartItems = [];
+  hide("homeCard");
+  show("scanCard");
+  hide("productCard");
+  hide("cartCard");
+  hide("ticketCard");
+  hide("reportsCard");
+  hide("formCard");
+  hide("revampReturnCard");
+  hide("approvalCard");
+  document.getElementById("searchValue").value = "";
+  const titles = {SALE: "Sold Immediately", PURCHASE: "Stock In / New Arrival", COUNT_CHECK: "Count Actual Stock", INVENTORY_ADJUSTMENT: "Manager Inventory Adjustment", CHECK_STOCK: "Check Stock",
+  RELEASING: "Customer Order / Release Item", RETURN_CANCEL_RELEASE: "Return / Refund / Cancel Item", TRANSFER: "Move Item Location", LOCATION_NOTE: "Location Note / Move Note", };
+  document.getElementById("transactionTitle").innerText = titles[type] || "Scan Product";
+  setStatus("Scan QR code or type SKU.", "muted");
+  setTimeout(() => document.getElementById("searchValue").focus(), 300);
+}
+
+function backHome(){
+  stopCamera();
+  hide("scanCard");
+  hide("productCard");
+  hide("cartCard");
+  hide("ticketCard");
+  hide("reportsCard");
+  hide("formCard");
+  hide("revampReturnCard");
+  hide("approvalCard");
+  hide("releaseRequestsCard");
+  show("homeCard");
+  setStatus("Choose transaction type.", "muted");
+}
+
+async function findProduct(){
+  const searchValue = val("searchValue").trim();
+  if(!searchValue){
+    setStatus("Please scan or enter a product.", "error");
+    return;
+  }
+  keywordSearchResults = [];
+  hide("keywordResults");
+  setStatus("Searching product...", "info");
+  let exactResponse = null;
+  try{
+    exactResponse = await apiCall({action: "findProduct", staffId: currentUser.staffId, pin: currentPin, searchValue});
+  } catch(err){
+    console.log("Exact lookup failed:", err);
+  }
+  if(exactResponse && exactResponse.success && exactResponse.product){
+    currentProduct = exactResponse.product;
+    renderProduct();
+    if(isCartTransactionType(currentType)){
+      addProductToCart(currentProduct);
+      renderForm();
+      document.getElementById("searchValue").value = "";
+      setTimeout(() => {
+        document.getElementById("searchValue").focus();
+      }, 200);
+      setStatus("Product found and added to cart.", "success-text");
+      return;
+    }
+    renderForm();
+    setStatus("Product found.", "success-text");
+    return;
+  }
+  try{
+    const keywordResponse = await apiCall({action: "searchProducts", staffId: currentUser.staffId, pin: currentPin, searchValue});
+    if(!keywordResponse || !keywordResponse.success){
+      throw new Error(keywordResponse && keywordResponse.message ? keywordResponse.message: "Product search failed.");
+    }
+    keywordSearchResults = Array.isArray(keywordResponse.results) ? keywordResponse.results: [];
+    renderKeywordResults(keywordResponse.count || 0, keywordResponse.limited === true);
+    if(!keywordSearchResults.length){
+      setStatus("No products found for: " + escapeHtml(searchValue), "muted");
+      return;
+    }
+    setStatus("Found " + Number(keywordResponse.count || 0).toLocaleString() + " matching product(s).", "success-text");
+  } catch(err){
+    console.error("Product search error:", err);
+    setStatus("Product search error: " + escapeHtml(err.message || err), "error");
+  }
+}
+
+async function searchProductsByKeyword(){
+  const searchValue = val("searchValue").trim();
+  if(!searchValue){
+    setStatus("Please enter product keywords.", "error");
+    return;
+  }
+  setStatus("Searching products...", "info");
+  try{
+    const res = await apiCall({action: "searchProducts", staffId: currentUser.staffId, pin: currentPin, searchValue});
+    console.log("Keyword search response:", res);
+    if(!res || !res.success){
+      setStatus(res && res.message ? res.message: "Product search failed.", "error");
+      return;
+    }
+    keywordSearchResults = Array.isArray(res.results) ? res.results: [];
+    renderKeywordResults(res.count || 0, res.limited === true);
+    if(!keywordSearchResults.length){
+      setStatus("No products matched: " + escapeHtml(searchValue), "muted");
+      return;
+    }
+    setStatus("Found " + Number(res.count || 0).toLocaleString() + " matching product(s).", "success-text");
+  } catch(err){
+    console.error("Keyword product search error:", err);
+    setStatus("Product search error: " + escapeHtml(err.message || err), "error");
+  }
+}
+
+function renderKeywordResults(totalCount, limited){
+  const container = document.getElementById("keywordResults");
+  if(!keywordSearchResults.length){
     container.innerHTML = `
       <hr>
       <p class="muted">
         No matching products found.
       </p>
     `;
-
     show("keywordResults");
     return;
   }
-
   let html = `
     <hr>
     <h3>Product Search Results</h3>
@@ -396,20 +833,8 @@ function renderKeywordResults(
       }
     </p>
   `;
-
-  keywordSearchResults.forEach(
-    (product, index) => {
-      const availableQty = Number(
-        product.availableQty !==
-          undefined &&
-        product.availableQty !==
-          null &&
-        product.availableQty !== ""
-          ? product.availableQty
-          : 0
-      );
-
-      html += `
+  keywordSearchResults.forEach((product, index) => {
+    const availableQty = Number(product.availableQty !== undefined && product.availableQty !== null && product.availableQty !== "" ? product.availableQty: 0); html += `
         <div class="cart-line">
           <strong>
             ${escapeHtml(
@@ -489,1673 +914,119 @@ function renderKeywordResults(
           </button>
         </div>
       `;
-    }
-  );
-
+  });
   container.innerHTML = html;
   show("keywordResults");
 }
 
-function selectKeywordProduct(index) {
-  const product =
-    keywordSearchResults[index];
-
-  if (!product) return;
-
+function selectKeywordProduct(index){
+  const product = keywordSearchResults[index];
+  if(!product) return;
   currentProduct = product;
-
   renderProduct();
-
-  if (
-    isCartTransactionType(
-      currentType
-    )
-  ) {
-    addProductToCart(
-      currentProduct
-    );
-
+  if(isCartTransactionType(currentType)){
+    addProductToCart(currentProduct);
     renderForm();
-
-    document.getElementById(
-      "searchValue"
-    ).value = "";
-
+    document.getElementById("searchValue").value = "";
     hide("keywordResults");
-
     setTimeout(() => {
-      document.getElementById(
-        "searchValue"
-      ).focus();
+      document.getElementById("searchValue").focus();
     }, 200);
-
-    setStatus(
-      "Product selected and added to cart.",
-      "success-text"
-    );
-
+    setStatus("Product selected and added to cart.", "success-text");
     return;
   }
-
   renderForm();
   hide("keywordResults");
-
-  setStatus(
-    "Product selected.",
-    "success-text"
-  );
+  setStatus("Product selected.", "success-text");
 }
 
 function backToKeywordResults(){
   if(!keywordSearchResults.length){
-    setStatus(
-      "No previous search results available.",
-      "muted"
-    );
+    setStatus("No previous search results available.", "muted");
     return;
   }
-
   show("keywordResults");
-
-  document
-    .getElementById("keywordResults")
-    .scrollIntoView({
-      behavior:"smooth",
-      block:"start"
-    });
-
-  setStatus(
-    "Showing your previous product search results.",
-    "info"
-  );
+  document.getElementById("keywordResults").scrollIntoView({behavior: "smooth", block: "start"});
+  setStatus("Showing your previous product search results.", "info");
 }
 
-const SESSION_STORAGE_KEY = "charlonMiniPosSessionV1";
-const SESSION_TIMEOUT_MS = 20 * 60 * 1000;
-
-let inactivityTimer = null;
-let inactivityPromptOpen = false;
-  
-const CART_TRANSACTION_TYPES = [
-  "SALE",
-  "RELEASING"
-];
-
-const INVENTORY_LOCATIONS = [
-  "CE1",
-  "CE2",
-  "CE3",
-  "SOLER",
-  "VACANT",
-  "UNKNOWN"
-];
-
-const NEW_TRANSACTION_OPTIONS = [
-  {
-    key: "RELEASING",
-    type: "RELEASING",
-    label: "Customer Order / Release Item",
-    helper: "Gamitin kapag may item na ipapakuha o ihahanda para sa customer.",
-    live: true
-  },
-  {
-    key: "SALES",
-    type: "SALE",
-    label: "Sold Immediately",
-    helper: "Gamitin kapag sure na sold/paid na agad ang item.",
-    live: true
-  },
-  {
-    key: "COUNTCHECK",
-    type: "COUNT_CHECK",
-    label: "Count Actual Stock",
-    helper: "Gamitin kapag magche-check ng actual count.",
-    live: true
-  },
-  {
-    key: "INVENTORYADJUSTMENT",
-    type: "INVENTORY_ADJUSTMENT",
-    label: "Manager Inventory Adjustment",
-    helper: "Manager/Admin only. Gamitin kapag kailangang itama ang stock after checking.",
-    live: true
-  },
-  {
-    key: "TRANSFER",
-    type: "TRANSFER",
-    label: "Transfer Stock Location",
-    helper: "Gamitin kapag ililipat ang stock mula sa isang inventory location papunta sa iba.",
-    live: true
-  }
-];
-  
-function setStatus(text, type = "") {
-  const el = document.getElementById("status");
-  el.className = type || "muted";
-  el.innerHTML = text || "";
-}
-
-function show(id) { document.getElementById(id).classList.remove("hidden"); }
-function hide(id) { document.getElementById(id).classList.add("hidden"); }
-function today() { return new Date().toISOString().slice(0, 10); }
-function val(id) { const el = document.getElementById(id); return el ? el.value : ""; }
-
-function saveLoginSession() {
-  if (!currentUser || !currentPin) return;
-
-  try {
-    const sessionData = {
-      staffId: currentUser.staffId,
-      pin: currentPin,
-      savedAt: Date.now(),
-      lastActiveAt: Date.now()
-    };
-
-    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionData));
-  } catch (err) {
-    console.log("Could not save login session:", err);
-  }
-}
-
-function updateSessionActivityTime() {
-  try {
-    const raw = localStorage.getItem(SESSION_STORAGE_KEY);
-    if (!raw) return;
-
-    const sessionData = JSON.parse(raw);
-    sessionData.lastActiveAt = Date.now();
-
-    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionData));
-  } catch (err) {
-    console.log("Could not update session activity:", err);
-  }
-}
-
-function clearLoginSession() {
-  try {
-    localStorage.removeItem(SESSION_STORAGE_KEY);
-  } catch (err) {
-    console.log("Could not clear login session:", err);
-  }
-}
-
-function startInactivityTimer() {
-  clearTimeout(inactivityTimer);
-
-  if (!currentUser) return;
-
-  inactivityTimer = setTimeout(handleInactivityTimeout, SESSION_TIMEOUT_MS);
-}
-
-function stopInactivityTimer() {
-  clearTimeout(inactivityTimer);
-  inactivityTimer = null;
-  inactivityPromptOpen = false;
-}
-
-function resetInactivityTimer() {
-  if (!currentUser) return;
-
-  updateSessionActivityTime();
-  startInactivityTimer();
-}
-
-function handleInactivityTimeout() {
-  if (!currentUser || inactivityPromptOpen) return;
-
-  inactivityPromptOpen = true;
-
-  const continueSession = confirm(
-    "You have been inactive for around 20 minutes.\n\nDo you want to continue using Charlon Mini POS?"
-  );
-
-  inactivityPromptOpen = false;
-
-  if (continueSession) {
-    setStatus("Session continued.", "success-text");
-    resetInactivityTimer();
-  } else {
-    logout();
-    setStatus("Session ended because of inactivity.", "muted");
-  }
-}
-
-function setupInactivityTracking() {
-  const events = [
-    "click",
-    "keydown",
-    "touchstart",
-    "mousemove",
-    "scroll"
-  ];
-
-  events.forEach(eventName => {
-    document.addEventListener(eventName, function() {
-      if (currentUser) {
-        resetInactivityTimer();
-      }
-    }, { passive: true });
-  });
-}
-
-async function restoreSavedLoginSession() {
-  let sessionData = null;
-
-  try {
-    const raw = localStorage.getItem(SESSION_STORAGE_KEY);
-    if (!raw) return;
-
-    sessionData = JSON.parse(raw);
-  } catch (err) {
-    clearLoginSession();
-    return;
-  }
-
-  if (!sessionData || !sessionData.staffId || !sessionData.pin) {
-    clearLoginSession();
-    return;
-  }
-
-  const lastActiveAt = Number(sessionData.lastActiveAt || sessionData.savedAt || 0);
-  const inactiveFor = Date.now() - lastActiveAt;
-
-  if (inactiveFor >= SESSION_TIMEOUT_MS) {
-    const continueSession = confirm(
-      "You have a saved login session, but it has been inactive for more than 20 minutes.\n\nDo you want to continue?"
-    );
-
-    if (!continueSession) {
-      clearLoginSession();
-      setStatus("Saved session cleared.", "muted");
-      return;
-    }
-  }
-
-  setStatus("Restoring saved login...", "info");
-
-  try {
-    const res = await apiCall({
-      action: "login",
-      staffId: sessionData.staffId,
-      pin: sessionData.pin
-    });
-
-    console.log("Restore login response:", res);
-
-    if (!res || !res.success) {
-      clearLoginSession();
-      setStatus("Saved login expired or invalid. Please login again.", "error");
-      return;
-    }
-
-    currentUser = res.user;
-    currentPin = sessionData.pin;
-    settings = res.settings || {};
-
-    document.getElementById("staffId").value = currentUser.staffId;
-    document.getElementById("pin").value = currentPin;
-
-    hide("loginCard");
-
-    if (currentUser.mustChangePin) {
-      show("changePinCard");
-      setStatus("Temporary PIN detected. Please create your own PIN.", "info");
-      return;
-    }
-
-    saveLoginSession();
-    openHome();
-    startInactivityTimer();
-
-    setStatus("Login restored.", "success-text");
-
-  } catch (err) {
-    console.error("Restore login error:", err);
-    clearLoginSession();
-    setStatus("Could not restore login. Please login again.", "error");
-  }
-}
-  
-function escapeHtml(value) {
-  return String(
-    value === undefined ||
-    value === null
-      ? ""
-      : value
-  )
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-function unlockScanSound() {
-  try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === "suspended") audioCtx.resume();
-  } catch (err) {
-    console.log("Audio unlock failed:", err);
-  }
-}
-
-function playScanSound() {
-  try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(950, audioCtx.currentTime);
-    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.18);
-    if (navigator.vibrate) navigator.vibrate(80);
-  } catch (err) {
-    console.log("Scan sound failed:", err);
-  }
-}
-
-async function submitTicketFollowUp(followUpAction) {
-  if (isSubmitting) return;
-
-  if (!currentTicket || !currentTicket.ticketNo) {
-    setStatus("Please find a ticket first.", "error");
-    return;
-  }
-
-  const actionLabel = followUpAction === "COMPLETE_SALE"
-    ? "Complete Sale"
-    : "Cancel Release";
-
-  const itemSummary = currentTicketLines
-    .map(line => `- ${line.productName} | Qty: ${line.quantity}`)
-    .join("\n");
-
-  const confirmMessage =
-    "Please confirm follow-up:\n\n" +
-    "Action: " + actionLabel + "\n" +
-    "Ticket No.: " + currentTicket.ticketNo + "\n\n" +
-    "Items:\n" + itemSummary + "\n\n" +
-    "Continue?";
-
-  if (!confirm(confirmMessage)) {
-    setStatus("Follow-up cancelled. Nothing was saved.", "muted");
-    return;
-  }
-
-  isSubmitting = true;
-  setStatus("Submitting follow-up...", "info");
-
-  try {
-    const res = await apiCall({
-      action: "submitTicketFollowUp",
-      staffId: currentUser.staffId,
-      pin: currentPin,
-      ticketNo: currentTicket.ticketNo,
-      followUpAction,
-      notes: val("followUpNotes")
-    });
-
-    console.log("Ticket follow-up response:", res);
-
-    if (!res || !res.success) {
-      setStatus((res && res.message) ? res.message : "Follow-up failed.", "error");
-      return;
-    }
-
-    let resultHtml = `
-      ${escapeHtml(res.message)}<br>
-      Ticket No.: <strong>${escapeHtml(res.ticketNo || "")}</strong><br>
-      New Status: <strong>${escapeHtml(res.status || "")}</strong><br>
-      Items Updated: ${escapeHtml(res.itemCount || 0)}
-    `;
-
-    if (Array.isArray(res.results)) {
-      resultHtml += "<br><br>";
-
-      res.results.forEach(item => {
-        resultHtml += `
-          ${escapeHtml(item.productName || "")}<br>
-          Qty: ${escapeHtml(item.qty)}<br>
-          Total Qty: ${escapeHtml(item.oldTotalQty)} → ${escapeHtml(item.newTotalQty)}<br>
-          Reserved Qty: ${escapeHtml(item.oldReservedQty)} → ${escapeHtml(item.newReservedQty)}<br>
-          Available Qty: ${escapeHtml(item.oldAvailableQty)} → ${escapeHtml(item.newAvailableQty)}<br>
-          ${item.negativeStockWarning ? `<span class="error">${escapeHtml(item.negativeStockWarning)}</span><br>` : ""}
-          <br>
-        `;
-      });
-    }
-
-    setStatus(resultHtml, "success-text");
-
-    await findTicket();
-
-  } catch (err) {
-    console.error("Ticket follow-up error:", err);
-    setStatus("Ticket follow-up error: " + escapeHtml(err.message || err), "error");
-  } finally {
-    isSubmitting = false;
-  }
-}
-
-function apiCall(params) {
-  return new Promise((resolve, reject) => {
-    const callbackName = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
-    params.callback = callbackName;
-    const url = API_URL + "?" + new URLSearchParams(params).toString();
-    console.log("API request:", url);
-
-    let finished = false;
-    let script = document.createElement("script");
-
-    const timeout = setTimeout(() => {
-      if (finished) return;
-      finished = true;
-      delete window[callbackName];
-      if (script && script.parentNode) script.parentNode.removeChild(script);
-    
-      reject(new Error(
-        "The transaction is taking longer than expected. " +
-        "Do not submit it again yet. Check the transaction history first."
-      ));
-    }, 180000);
-
-    window[callbackName] = function(data) {
-      if (finished) return;
-      finished = true;
-      clearTimeout(timeout);
-      delete window[callbackName];
-      if (script && script.parentNode) script.parentNode.removeChild(script);
-      resolve(data);
-    };
-
-    script.src = url;
-    script.onerror = function() {
-      if (finished) return;
-      finished = true;
-      clearTimeout(timeout);
-      delete window[callbackName];
-      if (script && script.parentNode) script.parentNode.removeChild(script);
-      reject(new Error("API request failed. Check Apps Script deployment/access."));
-    };
-
-    document.body.appendChild(script);
-  });
-}
-
-async function login() {
-  const staffId = val("staffId").trim().toUpperCase();
-  const pin = val("pin").trim();
-
-  if (!staffId) {
-    setStatus("Please enter Staff ID.", "error");
-    return;
-  }
-
-  if (!pin) {
-    setStatus("Please enter PIN.", "error");
-    return;
-  }
-
-  setStatus("Logging in...", "info");
-
-  try {
-    const res = await apiCall({ action: "login", staffId, pin });
-    console.log("Login response:", res);
-
-    if (!res || !res.success) {
-      setStatus((res && res.message) ? res.message : "Login failed.", "error");
-      return;
-    }
-
-    currentUser = res.user;
-    currentPin = pin;
-    settings = res.settings || {};
-
-    hide("loginCard");
-
-    if (currentUser.mustChangePin) {
-      show("changePinCard");
-      setStatus("Temporary PIN detected. Please create your own PIN.", "info");
-      setTimeout(() => document.getElementById("newPin").focus(), 200);
-      return;
-    }
-
-    saveLoginSession();
-    openHome();
-    startInactivityTimer();
-    setStatus("Login successful.", "success-text");
-  } catch (err) {
-    console.error("Login error:", err);
-    setStatus("Login error: " + escapeHtml(err.message || err), "error");
-  }
-}
-
-async function changePin() {
-  if (!currentUser) {
-    setStatus("Please login first.", "error");
-    return;
-  }
-
-  const newPin = val("newPin").trim();
-  const confirmPin = val("confirmPin").trim();
-
-  if (!newPin || !confirmPin) {
-    setStatus("Enter and confirm your new PIN.", "error");
-    return;
-  }
-
-  setStatus("Saving new PIN...", "info");
-
-  try {
-    const res = await apiCall({
-      action: "changePin",
-      staffId: currentUser.staffId,
-      pin: currentPin,
-      newPin,
-      confirmPin
-    });
-
-    console.log("Change PIN response:", res);
-
-    if (!res || !res.success) {
-      setStatus((res && res.message) ? res.message : "PIN change failed.", "error");
-      return;
-    }
-
-    currentUser = res.user;
-    currentPin = newPin;
-    settings = res.settings || settings;
-
-    document.getElementById("pin").value = newPin;
-    document.getElementById("newPin").value = "";
-    document.getElementById("confirmPin").value = "";
-    
-    saveLoginSession();
-    hide("changePinCard");
-    openHome();
-    startInactivityTimer();
-    setStatus("PIN changed successfully. You can use this PIN for your next login.", "success-text");
-  } catch (err) {
-    console.error("Change PIN error:", err);
-    setStatus("Change PIN error: " + escapeHtml(err.message || err), "error");
-  }
-}
-
-function openHome() {
-  show("homeCard");
-  document.getElementById("welcomeText").innerText = "Welcome, " + currentUser.name;
-  document.getElementById("userInfo").innerText =
-    "Staff ID: " + currentUser.staffId +
-    " | Role: " + currentUser.role;
-
-  renderHomeButtons();
-}
-
-function canAccess(actionKey) {
-  const allowed = (currentUser && currentUser.allowedActions) ? currentUser.allowedActions : {};
-  return allowed[actionKey] === true;
-}
-
-function canAccessAny(actionKeys) {
-  return actionKeys.some(actionKey => canAccess(actionKey));
-}
-
-function canViewMyReleaseRequests(){
-  const roleKey=String(
-    currentUser&&currentUser.role||""
-  )
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g,"");
-
-  return [
-    "MANAGER",
-    "SALES",
-    "SHOPEESTOCKCHECKER"
-  ].includes(roleKey);
-}
-
-function canUseReleaseItem(){
-  const roleKey=String(
-    currentUser&&currentUser.role||""
-  )
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g,"");
-
-  return (
-    canAccess("RELEASING")&&
-    [
-      "SALES",
-      "SHOPEESTOCKCHECKER",
-      "RELEASING"
-    ].includes(roleKey)
-  );
-}
-  
-function renderHomeButtons() {
-  const container = document.getElementById("homeButtons");
-  container.innerHTML = "";
-
-  if (canAccess("CHECKSTOCK")) {
-    container.appendChild(makeMenuButton(
-      "Check Stock",
-      "Tingnan ang product, total stock, reserved qty, at notes.",
-      function() {
-        chooseType("CHECK_STOCK");
-      }
-    ));
-  }
-
-  if (canAccessAny(["RELEASING", "SALES", "PURCHASES", "COUNTCHECK", "INVENTORYADJUSTMENT", "TRANSFER"])) {
-    container.appendChild(makeMenuButton(
-      "New Transaction",
-      "Gamitin kapag may bagong order, sale, purchase, stock count, inventory adjustment, or stock transfer.",
-      showNewTransactionOptions
-    ));
-  }
-
-  if (canAccessAny(["RETURNCANCELRELEASE", "SALES", "DELIVERY"])) {
-    container.appendChild(makeMenuButton(
-      "Transaction Follow-up",
-      "Gamitin kapag may nangyari after release/sale: cancel, refund, return, or delivery update.",
-      openTicketLookup
-    ));
-  }
-
-  if (canAccess("RETURNCANCELRELEASE")) {
-    container.appendChild(makeMenuButton(
-      "Return Stock-In",
-      "Search receipt no., submit returned items, and wait for location approval.",
-      openRevampReturnLookup
-    ));
-  }
-
-  if(canViewMyReleaseRequests()){
-    container.appendChild(
-      makeMenuButton(
-        "My Release Requests",
-        "View pending released items requested for you.",
-        openMyReleaseRequests
-      )
-    );
-  }
-
-  const currentNameKey = String(
-    currentUser.name || ""
-  ).trim().toUpperCase();
-  
-  const approvalUserKeys = (
-    settings.approvalUsers || []
-  ).map(name => {
-    return String(name || "")
-      .trim()
-      .toUpperCase();
-  });
-  
-  if (
-    approvalUserKeys.includes(
-      currentNameKey
-    )
-  ) {
-    container.appendChild(
-      makeMenuButton(
-        "My Approvals",
-        "Approve or reject pending return requests assigned to you.",
-        openMyApprovals
-      )
-    );
-  }
-
-  if (canAccess("REPORTSHISTORY")) {
-    container.appendChild(makeMenuButton(
-      "Reports / History",
-      "For manager/admin checking only.",
-      openReportsView
-    ));
-  }
-}
-
-function openMyReleaseRequests(){
-  currentType="MY_RELEASE_REQUESTS";
-  releaseRequestRows=[];
-
-  hide("homeCard");
-  hide("scanCard");
-  hide("productCard");
-  hide("cartCard");
-  hide("ticketCard");
-  hide("reportsCard");
-  hide("formCard");
-  hide("revampReturnCard");
-  hide("approvalCard");
-
-  show("releaseRequestsCard");
-
-  document.getElementById(
-    "releaseRequestsList"
-  ).innerHTML="";
-
-  loadMyReleaseRequests();
-}
-
-async function loadMyReleaseRequests(){
-  if(!currentUser){
-    setStatus(
-      "Please login first.",
-      "error"
-    );
-    return;
-  }
-
-  setStatus(
-    "Loading release requests...",
-    "info"
-  );
-
-  try{
-    const res=await apiCall({
-      action:"getMyReleaseRequests",
-      staffId:currentUser.staffId,
-      pin:currentPin
-    });
-
-    if(!res||!res.success){
-      setStatus(
-        res&&res.message
-          ?res.message
-          :"Could not load release requests.",
-        "error"
-      );
-      return;
-    }
-
-    releaseRequestRows=
-      Array.isArray(res.rows)
-        ?res.rows
-        :[];
-
-    renderMyReleaseRequests(res);
-
-    setStatus(
-      "Release requests loaded.",
-      "success-text"
-    );
-
-  }catch(err){
-    console.error(
-      "Release requests error:",
-      err
-    );
-
-    setStatus(
-      "Release requests error: "+
-      escapeHtml(err.message||err),
-      "error"
-    );
-  }
-}
-
-function renderMyReleaseRequests(res){
-  const rows=res.rows||[];
-
-  const container=document.getElementById(
-    "releaseRequestsList"
-  );
-
-  let html=`
-    <hr>
-    <strong>Pending Requests:</strong>
-    ${escapeHtml(rows.length)}
+function renderProduct(){
+  const p = currentProduct || {};
+  const totalQty = Number(p.posTotalQty || 0);
+  const reservedQty = Number(p.reservedQty || 0);
+  const availableQty = Number(p.availableQty !== undefined ? p.availableQty: p.currentQty || 0);
+  document.getElementById("productInfo").innerHTML = `
+    <strong>${escapeHtml(p.productName || "")}</strong><br>
+    SKU: ${escapeHtml(p.sku || "")}<br>
+    Barcode: ${escapeHtml(p.barcodeValue || "")}<br>
+    Stock Type: <span class="badge">${escapeHtml(p.stockType || "")}</span><br><br>
+
+    Total Stock: <strong>${totalQty}</strong><br>
+    Reserved / Released Qty: <strong>${reservedQty}</strong><br>
+    Available Qty: <strong>${availableQty}</strong><br><br>
+
+    <strong>Location:</strong><br>
+    <div style="margin-left:14px;">
+      CE1: <strong>${Number(p.ce1Qty || 0).toLocaleString()}</strong><br>
+      CE2: <strong>${Number(p.ce2Qty || 0).toLocaleString()}</strong><br>
+      CE3: <strong>${Number(p.ce3Qty || 0).toLocaleString()}</strong><br>
+      SOLER: <strong>${Number(p.solerQty || 0).toLocaleString()}</strong><br>
+      VACANT: <strong>${Number(p.vacantQty || 0).toLocaleString()}</strong><br>
+      UNKNOWN: <strong>${Number(p.unknownQty || 0).toLocaleString()}</strong>
+    </div>
     <br>
+    Cost Per Unit: ₱${Number(p.averageCost || 0).toLocaleString()}<br>
+    Status: ${escapeHtml(p.inventoryStatus || "")}
+    ${
+      keywordSearchResults.length
+        ? `
+          <button
+            type="button"
+            class="secondary"
+            onclick="backToKeywordResults()"
+          >
+            Back to Search Results
+          </button>
+        `
+        : ""
+    }
   `;
-
-  if(!rows.length){
-    html+=`
-      <p class="muted">
-        No pending release requests assigned to you.
-      </p>
-    `;
-
-    container.innerHTML=html;
-    return;
-  }
-
-  rows.forEach(row=>{
-    html+=`
-      <div class="cart-line">
-        <span class="badge">
-          ${escapeHtml(row.status||"")}
-        </span>
-        <br><br>
-
-        Release Ticket ID:
-        <strong>
-          ${escapeHtml(row.ticketNo||"")}
-        </strong>
-
-        Date:
-        ${escapeHtml(row.date||"")}<br>
-
-        Released By:
-        ${escapeHtml(row.releasedBy||"")}<br>
-
-        Requested By:
-        ${escapeHtml(row.requestedBy||"")}<br>
-
-        Source Location:
-        <strong>
-          ${escapeHtml(
-            row.sourceLocation||""
-          )}
-        </strong><br>
-
-        Notes:
-        ${escapeHtml(row.notes||"")}<br><br>
-
-        <strong>Items:</strong>
-    `;
-
-    const items=Array.isArray(row.items)
-      ?row.items
-      :[];
-
-    items.forEach(item=>{
-      html+=`
-        <div class="cart-line">
-          <strong>
-            ${escapeHtml(
-              item.productName||""
-            )}
-          </strong>
-
-          SKU:
-          ${escapeHtml(item.sku||"")}<br>
-
-          Qty:
-          <strong>
-            ${escapeHtml(item.quantity)}
-            ${escapeHtml(item.unit||"")}
-          </strong><br>
-
-          ${
-            item.unitDetails
-              ?`Unit Details: ${escapeHtml(
-                  item.unitDetails
-                )}<br>`
-              :""
-          }
-        </div>
-      `;
-    });
-
-    html+=`
-      </div>
-    `;
-  });
-
-  container.innerHTML=html;
+  show("productCard");
 }
 
-function makeMenuButton(label, helper, onClick, live = true) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = live ? "choice" : "choice secondary coming-soon";
-
-  button.innerHTML = `
-    <div>${escapeHtml(label)}${live ? "" : " (next update)"}</div>
-    <div class="muted" style="margin-top:4px;">${escapeHtml(helper)}</div>
-  `;
-
-  button.onclick = function() {
-    if (!live) {
-      setStatus(label + " is not ready yet.", "info");
-      return;
-    }
-
-    onClick();
-  };
-
-  return button;
-}
-
-function showNewTransactionOptions() {
-  const container = document.getElementById("homeButtons");
-  container.innerHTML = "";
-
-  const intro = document.createElement("p");
-  intro.className = "muted";
-  intro.innerText = "Piliin kung anong bagong transaction ang gagawin.";
-  container.appendChild(intro);
-
-  NEW_TRANSACTION_OPTIONS.forEach(option=>{
-    if(!canAccess(option.key))return;
-  
-    if(
-      option.type==="RELEASING"&&
-      !canUseReleaseItem()
-    ){
-      return;
-    }
-
-    container.appendChild(makeMenuButton(
-      option.label,
-      option.helper,
-      function() {
-        chooseType(option.type);
-      },
-      option.live
-    ));
-  });
-
-  container.appendChild(makeMenuButton(
-    "Back",
-    "Bumalik sa main menu.",
-    renderHomeButtons
-  ));
-}
-
-function openTicketLookup() {
-  currentType = "TICKET_FOLLOW_UP";
-  currentProduct = null;
-  currentTicket = null;
-  currentTicketLines = [];
-  cartItems = [];
-  
-  hide("homeCard");
-  hide("scanCard");
-  hide("productCard");
-  hide("cartCard");
-  hide("reportsCard");
-  hide("formCard");
-  hide("revampReturnCard");
-  hide("approvalCard");
-  show("ticketCard");
-
-  document.getElementById("ticketNo").value = "";
-  document.getElementById("ticketInfo").innerHTML = "";
-  document.getElementById("ticketActions").innerHTML = "";
-
-  setStatus("Enter Ticket No. / Release No.", "muted");
-
-  setTimeout(() => document.getElementById("ticketNo").focus(), 200);
-}
-
-async function findTicket() {
-  const ticketNo = val("ticketNo").trim();
-
-  if (!ticketNo) {
-    setStatus("Please enter Ticket No. / Release No.", "error");
-    return;
-  }
-
-  setStatus("Searching transaction reference...", "info");
-
-  try {
-    const res = await apiCall({
-      action: "getTicketDetails",
-      staffId: currentUser.staffId,
-      pin: currentPin,
-      ticketNo
-    });
-
-    console.log("Ticket response:", res);
-
-    if (!res || !res.success) {
-      setStatus((res && res.message) ? res.message : "Ticket not found.", "error");
-      return;
-    }
-
-    currentTicket = res.ticket;
-    currentTicketLines = res.lines || [];
-
-    renderTicket(res);
-    setStatus("Ticket found.", "success-text");
-
-  } catch (err) {
-    console.error("Ticket lookup error:", err);
-    setStatus("Ticket lookup error: " + escapeHtml(err.message || err), "error");
-  }
-}
-
-function renderTicket(res) {
-  const ticket = res.ticket || {};
-  const lines = res.lines || [];
-
-  let html = `
-    <hr>
-    <strong>Ticket No.: ${escapeHtml(ticket.ticketNo || "")}</strong><br>
-    Type: <span class="badge">${escapeHtml(ticket.ticketType || "")}</span><br>
-    Status: <span class="badge">${escapeHtml(ticket.status || "")}</span><br>
-    Date: ${escapeHtml(ticket.date || "")}<br>
-    Order No.: ${escapeHtml(ticket.orderNo || "")}<br>
-    Receipt Type: ${escapeHtml(ticket.receiptType || "")}<br>
-    Receipt No.: ${escapeHtml(ticket.receiptNo || "")}<br>
-    Customer: ${escapeHtml(ticket.customerName || "")}<br>
-    Sales Channel: ${escapeHtml(ticket.salesChannel || "")}<br>
-    Created By: ${escapeHtml(ticket.createdBy || "")}<br>
-    Released By: ${escapeHtml(ticket.releasedBy || "")}<br>
-    Sold By: ${escapeHtml(ticket.soldBy || "")}<br>
-    Location Note: ${escapeHtml(ticket.locationNote || "")}<br>
-    Delivery Status: ${escapeHtml(ticket.deliveryStatus || "")}<br>
-    Courier / Driver: ${escapeHtml(ticket.courierDriver || "")}<br>
-    Tracking No.: ${escapeHtml(ticket.trackingNo || "")}<br>
-    Notes: ${escapeHtml(ticket.notes || "")}<br>
-    <br>
-    <strong>Items:</strong>
-  `;
-
-  if (!lines.length) {
-    html += `<p class="muted">No items found under this ticket.</p>`;
-  } else {
-    lines.forEach((line, index) => {
-      html += `
-        <div class="cart-line">
-          <strong>${escapeHtml(line.productName || "")}</strong>
-          SKU: ${escapeHtml(line.sku || "")}<br>
-          Barcode: ${escapeHtml(line.barcodeValue || "")}<br>
-          Qty Sold: <strong>${escapeHtml(line.quantity)} ${escapeHtml(line.unit || "")}</strong><br>
-          ${line.unitDetails ? `Unit Details: ${escapeHtml(line.unitDetails)}<br>` : ""}
-          Returned Qty: ${escapeHtml(line.returnedQty || 0)}<br>
-          Remaining Returnable: ${escapeHtml(line.remainingQty || 0)}<br>
-          Line Status: ${escapeHtml(line.lineStatus || "")}<br>
-          Location Note: ${escapeHtml(line.locationNote || "")}
-          
-          ${
-            res.canReturnRefund && Number(line.remainingQty || 0) > 0
-              ? `
-                <label>Return Qty</label>
-                <input type="number" id="returnQty_${index}" min="0" max="${escapeHtml(line.remainingQty)}" value="${escapeHtml(line.remainingQty)}">
-                <p class="muted">Unit: ${escapeHtml(line.unit || "unit")}</p>
-              `
-              : ""
-          }
-        </div>
-      `;
-    });
-  }
-
-  document.getElementById("ticketInfo").innerHTML = html;
-
-  let actionsHtml = "";
-
-  if (res.canCompleteSale) {
-    actionsHtml += `
-      <button class="success" type="button" onclick="submitTicketFollowUp('COMPLETE_SALE')">
-        Complete Sale
-      </button>
-    `;
-  }
-  
-  if (res.canCancelRelease) {
-    actionsHtml += `
-      <button class="danger" type="button" onclick="submitTicketFollowUp('CANCEL_RELEASE')">
-        Cancel Release / Did Not Push Through
-      </button>
-    `;
-  }
-  
-  if (res.canReturnRefund) {
-    actionsHtml += `
-      <button class="danger" type="button" onclick="submitReturnRefundTicket()">
-        Return / Refund Sale
-      </button>
-    `;
-  }
-
-  if (res.canDeliveryUpdate) {
-    actionsHtml += `
-      <hr>
-      <h3>Delivery Update</h3>
-  
-      <label>Date Updated</label>
-      <input type="date" id="deliveryDateUpdated" value="${today()}">
-  
-      <label>Delivery Status</label>
-      <select id="deliveryStatus">
-        <option value="">Select</option>
-        <option value="FOR DELIVERY">FOR DELIVERY</option>
-        <option value="IN TRANSIT">IN TRANSIT</option>
-        <option value="DELIVERED">DELIVERED</option>
-        <option value="FAILED DELIVERY">FAILED DELIVERY</option>
-        <option value="RETURNED TO STORE">RETURNED TO STORE</option>
-        <option value="FOR PICKUP">FOR PICKUP</option>
-        <option value="PICKED UP">PICKED UP</option>
-      </select>
-  
-      <label>Courier / Driver</label>
-      <input type="text" id="courierDriver" placeholder="Example: LBC, J&T, Boyet, pickup">
-  
-      <label>Tracking No.</label>
-      <input type="text" id="trackingNo" placeholder="Optional tracking number">
-  
-      <label>Updated By</label>
-      ${selectHtml("deliveryUpdatedBy", settings.staffNames, currentUser.name)}
-  
-      <label>Delivery Notes</label>
-      <textarea id="deliveryNotes" placeholder="Optional notes"></textarea>
-  
-      <button class="success" type="button" onclick="submitDeliveryUpdate()">
-        Save Delivery Update
-      </button>
-    `;
-  }
-  
-  if (!actionsHtml) {
-    actionsHtml = `<p class="muted">No follow-up action available for this ticket status yet.</p>`;
-  }
-
-  document.getElementById("ticketActions").innerHTML = actionsHtml;
-}
-
-async function submitDeliveryUpdate() {
-  if (isSubmitting) return;
-
-  if (!currentTicket || !currentTicket.ticketNo) {
-    setStatus("Please find a ticket first.", "error");
-    return;
-  }
-
-  const deliveryStatus = val("deliveryStatus");
-
-  if (!deliveryStatus) {
-    setStatus("Please select Delivery Status.", "error");
-    return;
-  }
-
-  const confirmMessage =
-    "Please confirm delivery update:\n\n" +
-    "Ticket No.: " + currentTicket.ticketNo + "\n" +
-    "Delivery Status: " + deliveryStatus + "\n" +
-    "Courier / Driver: " + val("courierDriver") + "\n" +
-    "Tracking No.: " + val("trackingNo") + "\n\n" +
-    "Stock quantity will NOT change.\n\n" +
-    "Continue?";
-
-  if (!confirm(confirmMessage)) {
-    setStatus("Delivery update cancelled. Nothing was saved.", "muted");
-    return;
-  }
-
-  isSubmitting = true;
-  setStatus("Submitting delivery update...", "info");
-
-  try {
-    const res = await apiCall({
-      action: "submitDeliveryUpdate",
-      staffId: currentUser.staffId,
-      pin: currentPin,
-      ticketNo: currentTicket.ticketNo,
-      dateUpdated: val("deliveryDateUpdated"),
-      deliveryStatus,
-      courierDriver: val("courierDriver"),
-      trackingNo: val("trackingNo"),
-      updatedBy: val("deliveryUpdatedBy"),
-      notes: val("deliveryNotes")
-    });
-
-    console.log("Delivery update response:", res);
-
-    if (!res || !res.success) {
-      setStatus((res && res.message) ? res.message : "Delivery update failed.", "error");
-      return;
-    }
-
-    setStatus(
-      `${escapeHtml(res.message)}<br>` +
-      `Ticket No.: <strong>${escapeHtml(res.ticketNo || "")}</strong><br>` +
-      `Delivery Status: <strong>${escapeHtml(res.deliveryStatus || "")}</strong><br>` +
-      `Courier / Driver: ${escapeHtml(res.courierDriver || "")}<br>` +
-      `Tracking No.: ${escapeHtml(res.trackingNo || "")}<br>` +
-      `<span class="muted">Stock quantity was not changed.</span>`,
-      "success-text"
-    );
-
-    await findTicket();
-
-  } catch (err) {
-    console.error("Delivery update error:", err);
-    setStatus("Delivery update error: " + escapeHtml(err.message || err), "error");
-  } finally {
-    isSubmitting = false;
-  }
-}  
-  
-function openReportsView() {
-  currentType = "REPORTS_HISTORY";
-  currentProduct = null;
-  currentTicket = null;
-  currentTicketLines = [];
-  cartItems = [];
-
-  hide("homeCard");
-  hide("scanCard");
-  hide("productCard");
-  hide("cartCard");
-  hide("ticketCard");
-  hide("formCard");
-  hide("revampReturnCard");
-  hide("approvalCard");
-  show("reportsCard");
-
-  document.getElementById("historySearch").value = "";
-  document.getElementById("historyDateFrom").value = "";
-  document.getElementById("historyDateTo").value = "";
-  document.getElementById("historyAction").value = "";
-  document.getElementById("historyLimit").value = "50";
-  document.getElementById("historyResults").innerHTML = "";
-
-  setStatus("Loading recent history...", "info");
-
-  findHistory();
-}
-
-async function findHistory() {
-  if (!currentUser) {
-    setStatus("Please login first.", "error");
-    return;
-  }
-
-  setStatus("Searching history...", "info");
-
-  try {
-    const res = await apiCall({
-      action: "getTransactionHistory",
-      staffId: currentUser.staffId,
-      pin: currentPin,
-      searchText: val("historySearch"),
-      dateFrom: val("historyDateFrom"),
-      dateTo: val("historyDateTo"),
-      actionType: val("historyAction"),
-      limit: val("historyLimit")
-    });
-
-    console.log("History response:", res);
-
-    if (!res || !res.success) {
-      setStatus((res && res.message) ? res.message : "History search failed.", "error");
-      return;
-    }
-
-    renderHistory(res);
-    setStatus("History loaded.", "success-text");
-
-  } catch (err) {
-    console.error("History error:", err);
-    setStatus("History error: " + escapeHtml(err.message || err), "error");
-  }
-}
-
-function renderHistory(res) {
-  const rows = res.rows || [];
-  const container = document.getElementById("historyResults");
-
-  let html = `
-    <hr>
-    <strong>Results:</strong> ${escapeHtml(rows.length)}<br>
-    <span class="muted">Showing latest matching records first.</span>
-  `;
-
-  if (!rows.length) {
-    html += `<p class="muted">No matching history found.</p>`;
-    container.innerHTML = html;
-    return;
-  }
-
-  rows.forEach(row => {
-    html += `
-      <div class="cart-line">
-        <strong>${escapeHtml(row.productName || "")}</strong>
-        <span class="badge">${escapeHtml(row.action || "")}</span>
-        <span class="badge">${escapeHtml(row.status || "")}</span><br><br>
-
-        Date/Time: ${escapeHtml(formatDateTime(row.dateTime))}<br>
-        Ticket No.: ${escapeHtml(row.ticketNo || "")}<br>
-        Ticket Type: ${escapeHtml(row.ticketType || "")}<br>
-        Order No.: ${escapeHtml(row.orderNo || "")}<br>
-        Receipt Type: ${escapeHtml(row.receiptType || "")}<br>
-        Receipt No.: ${escapeHtml(row.receiptNo || "")}<br>
-        SKU: ${escapeHtml(row.sku || "")}<br>
-        Barcode: ${escapeHtml(row.barcodeValue || "")}<br>
-        Qty: <strong>${escapeHtml(row.qty)} ${escapeHtml(row.unit || "")}</strong><br>
-        ${row.unitDetails ? `Unit Details: ${escapeHtml(row.unitDetails)}<br>` : ""}
-        <br>
-
-        Total Qty: ${escapeHtml(row.oldTotalQty)} → ${escapeHtml(row.newTotalQty)}<br>
-        Reserved Qty: ${escapeHtml(row.oldReservedQty)} → ${escapeHtml(row.newReservedQty)}<br>
-        Available Qty: ${escapeHtml(row.oldAvailableQty)} → ${escapeHtml(row.newAvailableQty)}<br><br>
-
-        User: ${escapeHtml(row.user || "")}<br>
-        Location Note: ${escapeHtml(row.locationNote || "")}<br>
-        Notes: ${escapeHtml(row.notes || "")}
-      </div>
-    `;
-  });
-
-  container.innerHTML = html;
-}
-
-function formatDateTime(value) {
-  if (!value) return "";
-
-  const d = new Date(value);
-
-  if (isNaN(d.getTime())) {
-    return String(value);
-  }
-
-  return d.toLocaleString();
-}
-  
-function logout() {
-  clearLoginSession();
-  stopInactivityTimer();
-  
-  stopCamera();
-  currentUser = null;
-  currentPin = "";
-  settings = {};
-  currentType = "";
-  currentProduct = null;
-  hide("homeCard"); hide("changePinCard"); hide("scanCard"); hide("productCard"); hide("cartCard"); hide("ticketCard"); hide("reportsCard"); hide("formCard"); hide("revampReturnCard"); hide("approvalCard"); hide("releaseRequestsCard"); show("loginCard");
-  document.getElementById("staffId").value = "";
-  document.getElementById("pin").value = "";
-  document.getElementById("newPin").value = "";
-  document.getElementById("confirmPin").value = "";
-  document.getElementById("searchValue").value = "";
-  setStatus("Logged out.", "muted");
-}
-
-function chooseType(type) {
-  currentType = type;
-  currentProduct = null;
-  cartItems = [];
-  hide("homeCard"); show("scanCard"); hide("productCard"); hide("cartCard"); hide("ticketCard"); hide("reportsCard"); hide("formCard"); hide("revampReturnCard"); hide("approvalCard");
-  document.getElementById("searchValue").value = "";
-  const titles = {
-    SALE: "Sold Immediately",
-    PURCHASE: "Stock In / New Arrival",
-    COUNT_CHECK: "Count Actual Stock",
-    INVENTORY_ADJUSTMENT: "Manager Inventory Adjustment",
-    CHECK_STOCK: "Check Stock",
-    RELEASING: "Customer Order / Release Item",
-    RETURN_CANCEL_RELEASE: "Return / Refund / Cancel Item",
-    TRANSFER: "Move Item Location",
-    LOCATION_NOTE: "Location Note / Move Note",
-  };
-  document.getElementById("transactionTitle").innerText = titles[type] || "Scan Product";
-  setStatus("Scan QR code or type SKU.", "muted");
-  setTimeout(() => document.getElementById("searchValue").focus(), 300);
-}
-
-function backHome() {
-  stopCamera();
-  hide("scanCard");
-  hide("productCard");
-  hide("cartCard");
-  hide("ticketCard");
-  hide("reportsCard");
-  hide("formCard");
-  hide("revampReturnCard");
-  hide("approvalCard");
-  hide("releaseRequestsCard");
-  show("homeCard");
-  setStatus("Choose transaction type.", "muted");
-}
-
-
-async function startCamera() {
-  unlockScanSound();
-  if (!currentUser) { setStatus("Please login first.", "error"); return; }
-  try {
-    setStatus("Starting camera...", "info");
-    if (typeof Html5Qrcode === "undefined") throw new Error("html5-qrcode did not load.");
-    if (!scanner) scanner = new Html5Qrcode("reader");
-    if (scanner.isScanning) return;
-
-    await scanner.start(
-      { facingMode: "environment" },
-      {
-        fps: 12,
-        qrbox: function(w, h) {
-          const minEdge = Math.min(w, h);
-          const qrSize = Math.floor(minEdge * 0.75);
-          return { width: qrSize, height: qrSize };
-        },
-        aspectRatio: 1.0,
-        disableFlip: false,
-        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.QR_CODE,
-          Html5QrcodeSupportedFormats.CODE_128,
-          Html5QrcodeSupportedFormats.CODE_39,
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.UPC_E
-        ]
-      },
-      decodedText => {
-        playScanSound();
-        document.getElementById("searchValue").value = decodedText;
-        setStatus("Scanned: " + escapeHtml(decodedText), "success-text");
-        stopCamera();
-        findProduct();
-      },
-      errorMessage => {}
-    );
-
-    setStatus("Camera started. Point at the QR code inside the square.", "success-text");
-  } catch (err) {
-    console.error("Camera error:", err);
-    setStatus("Camera failed: " + escapeHtml(err.message || err), "error");
-  }
-}
-
-async function stopCamera() {
-  try {
-    if (scanner && scanner.isScanning) await scanner.stop();
-  } catch (err) { console.log("Stop camera ignored:", err); }
-}
-
-async function submitReturnRefundTicket() {
-  if (isSubmitting) return;
-
-  if (!currentTicket || !currentTicket.ticketNo) {
-    setStatus("Please find a ticket first.", "error");
-    return;
-  }
-
-  const returnItems = [];
-
-  currentTicketLines.forEach((line, index) => {
-    const qty = Number(val("returnQty_" + index) || 0);
-
-    if (qty > 0) {
-      returnItems.push({
-        lineNo: line.lineNo,
-        sku: line.sku || "",
-        barcodeValue: line.barcodeValue || "",
-        productName: line.productName || "",
-        quantity: qty,
-        unit: line.unit || "unit",
-        unitDetails: line.unitDetails || ""
-      });
-    }
-  });
-
-  if (!returnItems.length) {
-    setStatus("Please enter at least one return quantity.", "error");
-    return;
-  }
-
-  const itemSummary = returnItems
-  .map(item => `- ${item.productName} | Return Qty: ${item.quantity} ${item.unit}${item.unitDetails ? " | " + item.unitDetails : ""}`)
-    .join("\n");
-
-  const confirmMessage =
-    "Please confirm Return / Refund:\n\n" +
-    "Ticket No.: " + currentTicket.ticketNo + "\n\n" +
-    "Items:\n" + itemSummary + "\n\n" +
-    "Continue?";
-
-  if (!confirm(confirmMessage)) {
-    setStatus("Return / Refund cancelled. Nothing was saved.", "muted");
-    return;
-  }
-
-  isSubmitting = true;
-  setStatus("Submitting Return / Refund...", "info");
-
-  try {
-    const res = await apiCall({
-      action: "submitTicketFollowUp",
-      staffId: currentUser.staffId,
-      pin: currentPin,
-      ticketNo: currentTicket.ticketNo,
-      followUpAction: "RETURN_REFUND",
-      returnItems: JSON.stringify(returnItems),
-      notes: val("followUpNotes")
-    });
-
-    console.log("Return refund response:", res);
-
-    if (!res || !res.success) {
-      setStatus((res && res.message) ? res.message : "Return / Refund failed.", "error");
-      return;
-    }
-
-    let resultHtml = `
-      ${escapeHtml(res.message)}<br>
-      Ticket No.: <strong>${escapeHtml(res.ticketNo || "")}</strong><br>
-      New Status: <strong>${escapeHtml(res.status || "")}</strong><br>
-      Items Updated: ${escapeHtml(res.itemCount || 0)}
-    `;
-
-    if (Array.isArray(res.results)) {
-      resultHtml += "<br><br>";
-
-      res.results.forEach(item => {
-        resultHtml += `
-          ${escapeHtml(item.productName || "")}<br>
-          Returned Qty: ${escapeHtml(item.qty)} ${escapeHtml(item.unit || "")}<br>
-          ${item.unitDetails ? `Unit Details: ${escapeHtml(item.unitDetails)}<br>` : ""}
-          Total Qty: ${escapeHtml(item.oldTotalQty)} → ${escapeHtml(item.newTotalQty)}<br>
-          Reserved Qty: ${escapeHtml(item.oldReservedQty)} → ${escapeHtml(item.newReservedQty)}<br>
-          Available Qty: ${escapeHtml(item.oldAvailableQty)} → ${escapeHtml(item.newAvailableQty)}<br><br>
-        `;
-      });
-    }
-
-    setStatus(resultHtml, "success-text");
-
-    await findTicket();
-
-  } catch (err) {
-    console.error("Return refund error:", err);
-    setStatus("Return refund error: " + escapeHtml(err.message || err), "error");
-  } finally {
-    isSubmitting = false;
-  }
-}
-  
-function isCartTransactionType(type) {
+function isCartTransactionType(type){
   return CART_TRANSACTION_TYPES.includes(type);
 }
 
-function getProductCartKey(product) {
-  return String(
-    product.barcodeValue ||
-    product.sku ||
-    product.qboId ||
-    product.productName ||
-    ""
-  ).trim().toUpperCase();
+function getProductCartKey(product){
+  return String(product.barcodeValue || product.sku || product.qboId || product.productName || "").trim().toUpperCase();
 }
 
-function addProductToCart(product) {
+function addProductToCart(product){
   const key = getProductCartKey(product);
-
-  if (!key) {
+  if(!key){
     setStatus("Cannot add product to cart. Missing SKU/barcode.", "error");
     return;
   }
-
   const existing = cartItems.find(item => item.key === key);
-
-  if (existing) {
+  if(existing){
     existing.quantity += 1;
-  } else {
-    cartItems.push({
-      key,
-      product,
-      quantity: 1,
-      unit: "unit",
-      unitDetails: "",
-      pricePerUnit: Number(product.sellingPrice || 0),
-      costPerUnit: Number(product.averageCost || 0)
-    });
+  } else{
+    cartItems.push({key, product, quantity: 1, unit: "unit", unitDetails: "", pricePerUnit: Number(product.sellingPrice || 0), costPerUnit: Number(product.averageCost || 0)});
   }
-
   renderCart();
 }
 
-function displayQty(value) {
-  const number = Number(value);
-
-  return Number.isFinite(number)
-    ? number.toLocaleString()
-    : "0";
-}
-
-function getAvailableQty(product) {
-  const p = product || {};
-
-  if (
-    p.availableQty !== undefined &&
-    p.availableQty !== null &&
-    p.availableQty !== ""
-  ) {
-    return displayQty(p.availableQty);
-  }
-
-  if (
-    p.currentQty !== undefined &&
-    p.currentQty !== null &&
-    p.currentQty !== ""
-  ) {
-    return displayQty(p.currentQty);
-  }
-
-  if (
-    p.posTotalQty !== undefined &&
-    p.posTotalQty !== null &&
-    p.posTotalQty !== ""
-  ) {
-    return displayQty(p.posTotalQty);
-  }
-
-  return "0";
-}
-  
-function renderCart() {
+function renderCart(){
   const container = document.getElementById("cartItems");
-
-  if (!cartItems.length) {
+  if(!cartItems.length){
     container.innerHTML = `<p class="muted">No items scanned yet.</p>`;
     hide("cartCard");
     return;
   }
-
   let html = "";
-
   cartItems.forEach((item, index) => {
-    const p = item.product || {};
-
-    html += `
+    const p = item.product || {}; html += `
       <div class="cart-line">
         <strong>${escapeHtml(p.productName || "")}</strong>
         <div class="muted">
@@ -2202,296 +1073,88 @@ function renderCart() {
       </div>
     `;
   });
-
   container.innerHTML = html;
   show("cartCard");
 }
-  
-function updateCartUnit(index, value) {
-  if (!cartItems[index]) return;
+
+function updateCartUnit(index, value){
+  if(!cartItems[index]) return;
   cartItems[index].unit = value || "unit";
 }
 
-function updateCartUnitDetails(index, value) {
-  if (!cartItems[index]) return;
+function updateCartUnitDetails(index, value){
+  if(!cartItems[index]) return;
   cartItems[index].unitDetails = value || "";
 }
-  
-function updateCartQty(index, value) {
-  const qty = Number(value || 0);
 
-  if (qty <= 0) {
+function updateCartQty(index, value){
+  const qty = Number(value || 0);
+  if(qty <= 0){
     cartItems[index].quantity = 1;
-  } else {
+  } else{
     cartItems[index].quantity = qty;
   }
-
   renderCart();
 }
 
-function updateCartPrice(index, value) {
+function updateCartPrice(index, value){
   cartItems[index].pricePerUnit = Number(value || 0);
 }
 
-function updateCartCost(index, value) {
+function updateCartCost(index, value){
   cartItems[index].costPerUnit = Number(value || 0);
 }
 
-async function loadTicketPreview(transactionType, elementId) {
-  const el = document.getElementById(elementId);
-  if (!el || !currentUser) return;
-
-  el.value = "Generating...";
-
-  try {
-    const res = await apiCall({
-      action: "getNextTicketNo",
-      staffId: currentUser.staffId,
-      pin: currentPin,
-      transactionType
-    });
-
-    if (res && res.success) {
-      el.value = res.ticketNo || "";
-    } else {
-      el.value = "Will auto-generate on submit";
-    }
-  } catch (err) {
-    console.log("Ticket preview failed:", err);
-    el.value = "Will auto-generate on submit";
-  }
-}
-  
-function removeCartItem(index) {
+function removeCartItem(index){
   cartItems.splice(index, 1);
   renderCart();
   renderForm();
 }
 
-function clearCart() {
+function clearCart(){
   cartItems = [];
   renderCart();
   renderForm();
   setStatus("Cart cleared.", "muted");
 }
-  
-async function findProduct() {
-  const searchValue=val("searchValue").trim();
 
-  if(!searchValue){
-    setStatus(
-      "Please scan or enter a product.",
-      "error"
-    );
-    return;
-  }
-
-  keywordSearchResults=[];
-  hide("keywordResults");
-
-  setStatus(
-    "Searching product...",
-    "info"
-  );
-
-  let exactResponse=null;
-
+async function loadTicketPreview(transactionType, elementId){
+  const el = document.getElementById(elementId);
+  if(!el || !currentUser) return;
+  el.value = "Generating...";
   try{
-    exactResponse=await apiCall({
-      action:"findProduct",
-      staffId:currentUser.staffId,
-      pin:currentPin,
-      searchValue
-    });
-  }catch(err){
-    console.log(
-      "Exact lookup failed:",
-      err
-    );
-  }
-
-  if(
-    exactResponse &&
-    exactResponse.success &&
-    exactResponse.product
-  ){
-    currentProduct=exactResponse.product;
-
-    renderProduct();
-
-    if(isCartTransactionType(currentType)){
-      addProductToCart(
-        currentProduct
-      );
-
-      renderForm();
-
-      document.getElementById(
-        "searchValue"
-      ).value="";
-
-      setTimeout(()=>{
-        document.getElementById(
-          "searchValue"
-        ).focus();
-      },200);
-
-      setStatus(
-        "Product found and added to cart.",
-        "success-text"
-      );
-
-      return;
+    const res = await apiCall({action: "getNextTicketNo", staffId: currentUser.staffId, pin: currentPin, transactionType});
+    if(res && res.success){
+      el.value = res.ticketNo || "";
+    } else{
+      el.value = "Will auto-generate on submit";
     }
-
-    renderForm();
-
-    setStatus(
-      "Product found.",
-      "success-text"
-    );
-
-    return;
-  }
-
-  try{
-    const keywordResponse=await apiCall({
-      action:"searchProducts",
-      staffId:currentUser.staffId,
-      pin:currentPin,
-      searchValue
-    });
-
-    if(
-      !keywordResponse ||
-      !keywordResponse.success
-    ){
-      throw new Error(
-        keywordResponse &&
-        keywordResponse.message
-          ? keywordResponse.message
-          : "Product search failed."
-      );
-    }
-
-    keywordSearchResults=
-      Array.isArray(
-        keywordResponse.results
-      )
-        ? keywordResponse.results
-        : [];
-
-    renderKeywordResults(
-      keywordResponse.count || 0,
-      keywordResponse.limited === true
-    );
-
-    if(!keywordSearchResults.length){
-      setStatus(
-        "No products found for: " +
-        escapeHtml(searchValue),
-        "muted"
-      );
-      return;
-    }
-
-    setStatus(
-      "Found " +
-      Number(
-        keywordResponse.count || 0
-      ).toLocaleString() +
-      " matching product(s).",
-      "success-text"
-    );
-
-  }catch(err){
-    console.error(
-      "Product search error:",
-      err
-    );
-
-    setStatus(
-      "Product search error: " +
-      escapeHtml(
-        err.message || err
-      ),
-      "error"
-    );
+  } catch(err){
+    console.log("Ticket preview failed:", err);
+    el.value = "Will auto-generate on submit";
   }
 }
 
-function renderProduct() {
-  const p = currentProduct || {};
-
-  const totalQty = Number(p.posTotalQty || 0);
-  const reservedQty = Number(p.reservedQty || 0);
-  const availableQty = Number(
-    p.availableQty !== undefined ? p.availableQty : p.currentQty || 0
-  );
-
-  document.getElementById("productInfo").innerHTML = `
-    <strong>${escapeHtml(p.productName || "")}</strong><br>
-    SKU: ${escapeHtml(p.sku || "")}<br>
-    Barcode: ${escapeHtml(p.barcodeValue || "")}<br>
-    Stock Type: <span class="badge">${escapeHtml(p.stockType || "")}</span><br><br>
-
-    Total Stock: <strong>${totalQty}</strong><br>
-    Reserved / Released Qty: <strong>${reservedQty}</strong><br>
-    Available Qty: <strong>${availableQty}</strong><br><br>
-
-    <strong>Location:</strong><br>
-    <div style="margin-left:14px;">
-      CE1: <strong>${Number(p.ce1Qty || 0).toLocaleString()}</strong><br>
-      CE2: <strong>${Number(p.ce2Qty || 0).toLocaleString()}</strong><br>
-      CE3: <strong>${Number(p.ce3Qty || 0).toLocaleString()}</strong><br>
-      SOLER: <strong>${Number(p.solerQty || 0).toLocaleString()}</strong><br>
-      VACANT: <strong>${Number(p.vacantQty || 0).toLocaleString()}</strong><br>
-      UNKNOWN: <strong>${Number(p.unknownQty || 0).toLocaleString()}</strong>
-    </div>
-    <br>
-    Cost Per Unit: ₱${Number(p.averageCost || 0).toLocaleString()}<br>
-    Status: ${escapeHtml(p.inventoryStatus || "")}
-    ${
-      keywordSearchResults.length
-        ? `
-          <button
-            type="button"
-            class="secondary"
-            onclick="backToKeywordResults()"
-          >
-            Back to Search Results
-          </button>
-        `
-        : ""
-    }
-  `;
-  show("productCard");
-}
-
-function renderForm() {
-  if (currentType === "CHECK_STOCK") {
+function renderForm(){
+  if(currentType === "CHECK_STOCK"){
     hide("formCard");
     return;
   }
-
   show("formCard");
-
-  if (isCartTransactionType(currentType)) {
+  if(isCartTransactionType(currentType)){
     renderCartForm();
     return;
   }
-
-  if (currentType === "COUNT_CHECK") renderCountCheckForm();
-  if (currentType === "INVENTORY_ADJUSTMENT") renderInventoryAdjustmentForm();
-  if (currentType === "RETURN_CANCEL_RELEASE") renderReturnCancelForm();
-  if (currentType === "TRANSFER") renderTransferForm();
-  if (currentType === "LOCATION_NOTE") renderLocationNoteForm();
+  if(currentType === "COUNT_CHECK") renderCountCheckForm();
+  if(currentType === "INVENTORY_ADJUSTMENT") renderInventoryAdjustmentForm();
+  if(currentType === "RETURN_CANCEL_RELEASE") renderReturnCancelForm();
+  if(currentType === "TRANSFER") renderTransferForm();
+  if(currentType === "LOCATION_NOTE") renderLocationNoteForm();
 }
 
-function renderCartForm() {
-  if (currentType === "SALE") {
+function renderCartForm(){
+  if(currentType === "SALE"){
     document.getElementById("formTitle").innerText = "Sold Immediately - Cart";
-
     document.getElementById("formFields").innerHTML = `
       <p class="muted">
         Scan lahat ng sold items. Kapag kumpleto na, saka i-submit isang beses.
@@ -2551,10 +1214,8 @@ function renderCartForm() {
     `;
     loadTicketPreview("SALE", "autoTicketNo");
   }
-
-  if (currentType === "PURCHASE") {
+  if(currentType === "PURCHASE"){
     document.getElementById("formTitle").innerText = "Stock In / New Arrival - Cart";
-
     document.getElementById("formFields").innerHTML = `
       <p class="muted">
         Scan lahat ng bagong dating na items. Kapag kumpleto na, saka i-submit isang beses.
@@ -2591,12 +1252,9 @@ function renderCartForm() {
     `;
     loadTicketPreview("PURCHASE", "autoTicketNo");
   }
-
-  if(currentType==="RELEASING"){
-    document.getElementById("formTitle").innerText=
-      "Release Item";
-  
-    document.getElementById("formFields").innerHTML=`
+  if(currentType === "RELEASING"){
+    document.getElementById("formTitle").innerText = "Release Item";
+    document.getElementById("formFields").innerHTML = `
       <p class="muted">
         Create a pending release request. Stock will not be deducted yet.
       </p>
@@ -2630,97 +1288,11 @@ function renderCartForm() {
         ""
       )}
     `;
-  
-    loadTicketPreview(
-      "RELEASING",
-      "autoTicketNo"
-    );
+    loadTicketPreview("RELEASING", "autoTicketNo");
   }
 }
 
-function selectHtml(id, options, selected = "") {
-  options = options || [];
-  let html = `<select id="${id}"><option value="">Select</option>`;
-  options.forEach(option => {
-    const isSelected = String(option) === String(selected) ? "selected" : "";
-    html += `<option value="${escapeHtml(option)}" ${isSelected}>${escapeHtml(option)}</option>`;
-  });
-  html += `</select>`;
-  return html;
-}
-
-function inventoryLocationSelectHtml(id, selected = "", onchange = "") {
-  const selectedKey = String(selected || "").trim().toUpperCase();
-  const validSelected = INVENTORY_LOCATIONS.includes(selectedKey)
-    ? selectedKey
-    : "";
-
-  const changeAttr = onchange
-    ? ` onchange="${escapeHtml(onchange)}"`
-    : "";
-
-  let html = `<select id="${id}"${changeAttr}><option value="">Select stock location</option>`;
-
-  INVENTORY_LOCATIONS.forEach(location => {
-    const isSelected = location === validSelected ? "selected" : "";
-    html += `<option value="${location}" ${isSelected}>${location}</option>`;
-  });
-
-  html += `</select>`;
-  return html;
-}
-
-function getCurrentProductLocationQty(location) {
-  const p = currentProduct || {};
-  const fieldMap = {
-    CE1: "ce1Qty",
-    CE2: "ce2Qty",
-    CE3: "ce3Qty",
-    SOLER: "solerQty",
-    VACANT: "vacantQty",
-    UNKNOWN: "unknownQty"
-  };
-
-  const field = fieldMap[String(location || "").trim().toUpperCase()];
-  return field ? Number(p[field] || 0) : 0;
-}
-
-function updateAdjustmentLocationQty() {
-  const input = document.getElementById("currentAdjustmentLocationQty");
-  if (!input) return;
-  input.value = getCurrentProductLocationQty(val("adjustmentLocation"));
-}
-
-function getUnitOptions() {
-  if (settings.units && Array.isArray(settings.units) && settings.units.length) {
-    return settings.units;
-  }
-
-  return [
-    "pc",
-    "unit",
-    "m",
-    "cm",
-    "ft",
-    "roll",
-    "set",
-    "box",
-    "pair",
-    "kg",
-    "g",
-    "L",
-    "ml"
-  ];
-}
-
-function unitOptionsHtml(selected = "unit") {
-  return getUnitOptions().map(unit => {
-    const isSelected = String(unit) === String(selected) ? "selected" : "";
-    return `<option value="${escapeHtml(unit)}" ${isSelected}>${escapeHtml(unit)}</option>`;
-  }).join("");
-}
-
-function renderSaleForm() {
+function renderSaleForm(){
   document.getElementById("formTitle").innerText = "Sales / Stock Out Form";
   document.getElementById("formFields").innerHTML = `
     <p class="muted">
@@ -2738,7 +1310,7 @@ function renderSaleForm() {
   `;
 }
 
-function renderPurchaseForm() {
+function renderPurchaseForm(){
   document.getElementById("formTitle").innerText = "Purchase / Stock In Form";
   document.getElementById("formFields").innerHTML = `
     <p class="muted">
@@ -2755,24 +1327,14 @@ function renderPurchaseForm() {
   `;
 }
 
-function renderInventoryAdjustmentForm() {
+function renderInventoryAdjustmentForm(){
   const p = currentProduct || {};
   const totalQty = Number(p.posTotalQty || 0);
   const reservedQty = Number(p.reservedQty || 0);
-  const availableQty = Number(
-    p.availableQty !== undefined ? p.availableQty : p.currentQty || 0
-  );
-
-  const adjustmentApprovers=
-    settings.inventoryAdjustmentApproverNames||[];
-  
-  const defaultAdjustmentApprover=
-    adjustmentApprovers.includes(currentUser.name)
-      ? currentUser.name
-      : "";
-
+  const availableQty = Number(p.availableQty !== undefined ? p.availableQty: p.currentQty || 0);
+  const adjustmentApprovers = settings.inventoryAdjustmentApproverNames || [];
+  const defaultAdjustmentApprover = adjustmentApprovers.includes(currentUser.name) ? currentUser.name: "";
   document.getElementById("formTitle").innerText = "Manager Inventory Adjustment";
-
   document.getElementById("formFields").innerHTML = `
     <p class="muted">
       Manager/Admin only. Select the actual inventory location being checked.
@@ -2832,43 +1394,47 @@ function renderInventoryAdjustmentForm() {
     <label>Notes</label>
     <textarea id="notes" placeholder="Explain why this adjustment is needed."></textarea>
   `;
-
   updateAdjustmentLocationQty();
 }
 
-function renderAdjustmentQtyField() {
+function renderAdjustmentQtyField(){
   const type = val("adjustmentType");
-
-  if (type === "SET_AVAILABLE_QTY") {
+  if(type === "SET_AVAILABLE_QTY"){
     document.getElementById("adjustmentQtyField").innerHTML = `
       <label>New Actual Available Qty</label>
       <input type="number" id="newAvailableQty" min="0" value="0">
     `;
     return;
   }
-
-  if (type === "ADD_QTY" || type === "REMOVE_QTY") {
+  if(type === "ADD_QTY" || type === "REMOVE_QTY"){
     document.getElementById("adjustmentQtyField").innerHTML = `
       <label>Adjustment Qty</label>
       <input type="number" id="adjustmentQty" min="1" value="1">
     `;
     return;
   }
-
   document.getElementById("adjustmentQtyField").innerHTML = "";
 }
 
-function renderCountCheckForm() {
+function getCurrentProductLocationQty(location){
   const p = currentProduct || {};
+  const fieldMap = {CE1: "ce1Qty", CE2: "ce2Qty", CE3: "ce3Qty", SOLER: "solerQty", VACANT: "vacantQty", UNKNOWN: "unknownQty"};
+  const field = fieldMap[String(location || "").trim().toUpperCase()];
+  return field ? Number(p[field] || 0): 0;
+}
 
+function updateAdjustmentLocationQty(){
+  const input = document.getElementById("currentAdjustmentLocationQty");
+  if(!input) return;
+  input.value = getCurrentProductLocationQty(val("adjustmentLocation"));
+}
+
+function renderCountCheckForm(){
+  const p = currentProduct || {};
   const systemTotalQty = Number(p.posTotalQty || 0);
   const systemReservedQty = Number(p.reservedQty || 0);
-  const systemAvailableQty = Number(
-    p.availableQty !== undefined ? p.availableQty : p.currentQty || 0
-  );
-
+  const systemAvailableQty = Number(p.availableQty !== undefined ? p.availableQty: p.currentQty || 0);
   document.getElementById("formTitle").innerText = "Count Actual Stock";
-
   document.getElementById("formFields").innerHTML = `
     <p class="muted">
       Gamitin ito kapag magbibilang ng actual available stock.
@@ -2898,9 +1464,8 @@ function renderCountCheckForm() {
   `;
 }
 
-function renderReleasingForm() {
+function renderReleasingForm(){
   document.getElementById("formTitle").innerText = "Releasing Form";
-
   document.getElementById("formFields").innerHTML = `
     <p class="muted">
       Gamitin ito kapag kinuha na ang item para sa customer pero hindi pa sure kung tuloy ang sale/order.
@@ -2934,9 +1499,8 @@ function renderReleasingForm() {
   `;
 }
 
-function renderReturnCancelForm() {
+function renderReturnCancelForm(){
   document.getElementById("formTitle").innerText = "Return / Cancelled Item Form";
-
   document.getElementById("formFields").innerHTML = `
     <p class="muted">
       Gamitin ito kapag na-cancel ang order, na-refund ang sale, mali ang item na nailabas,
@@ -2993,9 +1557,8 @@ function renderReturnCancelForm() {
   `;
 }
 
-function renderTransferForm() {
+function renderTransferForm(){
   document.getElementById("formTitle").innerText = "Transfer Form";
-
   document.getElementById("formFields").innerHTML = `
     <p class="muted">
       Gamitin ito kapag ililipat ang item mula sa isang location papunta sa ibang location.
@@ -3055,9 +1618,8 @@ function renderTransferForm() {
   `;
 }
 
-function renderLocationNoteForm() {
+function renderLocationNoteForm(){
   document.getElementById("formTitle").innerText = "Location Note / Move Note";
-
   document.getElementById("formFields").innerHTML = `
     <p class="muted">
       Gamitin ito kapag gusto lang i-note kung saan nakita, nilagay, o nilipat ang item.
@@ -3081,300 +1643,130 @@ function renderLocationNoteForm() {
   `;
 }
 
-function buildConfirmMessage() {
-  const productName = currentProduct ? currentProduct.productName : "";
-  const sku = currentProduct ? currentProduct.sku : "";
+function buildConfirmMessage(){
+  const productName = currentProduct ? currentProduct.productName: "";
+  const sku = currentProduct ? currentProduct.sku: "";
   const qty = val("quantity") || "";
-
   let actionName = currentType;
   let details = "";
-
-  if (currentType === "SALE") {
+  if(currentType === "SALE"){
     actionName = "Sold Item / Stock Out";
-    details =
-      "Qty: " + qty + "\n" +
-      "Order No.: " + val("orderNo") + "\n" +
-      "Customer: " + val("customerName") + "\n" +
-      "Sold By: " + val("soldBy");
+    details = "Qty: " + qty + "\n" + "Order No.: " + val("orderNo") + "\n" + "Customer: " + val("customerName") + "\n" + "Sold By: " + val("soldBy");
   }
-
-  if (currentType === "PURCHASE") {
+  if(currentType === "PURCHASE"){
     actionName = "Stock In / New Arrival";
-    details =
-      "Qty: " + qty + "\n" +
-      "Supplier: " + val("supplier") + "\n" +
-      "Received By: " + val("receivedBy");
+    details = "Qty: " + qty + "\n" + "Supplier: " + val("supplier") + "\n" + "Received By: " + val("receivedBy");
   }
-
-  if (currentType === "COUNT_CHECK") {
-    const systemAvailableQty = Number(
-      currentProduct.availableQty !== undefined
-        ? currentProduct.availableQty
-        : currentProduct.currentQty || 0
-    );
-  
+  if(currentType === "COUNT_CHECK"){
+    const systemAvailableQty = Number(currentProduct.availableQty !== undefined ? currentProduct.availableQty: currentProduct.currentQty || 0);
     actionName = "Count Actual Stock";
-    details =
-      "System Available Qty: " + systemAvailableQty + "\n" +
-      "Actual Available Qty: " + val("actualQty") + "\n" +
-      "Difference: " + (Number(val("actualQty") || 0) - systemAvailableQty) + "\n" +
-      "Checked By: " + val("checkedBy");
+    details = "System Available Qty: " + systemAvailableQty + "\n" + "Actual Available Qty: " + val("actualQty") + "\n" + "Difference: " + (Number(val("actualQty") || 0) - systemAvailableQty) + "\n" + "Checked By: " + val("checkedBy");
   }
-
-  if (currentType === "RELEASING") {
+  if(currentType === "RELEASING"){
     actionName = "Release Item to Customer";
-    details =
-      "Qty: " + qty + "\n" +
-      "From: " + val("sourceLocation") + "\n" +
-      "To: " + val("releaseToLocation") + "\n" +
-      "Customer: " + val("customerName") + "\n" +
-      "Released By: " + val("releasedBy");
+    details = "Qty: " + qty + "\n" + "From: " + val("sourceLocation") + "\n" + "To: " + val("releaseToLocation") + "\n" + "Customer: " + val("customerName") + "\n" + "Released By: " + val("releasedBy");
   }
-
-  if (currentType === "RETURN_CANCEL_RELEASE") {
+  if(currentType === "RETURN_CANCEL_RELEASE"){
     actionName = "Return / Cancelled Item";
-    details =
-      "Type: " + val("returnActionType") + "\n" +
-      "Qty: " + qty + "\n" +
-      "From: " + val("returnFromLocation") + "\n" +
-      "To: " + val("returnToLocation") + "\n" +
-      "Handled By: " + val("handledBy") + "\n" +
-      "Reason: " + val("reason");
+    details = "Type: " + val("returnActionType") + "\n" + "Qty: " + qty + "\n" + "From: " + val("returnFromLocation") + "\n" + "To: " + val("returnToLocation") + "\n" + "Handled By: " + val("handledBy") + "\n" + "Reason: " + val("reason");
   }
-
-  if (currentType === "TRANSFER") {
+  if(currentType === "TRANSFER"){
     actionName = "Move Item Location";
-    details =
-      "Qty: " + qty + "\n" +
-      "From: " + val("fromLocation") + "\n" +
-      "To: " + val("toLocation") + "\n" +
-      "Sent By: " + val("sentBy") + "\n" +
-      "Received By: " + val("receivedBy");
+    details = "Qty: " + qty + "\n" + "From: " + val("fromLocation") + "\n" + "To: " + val("toLocation") + "\n" + "Sent By: " + val("sentBy") + "\n" + "Received By: " + val("receivedBy");
   }
-
-  if (currentType === "LOCATION_NOTE") {
+  if(currentType === "LOCATION_NOTE"){
     actionName = "Location Note / Move Note";
-    details =
-      "Location Note: " + val("locationNote") + "\n" +
-      "Details: " + val("detailNote") + "\n" +
-      "Handled By: " + val("handledBy");
+    details = "Location Note: " + val("locationNote") + "\n" + "Details: " + val("detailNote") + "\n" + "Handled By: " + val("handledBy");
   }
-
-  if (currentType === "INVENTORY_ADJUSTMENT") {
+  if(currentType === "INVENTORY_ADJUSTMENT"){
     actionName = "Manager Inventory Adjustment";
-  
     let qtyText = "";
-  
-    if (val("adjustmentType") === "SET_AVAILABLE_QTY") {
+    if(val("adjustmentType") === "SET_AVAILABLE_QTY"){
       qtyText = "New Actual Available Qty: " + val("newAvailableQty");
-    } else {
+    } else{
       qtyText = "Adjustment Qty: " + val("adjustmentQty");
     }
-  
-    details =
-      "Inventory Location: " + val("adjustmentLocation") + "\n" +
-      "Adjustment Type: " + val("adjustmentType") + "\n" +
-      qtyText + "\n" +
-      "Reason: " + val("reason") + "\n" +
-      "Approved By: " + val("approvedBy");
+    details = "Inventory Location: " + val("adjustmentLocation") + "\n" + "Adjustment Type: " + val("adjustmentType") + "\n" + qtyText + "\n" + "Reason: " + val("reason") + "\n" + "Approved By: " + val("approvedBy");
   }
+  return("Please confirm before saving:\n\n" + "Action: " + actionName + "\n" + "Product: " + productName + "\n" + "SKU: " + sku + "\n\n" + details + "\n\n" + "Continue?");
+}
 
-  return (
-    "Please confirm before saving:\n\n" +
-    "Action: " + actionName + "\n" +
-    "Product: " + productName + "\n" +
-    "SKU: " + sku + "\n\n" +
-    details + "\n\n" +
-    "Continue?"
-  );
-} 
-
-async function submitCartTransaction() {
-  if (isSubmitting) return;
-
-  if (!cartItems.length) {
+async function submitCartTransaction(){
+  if(isSubmitting) return;
+  if(!cartItems.length){
     setStatus("Please scan at least one item before submitting.", "error");
     return;
   }
-
-  if (currentType === "SALE" && !val("saleLocation")) {
+  if(currentType === "SALE" && !val("saleLocation")){
     setStatus("Please select the stock source location.", "error");
     return;
   }
-
   const cleanItems = cartItems.map(item => {
-    const p = item.product || {};
-
-    return {
-      qboId: p.qboId || "",
-      sku: p.sku || "",
-      barcodeValue: p.barcodeValue || "",
-      qrValue: p.qrValue || p.barcodeValue || "",
-      productName: p.productName || "",
-      quantity: Number(item.quantity || 0),
-      unit: item.unit || "unit",
-      unitDetails: item.unitDetails || "",
-      pricePerUnit: Number(item.pricePerUnit || 0),
-      costPerUnit: Number(item.costPerUnit || 0)
-    };
+    const p = item.product || {}; return{qboId: p.qboId || "", sku: p.sku || "", barcodeValue: p.barcodeValue || "", qrValue: p.qrValue || p.barcodeValue || "", productName: p.productName || "",
+    quantity: Number(item.quantity || 0), unit: item.unit || "unit", unitDetails: item.unitDetails || "", pricePerUnit: Number(item.pricePerUnit || 0), costPerUnit: Number(item.costPerUnit || 0)};
   });
-
-  let params = {
-    action: "submitCartTransaction",
-    staffId: currentUser.staffId,
-    pin: currentPin,
-    transactionType: currentType,
-    cartItems: JSON.stringify(cleanItems),
-    notes: val("notes")
-  };
-
-  if(currentType==="SALE"&&!val("releasedBy")){
-    setStatus(
-      "Please select who released the item.",
-      "error"
-    );
+  let params = {action: "submitCartTransaction", staffId: currentUser.staffId, pin: currentPin, transactionType: currentType, cartItems: JSON.stringify(cleanItems), notes: val("notes")};
+  if(currentType === "SALE" && !val("releasedBy")){
+    setStatus("Please select who released the item.", "error");
     return;
   }
-
-  if (currentType === "SALE") {
-    params = {
-      ...params,
-      saleId: val("autoTicketNo"),
-      ticketNo: val("autoTicketNo"),
-      dateSold: val("dateSold"),
-      salesChannel: val("salesChannel"),
-      saleLocation: val("saleLocation"),
-      soldBy: val("soldBy"),
-      releasedBy: val("releasedBy"),
-      receiptType: val("receiptType"),
-      receiptNo: val("receiptNo"),
-      customerName: val("customerName"),
-      paymentStatus: val("paymentStatus")
-    };
+  if(currentType === "SALE"){
+    params = {...params, saleId: val("autoTicketNo"), ticketNo: val("autoTicketNo"), dateSold: val("dateSold"), salesChannel: val("salesChannel"), saleLocation: val("saleLocation"), soldBy: val("soldBy"),
+    releasedBy: val("releasedBy"), receiptType: val("receiptType"), receiptNo: val("receiptNo"), customerName: val("customerName"), paymentStatus: val("paymentStatus")};
   }
-
-  if (currentType === "PURCHASE") {
-    params = {
-      ...params,
-      dateReceived: val("dateReceived"),
-      supplier: val("supplier"),
-      receivedBy: val("receivedBy"),
-      checkedBy: val("checkedBy"),
-      receiptNo: val("receiptNo"),
-      paymentStatus: val("paymentStatus")
-    };
+  if(currentType === "PURCHASE"){
+    params = {...params, dateReceived: val("dateReceived"), supplier: val("supplier"), receivedBy: val("receivedBy"), checkedBy: val("checkedBy"), receiptNo: val("receiptNo"), paymentStatus: val("paymentStatus")};
   }
-
-  if(currentType==="RELEASING"){
-    const requestedBy=val("requestedBy");
-    const releaseSourceLocation=val(
-      "releaseSourceLocation"
-    );
-  
+  if(currentType === "RELEASING"){
+    const requestedBy = val("requestedBy");
+    const releaseSourceLocation = val("releaseSourceLocation");
     if(!releaseSourceLocation){
-      setStatus(
-        "Please select the source stock location.",
-        "error"
-      );
+      setStatus("Please select the source stock location.", "error");
       return;
     }
-  
     if(!requestedBy){
-      setStatus(
-        "Please select who requested the item.",
-        "error"
-      );
+      setStatus("Please select who requested the item.", "error");
       return;
     }
-  
-    params={
-      ...params,
-      dateReleased:today(),
-      sourceLocation:releaseSourceLocation,
-      releasedBy:currentUser.name,
-      requestedBy
-    };
+    params = {...params, dateReleased: today(), sourceLocation: releaseSourceLocation, releasedBy: currentUser.name, requestedBy};
   }
-  
-  const itemSummary = cleanItems
-    .map(item => `- ${item.productName} | Qty: ${item.quantity} ${item.unit || ""}${item.unitDetails ? " | " + item.unitDetails : ""}`)
-    .join("\n");
-  
+  const itemSummary = cleanItems.map(item => `- ${item.productName} | Qty: ${item.quantity} ${item.unit || ""}${item.unitDetails ? " | " + item.unitDetails : ""}`).join("\n");
   let negativeWarningText = "";
-  
-  if (currentType === "SALE" || currentType === "RELEASING") {
-    const warningItems = cartItems
-      .map(item => {
-        const p = item.product || {};
-        const availableQty = Number(
-          p.availableQty !== undefined ? p.availableQty : p.currentQty || 0
-        );
-        const qty = Number(item.quantity || 0);
-  
-        if (qty > availableQty) {
-          return `- ${p.productName || ""} | Available: ${availableQty}, Transaction Qty: ${qty}`;
-        }
-  
-        return "";
-      })
-      .filter(text => text);
-  
-    if (warningItems.length) {
-      negativeWarningText =
-        "\n\nWARNING:\n" +
-        "Some items do not have enough available stock. The system will still continue and record negative stock.\n\n" +
-        warningItems.join("\n");
+  if(currentType === "SALE" || currentType === "RELEASING"){
+    const warningItems = cartItems.map(item => {
+      const p = item.product || {}; const availableQty = Number(p.availableQty !== undefined ? p.availableQty: p.currentQty || 0); const qty = Number(item.quantity || 0); if(qty > availableQty){
+        return `- ${p.productName || ""} | Available: ${availableQty}, Transaction Qty: ${qty}`;
+      }
+      return "";
+    }).filter(text => text);
+    if(warningItems.length){
+      negativeWarningText = "\n\nWARNING:\n" + "Some items do not have enough available stock. The system will still continue and record negative stock.\n\n" + warningItems.join("\n");
     }
   }
-
   let referenceSummary = "";
-
-  if (currentType === "SALE") {
-    referenceSummary =
-      "System Ticket No.: " + val("autoTicketNo") + "\n" +
-      "Order No.: " + val("orderNo") + "\n" +
-      "Receipt Type: " + val("receiptType") + "\n" +
-      "Receipt No.: " + val("receiptNo") + "\n";
+  if(currentType === "SALE"){
+    referenceSummary = "System Ticket No.: " + val("autoTicketNo") + "\n" + "Order No.: " + val("orderNo") + "\n" + "Receipt Type: " + val("receiptType") + "\n" + "Receipt No.: " + val("receiptNo") + "\n";
   }
-  
-  if (currentType === "PURCHASE") {
-    referenceSummary =
-      "System Ticket No.: " + val("autoTicketNo") + "\n" +
-      "Receipt / Invoice No.: " + val("receiptNo") + "\n";
+  if(currentType === "PURCHASE"){
+    referenceSummary = "System Ticket No.: " + val("autoTicketNo") + "\n" + "Receipt / Invoice No.: " + val("receiptNo") + "\n";
   }
-  
-  if(currentType==="RELEASING"){
-    referenceSummary=
-      "Release Ticket ID: "+val("autoTicketNo")+"\n"+
-      "Released By: "+currentUser.name+"\n"+
-      "Requested By: "+val("requestedBy")+"\n";
+  if(currentType === "RELEASING"){
+    referenceSummary = "Release Ticket ID: " + val("autoTicketNo") + "\n" + "Released By: " + currentUser.name + "\n" + "Requested By: " + val("requestedBy") + "\n";
   }
-
-  const confirmMessage =
-    "Please confirm cart transaction:\n\n" +
-    "Type: " + currentType + "\n" +
-    referenceSummary + "\n" +
-    "Items:\n" + itemSummary +
-    negativeWarningText +
-    "\n\nContinue?";
-
-  if (!confirm(confirmMessage)) {
+  const confirmMessage = "Please confirm cart transaction:\n\n" + "Type: " + currentType + "\n" + referenceSummary + "\n" + "Items:\n" + itemSummary + negativeWarningText + "\n\nContinue?";
+  if(!confirm(confirmMessage)){
     setStatus("Cart transaction cancelled. Nothing was saved.", "muted");
     return;
   }
-
   isSubmitting = true;
   setStatus("Submitting cart transaction...", "info");
-
-  try {
+  try{
     const res = await apiCall(params);
     console.log("Cart submit response:", res);
-
-    if (!res || !res.success) {
-      setStatus((res && res.message) ? res.message : "Cart transaction failed.", "error");
+    if(!res || !res.success){
+      setStatus((res && res.message) ? res.message: "Cart transaction failed.", "error");
       return;
     }
-
     let resultHtml = `
       ${escapeHtml(res.message)}<br>
       Ticket No.: <strong>${escapeHtml(res.ticketNo || "")}</strong><br>
@@ -3382,10 +1774,8 @@ async function submitCartTransaction() {
       Receipt No.: ${escapeHtml(res.receiptNo || "")}<br>
       Items Saved: ${escapeHtml(res.itemCount || 0)}
     `;
-
-    if (Array.isArray(res.results)) {
+    if(Array.isArray(res.results)){
       resultHtml += "<br><br>";
-
       res.results.forEach(item => {
         resultHtml += `
           ${escapeHtml(item.productName || "")}<br>
@@ -3399,31 +1789,726 @@ async function submitCartTransaction() {
         `;
       });
     }
-
     setStatus(resultHtml, "success-text");
-
     cartItems = [];
     currentProduct = null;
     renderCart();
-
     hide("productCard");
     hide("formCard");
     document.getElementById("searchValue").value = "";
     setTimeout(() => document.getElementById("searchValue").focus(), 200);
-
-  } catch (err) {
+  } catch(err){
     console.error("Cart submit error:", err);
     setStatus("Cart submit error: " + escapeHtml(err.message || err), "error");
-  } finally {
+  } finally{
     isSubmitting = false;
   }
 }
-  
 
-function openRevampReturnLookup() {
+async function submitTransaction(){
+  if(isSubmitting) return;
+  if(isCartTransactionType(currentType)){
+    submitCartTransaction();
+    return;
+  }
+  if(!currentProduct){
+    setStatus("Please find a product first.", "error");
+    return;
+  }
+  isSubmitting = true;
+  const searchValue = val("searchValue").trim();
+  let params = {staffId: currentUser.staffId, pin: currentPin, searchValue};
+  if(currentType === "SALE"){
+    params = {...params, action: "submitSale", dateSold: val("dateSold"), salesChannel: val("salesChannel"), soldBy: val("soldBy"), releasedBy: val("releasedBy"), packedBy: val("packedBy"),
+    quantity: val("quantity"), pricePerUnit: val("pricePerUnit"), orderNo: val("orderNo"), customerName: val("customerName"), paymentStatus: val("paymentStatus"), notes: val("notes")};
+  } else if(currentType === "PURCHASE"){
+    params = {...params, action: "submitPurchase", dateReceived: val("dateReceived"), supplier: val("supplier"), receivedBy: val("receivedBy"), checkedBy: val("checkedBy"), quantity: val("quantity"),
+    costPerUnit: val("costPerUnit"), receiptNo: val("receiptNo"), paymentStatus: val("paymentStatus"), notes: val("notes")};
+  } else if(currentType === "COUNT_CHECK"){
+    params = {...params, action: "submitCountCheck", dateChecked: val("dateChecked"), actualQty: val("actualQty"), checkedBy: val("checkedBy"), notes: val("notes")};
+  } else if(currentType === "INVENTORY_ADJUSTMENT"){
+    const adjustmentLocation = val("adjustmentLocation");
+    if(!adjustmentLocation){
+      isSubmitting = false;
+      setStatus("Please select the inventory location.", "error");
+      return;
+    }
+    params = {...params, action: "submitInventoryAdjustment", dateAdjusted: val("dateAdjusted"), adjustmentLocation, adjustmentType: val("adjustmentType"), adjustmentQty: val("adjustmentQty"),
+    newAvailableQty: val("newAvailableQty"), reason: val("reason"), approvedBy: val("approvedBy"), adjustedBy: currentUser.name, notes: val("notes")};
+  } else if(currentType === "RELEASING"){
+    params = {...params, action: "submitReleasing", dateReleased: val("dateReleased"), referenceNo: val("referenceNo"), customerName: val("customerName"), quantity: val("quantity"), releasedBy: val("releasedBy"),
+    releaseToLocation: val("releaseToLocation"), notes: val("notes")};
+  } else if(currentType === "RETURN_CANCEL_RELEASE"){
+    params = {...params, action: "submitReturnCancelRelease", returnActionType: val("returnActionType"), dateReturned: val("dateReturned"), referenceNo: val("referenceNo"), quantity: val("quantity"),
+    handledBy: val("handledBy"), returnFromLocation: val("returnFromLocation"), returnToLocation: val("returnToLocation"), reason: val("reason"), notes: val("notes")};
+  } else if(currentType === "TRANSFER"){
+    params = {...params, action: "submitTransfer", transferDate: val("transferDate"), transferNo: val("transferNo"), fromLocation: val("fromLocation"), toLocation: val("toLocation"), quantity: val("quantity"),
+    sentBy: currentUser.name, receivedBy: val("receivedBy"), transferStatus: val("transferStatus"), courierDriver: val("courierDriver"), notes: val("notes")};
+  } else if(currentType === "LOCATION_NOTE"){
+    params = {...params, action: "submitLocationNote", dateNoted: val("dateNoted"), locationNote: val("locationNote"), detailNote: val("detailNote"), handledBy: val("handledBy"), notes: val("notes")};
+  } else{
+    isSubmitting = false;
+    setStatus("Invalid transaction type.", "error");
+    return;
+  }
+  const confirmMessage = buildConfirmMessage();
+  if(!confirm(confirmMessage)){
+    isSubmitting = false;
+    setStatus("Transaction cancelled. Nothing was saved.", "muted");
+    return;
+  }
+  setStatus("Submitting transaction...", "info");
+  try{
+    const res = await apiCall(params);
+    console.log("Submit response:", res);
+    if(!res || !res.success){
+      setStatus((res && res.message) ? res.message: "Transaction failed.", "error");
+      return;
+    }
+    let extra = "";
+    if(res.oldQty !== undefined && res.newQty !== undefined){
+      extra += `<br>Old Available Qty: ${res.oldQty}<br>New Available Qty: ${res.newQty}`;
+    }
+    if(res.oldTotalQty !== undefined && res.newTotalQty !== undefined){
+      extra += `<br>Old Total Qty: ${res.oldTotalQty}<br>New Total Qty: ${res.newTotalQty}`;
+    }
+    if(res.oldReservedQty !== undefined && res.newReservedQty !== undefined){
+      extra += `<br>Reserved Qty: ${res.oldReservedQty} → ${res.newReservedQty}`;
+    }
+    if(res.systemQty !== undefined) extra += `<br>System Qty: ${res.systemQty}<br>Actual Qty: ${res.actualQty}<br>Difference: ${res.difference}`;
+    if(res.affectsInventory === false) extra += `<br><span class="muted">Note: This item does not affect inventory quantity.</span>`;
+    if(res.negativeStockWarning){
+      extra += `<br><span class="error">${escapeHtml(res.negativeStockWarning)}</span>`;
+    }
+    setStatus(`${escapeHtml(res.message)}<br>Product: ${escapeHtml(res.productName || "")}${extra}`, "success-text");
+    hide("formCard");
+    currentProduct = null;
+    document.getElementById("searchValue").value = "";
+  } catch(err){
+    console.error("Submit error:", err);
+    setStatus("Submit error: " + escapeHtml(err.message || err), "error");
+  } finally{
+    isSubmitting = false;
+  }
+}
+
+function openMyReleaseRequests(){
+  currentType = "MY_RELEASE_REQUESTS";
+  releaseRequestRows = [];
+  hide("homeCard");
+  hide("scanCard");
+  hide("productCard");
+  hide("cartCard");
+  hide("ticketCard");
+  hide("reportsCard");
+  hide("formCard");
+  hide("revampReturnCard");
+  hide("approvalCard");
+  show("releaseRequestsCard");
+  document.getElementById("releaseRequestsList").innerHTML = "";
+  loadMyReleaseRequests();
+}
+
+async function loadMyReleaseRequests(){
+  if(!currentUser){
+    setStatus("Please login first.", "error");
+    return;
+  }
+  setStatus("Loading release requests...", "info");
+  try{
+    const res = await apiCall({action: "getMyReleaseRequests", staffId: currentUser.staffId, pin: currentPin});
+    if(!res || !res.success){
+      setStatus(res && res.message ? res.message: "Could not load release requests.", "error");
+      return;
+    }
+    releaseRequestRows = Array.isArray(res.rows) ? res.rows: [];
+    renderMyReleaseRequests(res);
+    setStatus("Release requests loaded.", "success-text");
+  } catch(err){
+    console.error("Release requests error:", err);
+    setStatus("Release requests error: " + escapeHtml(err.message || err), "error");
+  }
+}
+
+function renderMyReleaseRequests(res){
+  const rows = res.rows || [];
+  const container = document.getElementById("releaseRequestsList");
+  let html = `
+    <hr>
+    <strong>Pending Requests:</strong>
+    ${escapeHtml(rows.length)}
+    <br>
+  `;
+  if(!rows.length){
+    html += `
+      <p class="muted">
+        No pending release requests assigned to you.
+      </p>
+    `;
+    container.innerHTML = html;
+    return;
+  }
+  rows.forEach((row, index) => {
+    const items = Array.isArray(row.items) ? row.items: []; html += `
+      <div class="cart-line">
+        <span class="badge">
+          ${escapeHtml(row.status||"")}
+        </span>
+        <br><br>
+
+        Release Ticket ID:
+        <strong>
+          ${escapeHtml(row.ticketNo||"")}
+        </strong>
+
+        Date:
+        ${escapeHtml(
+          formatDateTime(
+            row.date||
+            row.createdAt||
+            ""
+          )
+        )}<br>
+
+        Released By:
+        ${escapeHtml(row.releasedBy||"")}<br>
+
+        Requested By:
+        ${escapeHtml(row.requestedBy||"")}<br>
+
+        Source Location:
+        <strong>
+          ${escapeHtml(row.sourceLocation||"")}
+        </strong><br>
+
+        Notes:
+        ${escapeHtml(row.notes||"")}<br><br>
+
+        <strong>Items:</strong>
+    `; items.forEach(item => {
+      html += `
+        <div class="cart-line">
+          <strong>
+            ${escapeHtml(item.productName||"")}
+          </strong>
+
+          SKU:
+          ${escapeHtml(item.sku||"")}<br>
+
+          Qty:
+          <strong>
+            ${escapeHtml(item.quantity)}
+            ${escapeHtml(item.unit||"")}
+          </strong><br>
+
+          ${
+            item.unitDetails
+              ?`Unit Details: ${escapeHtml(
+                  item.unitDetails
+                )}<br>`
+              :""
+          }
+        </div>
+      `;
+    }); html += `
+      <button
+        class="success"
+        type="button"
+        onclick="toggleReleaseSaleForm(${index})"
+      >
+        Continue to Sale
+      </button>
+
+      <div
+        id="releaseSaleForm_${index}"
+        class="hidden"
+      >
+        <hr>
+        <h3>Complete Sale</h3>
+
+        <label>Sold By</label>
+        <input
+          type="text"
+          value="${escapeHtml(currentUser.name||"")}"
+          disabled
+        >
+
+        <label>Released By</label>
+        <input
+          type="text"
+          value="${escapeHtml(row.releasedBy||"")}"
+          disabled
+        >
+
+        <label>Stock Source</label>
+        <input
+          type="text"
+          value="${escapeHtml(row.sourceLocation||"")}"
+          disabled
+        >
+
+        <label>Sales Channel</label>
+        ${selectHtml(
+          "releaseSalesChannel_"+index,
+          settings.salesChannels,
+          ""
+        )}
+
+        <label>Receipt Type</label>
+        <select id="releaseReceiptType_${index}">
+          <option value="Sales Receipt">
+            Sales Receipt
+          </option>
+          <option value="Delivery Receipt">
+            Delivery Receipt
+          </option>
+          <option value="No Receipt">
+            No Receipt
+          </option>
+        </select>
+
+        <label>Receipt No.</label>
+        <input
+          type="text"
+          id="releaseReceiptNo_${index}"
+          placeholder="Actual receipt number, if any"
+        >
+
+        <label>Customer Name</label>
+        <input
+          type="text"
+          id="releaseCustomerName_${index}"
+        >
+
+        <h3>Sale Prices</h3>
+    `; items.forEach((item,
+    itemIndex) => {
+      const savedPrice = Number(item.unitPrice || 0); html += `
+        <div class="cart-line">
+          <strong>
+            ${escapeHtml(item.productName||"")}
+          </strong>
+
+          Qty:
+          ${escapeHtml(item.quantity)}
+          ${escapeHtml(item.unit||"")}<br>
+
+          <label>Price Per Unit</label>
+          <input
+            type="number"
+            id="releaseSalePrice_${index}_${itemIndex}"
+            min="0"
+            step="0.01"
+            value="${
+              savedPrice>0
+                ?savedPrice
+                :""
+            }"
+          >
+        </div>
+      `;
+    }); html += `
+        <label>Notes</label>
+        <textarea
+          id="releaseSaleNotes_${index}"
+          placeholder="Optional sale notes"
+        ></textarea>
+
+        <button
+          class="success"
+          type="button"
+          onclick="submitReleaseSale(${index})"
+        >
+          Submit Sale
+        </button>
+
+        <button
+          class="secondary"
+          type="button"
+          onclick="toggleReleaseSaleForm(${index})"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function toggleReleaseSaleForm(index){
+  const form = document.getElementById("releaseSaleForm_" + index);
+  if(!form) return;
+  form.classList.toggle("hidden");
+}
+
+async function submitReleaseSale(index){
+  if(isSubmitting) return;
+  const row = releaseRequestRows[index];
+  if(!row){
+    setStatus("Release request not found. Please refresh.", "error");
+    return;
+  }
+  const salesChannel = val("releaseSalesChannel_" + index);
+  if(!salesChannel){
+    setStatus("Please select Sales Channel.", "error");
+    return;
+  }
+  const items = Array.isArray(row.items) ? row.items: [];
+  const saleItems = [];
+  for(let itemIndex = 0; itemIndex < items.length; itemIndex++){
+    const priceText = val("releaseSalePrice_" + index + "_" + itemIndex);
+    const price = Number(priceText);
+    if(priceText === "" || !Number.isFinite(price) || price < 0){
+      setStatus("Please enter a valid price for " + escapeHtml(items[itemIndex].productName || "item") + ".", "error");
+      return;
+    }
+    saleItems.push({lineNo: items[itemIndex].lineNo, pricePerUnit: price});
+  }
+  const confirmed = confirm("Complete this release as a sale?\n\n" + "Ticket: " + row.ticketNo + "\n" + "Sold By: " + currentUser.name + "\n" + "Released By: " + row.releasedBy + "\n" + "Source: " + row.sourceLocation + "\n" + "Items: " + items.length + "\n\n" + "Stock will be deducted after confirmation.");
+  if(!confirmed){
+    setStatus("Sale cancelled. Nothing was changed.", "muted");
+    return;
+  }
+  isSubmitting = true;
+  setStatus("Completing release as sale...", "info");
+  try{
+    const res = await apiCall({action: "submitTicketFollowUp", staffId: currentUser.staffId, pin: currentPin, ticketNo: row.ticketNo, followUpAction: "COMPLETE_SALE", dateSold: today(),
+    salesChannel, saleLocation: row.sourceLocation, releasedBy: row.releasedBy, receiptType: val("releaseReceiptType_" + index), receiptNo: val("releaseReceiptNo_" + index), customerName: val("releaseCustomerName_" + index),
+    notes: val("releaseSaleNotes_" + index), saleItems: JSON.stringify(saleItems)});
+    if(!res || !res.success){
+      setStatus(res && res.message ? escapeHtml(res.message): "Sale could not be completed.", "error");
+      return;
+    }
+    setStatus(escapeHtml(res.message) + "<br>Ticket No.: <strong>" + escapeHtml(res.ticketNo || row.ticketNo) + "</strong><br>Status: <strong>SOLD</strong>", "success-text");
+    await loadMyReleaseRequests();
+  } catch(err){
+    console.error("Release sale error:", err);
+    setStatus("Release sale error: " + escapeHtml(err.message || err), "error");
+  } finally{
+    isSubmitting = false;
+  }
+}
+
+function openTicketLookup(){
+  currentType = "TICKET_FOLLOW_UP";
+  currentProduct = null;
+  currentTicket = null;
+  currentTicketLines = [];
+  cartItems = [];
+  hide("homeCard");
+  hide("scanCard");
+  hide("productCard");
+  hide("cartCard");
+  hide("reportsCard");
+  hide("formCard");
+  hide("revampReturnCard");
+  hide("approvalCard");
+  show("ticketCard");
+  document.getElementById("ticketNo").value = "";
+  document.getElementById("ticketInfo").innerHTML = "";
+  document.getElementById("ticketActions").innerHTML = "";
+  setStatus("Enter Ticket No. / Release No.", "muted");
+  setTimeout(() => document.getElementById("ticketNo").focus(), 200);
+}
+
+async function findTicket(){
+  const ticketNo = val("ticketNo").trim();
+  if(!ticketNo){
+    setStatus("Please enter Ticket No. / Release No.", "error");
+    return;
+  }
+  setStatus("Searching transaction reference...", "info");
+  try{
+    const res = await apiCall({action: "getTicketDetails", staffId: currentUser.staffId, pin: currentPin, ticketNo});
+    console.log("Ticket response:", res);
+    if(!res || !res.success){
+      setStatus((res && res.message) ? res.message: "Ticket not found.", "error");
+      return;
+    }
+    currentTicket = res.ticket;
+    currentTicketLines = res.lines || [];
+    renderTicket(res);
+    setStatus("Ticket found.", "success-text");
+  } catch(err){
+    console.error("Ticket lookup error:", err);
+    setStatus("Ticket lookup error: " + escapeHtml(err.message || err), "error");
+  }
+}
+
+function renderTicket(res){
+  const ticket = res.ticket || {};
+  const lines = res.lines || [];
+  let html = `
+    <hr>
+    <strong>Ticket No.: ${escapeHtml(ticket.ticketNo || "")}</strong><br>
+    Type: <span class="badge">${escapeHtml(ticket.ticketType || "")}</span><br>
+    Status: <span class="badge">${escapeHtml(ticket.status || "")}</span><br>
+    Date: ${escapeHtml(ticket.date || "")}<br>
+    Order No.: ${escapeHtml(ticket.orderNo || "")}<br>
+    Receipt Type: ${escapeHtml(ticket.receiptType || "")}<br>
+    Receipt No.: ${escapeHtml(ticket.receiptNo || "")}<br>
+    Customer: ${escapeHtml(ticket.customerName || "")}<br>
+    Sales Channel: ${escapeHtml(ticket.salesChannel || "")}<br>
+    Created By: ${escapeHtml(ticket.createdBy || "")}<br>
+    Released By: ${escapeHtml(ticket.releasedBy || "")}<br>
+    Sold By: ${escapeHtml(ticket.soldBy || "")}<br>
+    Location Note: ${escapeHtml(ticket.locationNote || "")}<br>
+    Delivery Status: ${escapeHtml(ticket.deliveryStatus || "")}<br>
+    Courier / Driver: ${escapeHtml(ticket.courierDriver || "")}<br>
+    Tracking No.: ${escapeHtml(ticket.trackingNo || "")}<br>
+    Notes: ${escapeHtml(ticket.notes || "")}<br>
+    <br>
+    <strong>Items:</strong>
+  `;
+  if(!lines.length){
+    html += `<p class="muted">No items found under this ticket.</p>`;
+  } else{
+    lines.forEach((line, index) => {
+      html += `
+        <div class="cart-line">
+          <strong>${escapeHtml(line.productName || "")}</strong>
+          SKU: ${escapeHtml(line.sku || "")}<br>
+          Barcode: ${escapeHtml(line.barcodeValue || "")}<br>
+          Qty Sold: <strong>${escapeHtml(line.quantity)} ${escapeHtml(line.unit || "")}</strong><br>
+          ${line.unitDetails ? `Unit Details: ${escapeHtml(line.unitDetails)}<br>` : ""}
+          Returned Qty: ${escapeHtml(line.returnedQty || 0)}<br>
+          Remaining Returnable: ${escapeHtml(line.remainingQty || 0)}<br>
+          Line Status: ${escapeHtml(line.lineStatus || "")}<br>
+          Location Note: ${escapeHtml(line.locationNote || "")}
+          
+          ${
+            res.canReturnRefund && Number(line.remainingQty || 0) > 0
+              ? `
+                <label>Return Qty</label>
+                <input type="number" id="returnQty_${index}" min="0" max="${escapeHtml(line.remainingQty)}" value="${escapeHtml(line.remainingQty)}">
+                <p class="muted">Unit: ${escapeHtml(line.unit || "unit")}</p>
+              `
+              : ""
+          }
+        </div>
+      `;
+    });
+  }
+  document.getElementById("ticketInfo").innerHTML = html;
+  let actionsHtml = "";
+  if(res.canCompleteSale){
+    actionsHtml += `
+      <button class="success" type="button" onclick="submitTicketFollowUp('COMPLETE_SALE')">
+        Complete Sale
+      </button>
+    `;
+  }
+  if(res.canCancelRelease){
+    actionsHtml += `
+      <button class="danger" type="button" onclick="submitTicketFollowUp('CANCEL_RELEASE')">
+        Cancel Release / Did Not Push Through
+      </button>
+    `;
+  }
+  if(res.canReturnRefund){
+    actionsHtml += `
+      <button class="danger" type="button" onclick="submitReturnRefundTicket()">
+        Return / Refund Sale
+      </button>
+    `;
+  }
+  if(res.canDeliveryUpdate){
+    actionsHtml += `
+      <hr>
+      <h3>Delivery Update</h3>
+  
+      <label>Date Updated</label>
+      <input type="date" id="deliveryDateUpdated" value="${today()}">
+  
+      <label>Delivery Status</label>
+      <select id="deliveryStatus">
+        <option value="">Select</option>
+        <option value="FOR DELIVERY">FOR DELIVERY</option>
+        <option value="IN TRANSIT">IN TRANSIT</option>
+        <option value="DELIVERED">DELIVERED</option>
+        <option value="FAILED DELIVERY">FAILED DELIVERY</option>
+        <option value="RETURNED TO STORE">RETURNED TO STORE</option>
+        <option value="FOR PICKUP">FOR PICKUP</option>
+        <option value="PICKED UP">PICKED UP</option>
+      </select>
+  
+      <label>Courier / Driver</label>
+      <input type="text" id="courierDriver" placeholder="Example: LBC, J&T, Boyet, pickup">
+  
+      <label>Tracking No.</label>
+      <input type="text" id="trackingNo" placeholder="Optional tracking number">
+  
+      <label>Updated By</label>
+      ${selectHtml("deliveryUpdatedBy", settings.staffNames, currentUser.name)}
+  
+      <label>Delivery Notes</label>
+      <textarea id="deliveryNotes" placeholder="Optional notes"></textarea>
+  
+      <button class="success" type="button" onclick="submitDeliveryUpdate()">
+        Save Delivery Update
+      </button>
+    `;
+  }
+  if(!actionsHtml){
+    actionsHtml = `<p class="muted">No follow-up action available for this ticket status yet.</p>`;
+  }
+  document.getElementById("ticketActions").innerHTML = actionsHtml;
+}
+
+async function submitTicketFollowUp(followUpAction){
+  if(isSubmitting) return;
+  if(!currentTicket || !currentTicket.ticketNo){
+    setStatus("Please find a ticket first.", "error");
+    return;
+  }
+  const actionLabel = followUpAction === "COMPLETE_SALE" ? "Complete Sale": "Cancel Release";
+  const itemSummary = currentTicketLines.map(line => `- ${line.productName} | Qty: ${line.quantity}`).join("\n");
+  const confirmMessage = "Please confirm follow-up:\n\n" + "Action: " + actionLabel + "\n" + "Ticket No.: " + currentTicket.ticketNo + "\n\n" + "Items:\n" + itemSummary + "\n\n" + "Continue?";
+  if(!confirm(confirmMessage)){
+    setStatus("Follow-up cancelled. Nothing was saved.", "muted");
+    return;
+  }
+  isSubmitting = true;
+  setStatus("Submitting follow-up...", "info");
+  try{
+    const res = await apiCall({action: "submitTicketFollowUp", staffId: currentUser.staffId, pin: currentPin, ticketNo: currentTicket.ticketNo, followUpAction, notes: val("followUpNotes")});
+    console.log("Ticket follow-up response:", res);
+    if(!res || !res.success){
+      setStatus((res && res.message) ? res.message: "Follow-up failed.", "error");
+      return;
+    }
+    let resultHtml = `
+      ${escapeHtml(res.message)}<br>
+      Ticket No.: <strong>${escapeHtml(res.ticketNo || "")}</strong><br>
+      New Status: <strong>${escapeHtml(res.status || "")}</strong><br>
+      Items Updated: ${escapeHtml(res.itemCount || 0)}
+    `;
+    if(Array.isArray(res.results)){
+      resultHtml += "<br><br>";
+      res.results.forEach(item => {
+        resultHtml += `
+          ${escapeHtml(item.productName || "")}<br>
+          Qty: ${escapeHtml(item.qty)}<br>
+          Total Qty: ${escapeHtml(item.oldTotalQty)} → ${escapeHtml(item.newTotalQty)}<br>
+          Reserved Qty: ${escapeHtml(item.oldReservedQty)} → ${escapeHtml(item.newReservedQty)}<br>
+          Available Qty: ${escapeHtml(item.oldAvailableQty)} → ${escapeHtml(item.newAvailableQty)}<br>
+          ${item.negativeStockWarning ? `<span class="error">${escapeHtml(item.negativeStockWarning)}</span><br>` : ""}
+          <br>
+        `;
+      });
+    }
+    setStatus(resultHtml, "success-text");
+    await findTicket();
+  } catch(err){
+    console.error("Ticket follow-up error:", err);
+    setStatus("Ticket follow-up error: " + escapeHtml(err.message || err), "error");
+  } finally{
+    isSubmitting = false;
+  }
+}
+
+async function submitDeliveryUpdate(){
+  if(isSubmitting) return;
+  if(!currentTicket || !currentTicket.ticketNo){
+    setStatus("Please find a ticket first.", "error");
+    return;
+  }
+  const deliveryStatus = val("deliveryStatus");
+  if(!deliveryStatus){
+    setStatus("Please select Delivery Status.", "error");
+    return;
+  }
+  const confirmMessage = "Please confirm delivery update:\n\n" + "Ticket No.: " + currentTicket.ticketNo + "\n" + "Delivery Status: " + deliveryStatus + "\n" + "Courier / Driver: " + val("courierDriver") + "\n" + "Tracking No.: " + val("trackingNo") + "\n\n" + "Stock quantity will NOT change.\n\n" + "Continue?";
+  if(!confirm(confirmMessage)){
+    setStatus("Delivery update cancelled. Nothing was saved.", "muted");
+    return;
+  }
+  isSubmitting = true;
+  setStatus("Submitting delivery update...", "info");
+  try{
+    const res = await apiCall({action: "submitDeliveryUpdate", staffId: currentUser.staffId, pin: currentPin, ticketNo: currentTicket.ticketNo, dateUpdated: val("deliveryDateUpdated"), deliveryStatus,
+    courierDriver: val("courierDriver"), trackingNo: val("trackingNo"), updatedBy: val("deliveryUpdatedBy"), notes: val("deliveryNotes")});
+    console.log("Delivery update response:", res);
+    if(!res || !res.success){
+      setStatus((res && res.message) ? res.message: "Delivery update failed.", "error");
+      return;
+    }
+    setStatus(`${escapeHtml(res.message)}<br>` + `Ticket No.: <strong>${escapeHtml(res.ticketNo || "")}</strong><br>` + `Delivery Status: <strong>${escapeHtml(res.deliveryStatus || "")}</strong><br>` + `Courier / Driver: ${escapeHtml(res.courierDriver || "")}<br>` + `Tracking No.: ${escapeHtml(res.trackingNo || "")}<br>` + `<span class="muted">Stock quantity was not changed.</span>`,
+    "success-text");
+    await findTicket();
+  } catch(err){
+    console.error("Delivery update error:", err);
+    setStatus("Delivery update error: " + escapeHtml(err.message || err), "error");
+  } finally{
+    isSubmitting = false;
+  }
+}
+
+async function submitReturnRefundTicket(){
+  if(isSubmitting) return;
+  if(!currentTicket || !currentTicket.ticketNo){
+    setStatus("Please find a ticket first.", "error");
+    return;
+  }
+  const returnItems = [];
+  currentTicketLines.forEach((line, index) => {
+    const qty = Number(val("returnQty_" + index) || 0); if(qty > 0){
+      returnItems.push({lineNo: line.lineNo, sku: line.sku || "", barcodeValue: line.barcodeValue || "", productName: line.productName || "", quantity: qty, unit: line.unit || "unit", unitDetails: line.unitDetails || ""});
+    }
+  });
+  if(!returnItems.length){
+    setStatus("Please enter at least one return quantity.", "error");
+    return;
+  }
+  const itemSummary = returnItems.map(item => `- ${item.productName} | Return Qty: ${item.quantity} ${item.unit}${item.unitDetails ? " | " + item.unitDetails : ""}`).join("\n");
+  const confirmMessage = "Please confirm Return / Refund:\n\n" + "Ticket No.: " + currentTicket.ticketNo + "\n\n" + "Items:\n" + itemSummary + "\n\n" + "Continue?";
+  if(!confirm(confirmMessage)){
+    setStatus("Return / Refund cancelled. Nothing was saved.", "muted");
+    return;
+  }
+  isSubmitting = true;
+  setStatus("Submitting Return / Refund...", "info");
+  try{
+    const res = await apiCall({action: "submitTicketFollowUp", staffId: currentUser.staffId, pin: currentPin, ticketNo: currentTicket.ticketNo, followUpAction: "RETURN_REFUND", returnItems: JSON.stringify(returnItems),
+    notes: val("followUpNotes")});
+    console.log("Return refund response:", res);
+    if(!res || !res.success){
+      setStatus((res && res.message) ? res.message: "Return / Refund failed.", "error");
+      return;
+    }
+    let resultHtml = `
+      ${escapeHtml(res.message)}<br>
+      Ticket No.: <strong>${escapeHtml(res.ticketNo || "")}</strong><br>
+      New Status: <strong>${escapeHtml(res.status || "")}</strong><br>
+      Items Updated: ${escapeHtml(res.itemCount || 0)}
+    `;
+    if(Array.isArray(res.results)){
+      resultHtml += "<br><br>";
+      res.results.forEach(item => {
+        resultHtml += `
+          ${escapeHtml(item.productName || "")}<br>
+          Returned Qty: ${escapeHtml(item.qty)} ${escapeHtml(item.unit || "")}<br>
+          ${item.unitDetails ? `Unit Details: ${escapeHtml(item.unitDetails)}<br>` : ""}
+          Total Qty: ${escapeHtml(item.oldTotalQty)} → ${escapeHtml(item.newTotalQty)}<br>
+          Reserved Qty: ${escapeHtml(item.oldReservedQty)} → ${escapeHtml(item.newReservedQty)}<br>
+          Available Qty: ${escapeHtml(item.oldAvailableQty)} → ${escapeHtml(item.newAvailableQty)}<br><br>
+        `;
+      });
+    }
+    setStatus(resultHtml, "success-text");
+    await findTicket();
+  } catch(err){
+    console.error("Return refund error:", err);
+    setStatus("Return refund error: " + escapeHtml(err.message || err), "error");
+  } finally{
+    isSubmitting = false;
+  }
+}
+
+function openRevampReturnLookup(){
   currentType = "REVAMP_RETURN";
   revampReturnLines = [];
-
   hide("homeCard");
   hide("scanCard");
   hide("productCard");
@@ -3433,68 +2518,50 @@ function openRevampReturnLookup() {
   hide("formCard");
   hide("approvalCard");
   show("revampReturnCard");
-
   document.getElementById("revampReturnReceiptNo").value = "";
   document.getElementById("revampReturnItems").innerHTML = "";
-
   setStatus("Enter receipt no. for return stock-in.", "muted");
-
   setTimeout(() => document.getElementById("revampReturnReceiptNo").focus(), 200);
 }
 
-async function findRevampSaleByReceipt() {
+async function findRevampSaleByReceipt(){
   const receiptNo = val("revampReturnReceiptNo").trim();
-
-  if (!receiptNo) {
+  if(!receiptNo){
     setStatus("Please enter Receipt No.", "error");
     return;
   }
-
   setStatus("Searching receipt...", "info");
-
-  try {
-    const res = await apiCall({
-      action: "getRevampSaleByReceipt",
-      staffId: currentUser.staffId,
-      pin: currentPin,
-      receiptNo
-    });
-
+  try{
+    const res = await apiCall({action: "getRevampSaleByReceipt", staffId: currentUser.staffId, pin: currentPin, receiptNo});
     console.log("Revamp receipt response:", res);
-
-    if (!res || !res.success) {
+    if(!res || !res.success){
       revampReturnLines = [];
       document.getElementById("revampReturnItems").innerHTML = "";
-      setStatus((res && res.message) ? res.message : "Receipt not found.", "error");
+      setStatus((res && res.message) ? res.message: "Receipt not found.", "error");
       return;
     }
-
     revampReturnLines = res.items || [];
     renderRevampReturnItems(res);
     setStatus("Receipt found.", "success-text");
-
-  } catch (err) {
+  } catch(err){
     console.error("Revamp receipt lookup error:", err);
     setStatus("Receipt lookup error: " + escapeHtml(err.message || err), "error");
   }
 }
 
-function renderRevampReturnItems(res) {
+function renderRevampReturnItems(res){
   const receiptNo = res.receiptNo || "";
   const items = res.items || [];
-
   let html = `
     <hr>
     <strong>Receipt No.: ${escapeHtml(receiptNo)}</strong><br>
     <span class="muted">Enter only the qty that is actually returned.</span><br><br>
   `;
-
-  if (!items.length) {
+  if(!items.length){
     html += `<p class="muted">No returnable items found.</p>`;
     document.getElementById("revampReturnItems").innerHTML = html;
     return;
   }
-
   items.forEach((item, index) => {
     html += `
       <div class="cart-line">
@@ -3517,7 +2584,6 @@ function renderRevampReturnItems(res) {
       </div>
     `;
   });
-
   html += `
     <label>Date Returned</label>
     <input type="date" id="revampDateReturned" value="${today()}">
@@ -3537,91 +2603,52 @@ function renderRevampReturnItems(res) {
       Submit Return for Approval
     </button>
   `;
-
   document.getElementById("revampReturnItems").innerHTML = html;
 }
 
-async function submitRevampReturnRequest() {
-  if (isSubmitting) return;
-
+async function submitRevampReturnRequest(){
+  if(isSubmitting) return;
   const receiptNo = val("revampReturnReceiptNo").trim();
-
-  if (!receiptNo) {
+  if(!receiptNo){
     setStatus("Missing Receipt No.", "error");
     return;
   }
-
   const returnItems = [];
-
   revampReturnLines.forEach((line, index) => {
-    const qty = Number(val("revampReturnQty_" + index) || 0);
-
-    if (qty > 0) {
-      returnItems.push({
-        sku: line.sku,
-        productName: line.productName,
-        quantity: qty
-      });
+    const qty = Number(val("revampReturnQty_" + index) || 0); if(qty > 0){
+      returnItems.push({sku: line.sku, productName: line.productName, quantity: qty});
     }
   });
-
-  if (!returnItems.length) {
+  if(!returnItems.length){
     setStatus("Please enter at least one return qty.", "error");
     return;
   }
-
-  if (!val("revampReturnLocation")) {
+  if(!val("revampReturnLocation")){
     setStatus("Please select the return inventory location.", "error");
     return;
   }
-
-  const itemSummary = returnItems
-    .map(item => `- ${item.productName} | Qty: ${item.quantity}`)
-    .join("\n");
-
-  const confirmMessage =
-    "Please confirm return request:\n\n" +
-    "Receipt No.: " + receiptNo + "\n" +
-    "Return Location: " + val("revampReturnLocation") + "\n" +
-    "Handled By: "+currentUser.name+"\n\n"+
-    "Items:\n" + itemSummary + "\n\n" +
-    "Stock will NOT be added yet. It will wait for approval.\n\n" +
-    "Continue?";
-
-  if (!confirm(confirmMessage)) {
+  const itemSummary = returnItems.map(item => `- ${item.productName} | Qty: ${item.quantity}`).join("\n");
+  const confirmMessage = "Please confirm return request:\n\n" + "Receipt No.: " + receiptNo + "\n" + "Return Location: " + val("revampReturnLocation") + "\n" + "Handled By: " + currentUser.name + "\n\n" + "Items:\n" + itemSummary + "\n\n" + "Stock will NOT be added yet. It will wait for approval.\n\n" + "Continue?";
+  if(!confirm(confirmMessage)){
     setStatus("Return request cancelled.", "muted");
     return;
   }
-
   isSubmitting = true;
   setStatus("Submitting return request...", "info");
-
-  try {
-    const res = await apiCall({
-      action: "submitRevampReturnRequest",
-      staffId: currentUser.staffId,
-      pin: currentPin,
-      receiptNo,
-      dateReturned: val("revampDateReturned"),
-      returnLocation: val("revampReturnLocation"),
-      handledBy: currentUser.name,
-      returnItems: JSON.stringify(returnItems)
-    });
-
+  try{
+    const res = await apiCall({action: "submitRevampReturnRequest", staffId: currentUser.staffId, pin: currentPin, receiptNo, dateReturned: val("revampDateReturned"), returnLocation: val("revampReturnLocation"),
+    handledBy: currentUser.name, returnItems: JSON.stringify(returnItems)});
     console.log("Submit revamp return response:", res);
-
-    if (!res || !res.success) {
-      setStatus((res && res.message) ? res.message : "Return request failed.", "error");
+    if(!res || !res.success){
+      setStatus((res && res.message) ? res.message: "Return request failed.", "error");
       return;
     }
-
     let html = `
       ${escapeHtml(res.message)}<br>
       Receipt No.: <strong>${escapeHtml(res.receiptNo || "")}</strong><br>
       Items Submitted: ${escapeHtml(res.itemCount || 0)}<br><br>
     `;
-
-    if (Array.isArray(res.results)) {
+    if(Array.isArray(res.results)){
       res.results.forEach(item => {
         html += `
           Return ID: <strong>${escapeHtml(item.returnId || "")}</strong><br>
@@ -3634,25 +2661,21 @@ async function submitRevampReturnRequest() {
         `;
       });
     }
-
     setStatus(html, "success-text");
-
     revampReturnLines = [];
     document.getElementById("revampReturnItems").innerHTML = "";
     document.getElementById("revampReturnReceiptNo").value = "";
-
-  } catch (err) {
+  } catch(err){
     console.error("Submit return request error:", err);
     setStatus("Return request error: " + escapeHtml(err.message || err), "error");
-  } finally {
+  } finally{
     isSubmitting = false;
   }
 }
 
-function openMyApprovals() {
+function openMyApprovals(){
   currentType = "MY_APPROVALS";
   revampApprovalRows = [];
-
   hide("homeCard");
   hide("scanCard");
   hide("productCard");
@@ -3662,59 +2685,44 @@ function openMyApprovals() {
   hide("formCard");
   hide("revampReturnCard");
   show("approvalCard");
-
   document.getElementById("approvalList").innerHTML = "";
-
   loadMyApprovals();
 }
 
-async function loadMyApprovals() {
-  if (!currentUser) {
+async function loadMyApprovals(){
+  if(!currentUser){
     setStatus("Please login first.", "error");
     return;
   }
-
   setStatus("Loading approvals...", "info");
-
-  try {
-    const res = await apiCall({
-      action: "getMyRevampApprovals",
-      staffId: currentUser.staffId,
-      pin: currentPin
-    });
-
+  try{
+    const res = await apiCall({action: "getMyRevampApprovals", staffId: currentUser.staffId, pin: currentPin});
     console.log("My approvals response:", res);
-
-    if (!res || !res.success) {
-      setStatus((res && res.message) ? res.message : "Could not load approvals.", "error");
+    if(!res || !res.success){
+      setStatus((res && res.message) ? res.message: "Could not load approvals.", "error");
       return;
     }
-
     revampApprovalRows = res.rows || [];
     renderMyApprovals(res);
     setStatus("Approvals loaded.", "success-text");
-
-  } catch (err) {
+  } catch(err){
     console.error("Load approvals error:", err);
     setStatus("Load approvals error: " + escapeHtml(err.message || err), "error");
   }
 }
 
-function renderMyApprovals(res) {
+function renderMyApprovals(res){
   const rows = res.rows || [];
   const container = document.getElementById("approvalList");
-
   let html = `
     <hr>
     <strong>Pending Approvals:</strong> ${escapeHtml(rows.length)}<br>
   `;
-
-  if (!rows.length) {
+  if(!rows.length){
     html += `<p class="muted">No pending approvals assigned to you.</p>`;
     container.innerHTML = html;
     return;
   }
-
   rows.forEach((row, index) => {
     html += `
       <div class="cart-line">
@@ -3740,273 +2748,233 @@ function renderMyApprovals(res) {
       </div>
     `;
   });
-
   container.innerHTML = html;
 }
 
-function submitRevampApprovalByIndex(index, decision) {
+function submitRevampApprovalByIndex(index, decision){
   const row = revampApprovalRows[index];
-
-  if (!row || !row.returnId) {
+  if(!row || !row.returnId){
     setStatus("Approval row not found. Please refresh approvals.", "error");
     return;
   }
-
   submitRevampApproval(row.returnId, decision);
 }
 
-async function submitRevampApproval(returnId, decision) {
-  if (isSubmitting) return;
-
-  const label = decision === "APPROVE" ? "approve" : "reject";
-
-  if (!confirm("Are you sure you want to " + label + " this return?\n\nReturn ID: " + returnId)) {
+async function submitRevampApproval(returnId, decision){
+  if(isSubmitting) return;
+  const label = decision === "APPROVE" ? "approve": "reject";
+  if(!confirm("Are you sure you want to " + label + " this return?\n\nReturn ID: " + returnId)){
     setStatus("Approval cancelled.", "muted");
     return;
   }
-
   isSubmitting = true;
   setStatus("Submitting approval...", "info");
-
-  try {
-    const res = await apiCall({
-      action: "submitRevampReturnApproval",
-      staffId: currentUser.staffId,
-      pin: currentPin,
-      returnId,
-      decision
-    });
-
+  try{
+    const res = await apiCall({action: "submitRevampReturnApproval", staffId: currentUser.staffId, pin: currentPin, returnId, decision});
     console.log("Submit approval response:", res);
-
-    if (!res || !res.success) {
-      setStatus((res && res.message) ? res.message : "Approval failed.", "error");
+    if(!res || !res.success){
+      setStatus((res && res.message) ? res.message: "Approval failed.", "error");
       return;
     }
-
-    setStatus(
-      `${escapeHtml(res.message)}<br>` +
-      `Return ID: <strong>${escapeHtml(res.returnId || "")}</strong><br>` +
-      `Status: <strong>${escapeHtml(res.status || "")}</strong><br>` +
-      `Product: ${escapeHtml(res.productName || "")}<br>` +
-      `SKU: ${escapeHtml(res.sku || "")}<br>` +
-      `Qty: ${escapeHtml(res.qty || 0)}<br>` +
-      `Location: ${escapeHtml(res.returnLocation || "")}`,
-      "success-text"
-    );
-
+    setStatus(`${escapeHtml(res.message)}<br>` + `Return ID: <strong>${escapeHtml(res.returnId || "")}</strong><br>` + `Status: <strong>${escapeHtml(res.status || "")}</strong><br>` + `Product: ${escapeHtml(res.productName || "")}<br>` + `SKU: ${escapeHtml(res.sku || "")}<br>` + `Qty: ${escapeHtml(res.qty || 0)}<br>` + `Location: ${escapeHtml(res.returnLocation || "")}`,
+    "success-text");
     await loadMyApprovals();
-
-  } catch (err) {
+  } catch(err){
     console.error("Approval error:", err);
     setStatus("Approval error: " + escapeHtml(err.message || err), "error");
-  } finally {
+  } finally{
     isSubmitting = false;
   }
 }
 
+function openReportsView(){
+  currentType = "REPORTS_HISTORY";
+  currentProduct = null;
+  currentTicket = null;
+  currentTicketLines = [];
+  cartItems = [];
+  hide("homeCard");
+  hide("scanCard");
+  hide("productCard");
+  hide("cartCard");
+  hide("ticketCard");
+  hide("formCard");
+  hide("revampReturnCard");
+  hide("approvalCard");
+  show("reportsCard");
+  document.getElementById("historySearch").value = "";
+  document.getElementById("historyDateFrom").value = "";
+  document.getElementById("historyDateTo").value = "";
+  document.getElementById("historyAction").value = "";
+  document.getElementById("historyLimit").value = "50";
+  document.getElementById("historyResults").innerHTML = "";
+  setStatus("Loading recent history...", "info");
+  findHistory();
+}
 
-async function submitTransaction() {
-  if (isSubmitting) return;
-
-  if (isCartTransactionType(currentType)) {
-    submitCartTransaction();
+async function findHistory(){
+  if(!currentUser){
+    setStatus("Please login first.", "error");
     return;
   }
-
-  if (!currentProduct) {
-    setStatus("Please find a product first.", "error");
-    return;
-  }
-
-  isSubmitting = true;
-
-  const searchValue = val("searchValue").trim();
-  let params = { staffId: currentUser.staffId, pin: currentPin, searchValue };
-
-  if (currentType === "SALE") {
-    params = { ...params, action:"submitSale", dateSold:val("dateSold"), salesChannel:val("salesChannel"), soldBy:val("soldBy"), releasedBy:val("releasedBy"), packedBy:val("packedBy"), quantity:val("quantity"), pricePerUnit:val("pricePerUnit"), orderNo:val("orderNo"), customerName:val("customerName"), paymentStatus:val("paymentStatus"), notes:val("notes") };
-  } else if (currentType === "PURCHASE") {
-    params = { ...params, action:"submitPurchase", dateReceived:val("dateReceived"), supplier:val("supplier"), receivedBy:val("receivedBy"), checkedBy:val("checkedBy"), quantity:val("quantity"), costPerUnit:val("costPerUnit"), receiptNo:val("receiptNo"), paymentStatus:val("paymentStatus"), notes:val("notes") };
-  } else if (currentType === "COUNT_CHECK") {
-    params = {
-      ...params,
-      action: "submitCountCheck",
-      dateChecked: val("dateChecked"),
-      actualQty: val("actualQty"),
-      checkedBy: val("checkedBy"),
-      notes: val("notes")
-    };
-  } else if (currentType === "INVENTORY_ADJUSTMENT") {
-    const adjustmentLocation = val("adjustmentLocation");
-
-    if (!adjustmentLocation) {
-      isSubmitting = false;
-      setStatus("Please select the inventory location.", "error");
+  setStatus("Searching history...", "info");
+  try{
+    const res = await apiCall({action: "getTransactionHistory", staffId: currentUser.staffId, pin: currentPin, searchText: val("historySearch"), dateFrom: val("historyDateFrom"), dateTo: val("historyDateTo"),
+    actionType: val("historyAction"), limit: val("historyLimit")});
+    console.log("History response:", res);
+    if(!res || !res.success){
+      setStatus((res && res.message) ? res.message: "History search failed.", "error");
       return;
     }
-
-    params = {
-      ...params,
-      action: "submitInventoryAdjustment",
-      dateAdjusted: val("dateAdjusted"),
-      adjustmentLocation,
-      adjustmentType: val("adjustmentType"),
-      adjustmentQty: val("adjustmentQty"),
-      newAvailableQty: val("newAvailableQty"),
-      reason: val("reason"),
-      approvedBy: val("approvedBy"),
-      adjustedBy: currentUser.name,
-      notes: val("notes")
-    };
-  } else if (currentType === "RELEASING") {
-    params = {
-      ...params,
-      action: "submitReleasing",
-      dateReleased: val("dateReleased"),
-      referenceNo: val("referenceNo"),
-      customerName: val("customerName"),
-      quantity: val("quantity"),
-      releasedBy: val("releasedBy"),
-      releaseToLocation: val("releaseToLocation"),
-      notes: val("notes")
-    };
-  } else if (currentType === "RETURN_CANCEL_RELEASE") {
-    params = {
-      ...params,
-      action: "submitReturnCancelRelease",
-      returnActionType: val("returnActionType"),
-      dateReturned: val("dateReturned"),
-      referenceNo: val("referenceNo"),
-      quantity: val("quantity"),
-      handledBy: val("handledBy"),
-      returnFromLocation: val("returnFromLocation"),
-      returnToLocation: val("returnToLocation"),
-      reason: val("reason"),
-      notes: val("notes")
-    };
-  } else if (currentType === "TRANSFER") {
-    params = {
-      ...params,
-      action: "submitTransfer",
-      transferDate: val("transferDate"),
-      transferNo: val("transferNo"),
-      fromLocation: val("fromLocation"),
-      toLocation: val("toLocation"),
-      quantity: val("quantity"),
-      sentBy:currentUser.name,
-      receivedBy: val("receivedBy"),
-      transferStatus: val("transferStatus"),
-      courierDriver: val("courierDriver"),
-      notes: val("notes")
-    };
-  } else if (currentType === "LOCATION_NOTE") {
-    params = {
-      ...params,
-      action: "submitLocationNote",
-      dateNoted: val("dateNoted"),
-      locationNote: val("locationNote"),
-      detailNote: val("detailNote"),
-      handledBy: val("handledBy"),
-      notes: val("notes")
-    };
-  } else {
-    isSubmitting = false;
-    setStatus("Invalid transaction type.", "error");
-    return;
-  }
-
-  const confirmMessage = buildConfirmMessage();
-  
-  if (!confirm(confirmMessage)) {
-    isSubmitting = false;
-    setStatus("Transaction cancelled. Nothing was saved.", "muted");
-    return;
-  }
-  
-  setStatus("Submitting transaction...", "info");
-  try {
-    const res = await apiCall(params);
-    console.log("Submit response:", res);
-    if (!res || !res.success) { setStatus((res && res.message) ? res.message : "Transaction failed.", "error"); return; }
-    let extra = "";
-    if (res.oldQty !== undefined && res.newQty !== undefined) {
-      extra += `<br>Old Available Qty: ${res.oldQty}<br>New Available Qty: ${res.newQty}`;
-    }
-    
-    if (res.oldTotalQty !== undefined && res.newTotalQty !== undefined) {
-      extra += `<br>Old Total Qty: ${res.oldTotalQty}<br>New Total Qty: ${res.newTotalQty}`;
-    }
-    
-    if (res.oldReservedQty !== undefined && res.newReservedQty !== undefined) {
-      extra += `<br>Reserved Qty: ${res.oldReservedQty} → ${res.newReservedQty}`;
-    }
-    if (res.systemQty !== undefined) extra += `<br>System Qty: ${res.systemQty}<br>Actual Qty: ${res.actualQty}<br>Difference: ${res.difference}`;
-    if (res.affectsInventory === false) extra += `<br><span class="muted">Note: This item does not affect inventory quantity.</span>`;
-    if (res.negativeStockWarning) {
-      extra += `<br><span class="error">${escapeHtml(res.negativeStockWarning)}</span>`;
-    }
-    setStatus(`${escapeHtml(res.message)}<br>Product: ${escapeHtml(res.productName || "")}${extra}`, "success-text");
-    hide("formCard"); currentProduct = null; document.getElementById("searchValue").value = "";
-  } catch (err) {
-    console.error("Submit error:", err);
-    setStatus("Submit error: " + escapeHtml(err.message || err), "error");
-  } finally {
-    isSubmitting = false;
+    renderHistory(res);
+    setStatus("History loaded.", "success-text");
+  } catch(err){
+    console.error("History error:", err);
+    setStatus("History error: " + escapeHtml(err.message || err), "error");
   }
 }
 
-window.addEventListener("DOMContentLoaded", function() {
-  document.getElementById("loginBtn").addEventListener("click", login);
-  document.getElementById("changePinBtn").addEventListener("click", changePin);
+function renderHistory(res){
+  const rows = res.rows || [];
+  const container = document.getElementById("historyResults");
+  let html = `
+    <hr>
+    <strong>Results:</strong> ${escapeHtml(rows.length)}<br>
+    <span class="muted">Showing latest matching records first.</span>
+  `;
+  if(!rows.length){
+    html += `<p class="muted">No matching history found.</p>`;
+    container.innerHTML = html;
+    return;
+  }
+  rows.forEach(row => {
+    html += `
+      <div class="cart-line">
+        <strong>${escapeHtml(row.productName || "")}</strong>
+        <span class="badge">${escapeHtml(row.action || "")}</span>
+        <span class="badge">${escapeHtml(row.status || "")}</span><br><br>
 
-  document.getElementById("staffId").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") { e.preventDefault(); document.getElementById("pin").focus(); }
+        Date/Time: ${escapeHtml(formatDateTime(row.dateTime))}<br>
+        Ticket No.: ${escapeHtml(row.ticketNo || "")}<br>
+        Ticket Type: ${escapeHtml(row.ticketType || "")}<br>
+        Order No.: ${escapeHtml(row.orderNo || "")}<br>
+        Receipt Type: ${escapeHtml(row.receiptType || "")}<br>
+        Receipt No.: ${escapeHtml(row.receiptNo || "")}<br>
+        SKU: ${escapeHtml(row.sku || "")}<br>
+        Barcode: ${escapeHtml(row.barcodeValue || "")}<br>
+        Qty: <strong>${escapeHtml(row.qty)} ${escapeHtml(row.unit || "")}</strong><br>
+        ${row.unitDetails ? `Unit Details: ${escapeHtml(row.unitDetails)}<br>` : ""}
+        <br>
+
+        Total Qty: ${escapeHtml(row.oldTotalQty)} → ${escapeHtml(row.newTotalQty)}<br>
+        Reserved Qty: ${escapeHtml(row.oldReservedQty)} → ${escapeHtml(row.newReservedQty)}<br>
+        Available Qty: ${escapeHtml(row.oldAvailableQty)} → ${escapeHtml(row.newAvailableQty)}<br><br>
+
+        User: ${escapeHtml(row.user || "")}<br>
+        Location Note: ${escapeHtml(row.locationNote || "")}<br>
+        Notes: ${escapeHtml(row.notes || "")}
+      </div>
+    `;
   });
+  container.innerHTML = html;
+}
 
-  document.getElementById("ticketNo").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      findTicket();
+function unlockScanSound(){
+  try{
+    if(!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === "suspended") audioCtx.resume();
+  } catch(err){
+    console.log("Audio unlock failed:", err);
+  }
+}
+
+function playScanSound(){
+  try{
+    if(!audioCtx) audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(950, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.18);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.18);
+    if(navigator.vibrate) navigator.vibrate(80);
+  } catch(err){
+    console.log("Scan sound failed:", err);
+  }
+}
+
+async function startCamera(){
+  unlockScanSound();
+  if(!currentUser){
+    setStatus("Please login first.", "error");
+    return;
+  }
+  try{
+    setStatus("Starting camera...", "info");
+    if(typeof Html5Qrcode === "undefined") throw new Error("html5-qrcode did not load.");
+    if(!scanner) scanner = new Html5Qrcode("reader");
+    if(scanner.isScanning) return;
+    await scanner.start({facingMode: "environment"}, {fps: 12, qrbox: function(w, h){
+      const minEdge = Math.min(w, h); const qrSize = Math.floor(minEdge * 0.75); return{width: qrSize, height: qrSize};
+    }, aspectRatio: 1.0, disableFlip: false, experimentalFeatures: {useBarCodeDetectorIfSupported: true}, formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE, Html5QrcodeSupportedFormats.CODE_128,
+    Html5QrcodeSupportedFormats.CODE_39, Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8, Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E]}, decodedText => {
+      playScanSound(); document.getElementById("searchValue").value = decodedText; setStatus("Scanned: " + escapeHtml(decodedText), "success-text"); stopCamera(); findProduct();
+    }, errorMessage => {
+    });
+    setStatus("Camera started. Point at the QR code inside the square.", "success-text");
+  } catch(err){
+    console.error("Camera error:", err);
+    setStatus("Camera failed: " + escapeHtml(err.message || err), "error");
+  }
+}
+
+async function stopCamera(){
+  try{
+    if(scanner && scanner.isScanning) await scanner.stop();
+  } catch(err){
+    console.log("Stop camera ignored:", err);
+  }
+}
+
+window.addEventListener("DOMContentLoaded", function(){
+  document.getElementById("loginBtn").addEventListener("click", login); document.getElementById("changePinBtn").addEventListener("click", changePin); document.getElementById("staffId").addEventListener("keydown",
+  function(e){
+    if(e.key === "Enter"){
+      e.preventDefault(); document.getElementById("pin").focus();
     }
-  });
-
-  document.getElementById("revampReturnReceiptNo").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      findRevampSaleByReceipt();
+  }); document.getElementById("ticketNo").addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+      e.preventDefault(); findTicket();
     }
-  });
-
-  document.getElementById("historySearch").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      findHistory();
+  }); document.getElementById("revampReturnReceiptNo").addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+      e.preventDefault(); findRevampSaleByReceipt();
     }
-  });
-
-  document.getElementById("historySearch").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      findHistory();
+  }); document.getElementById("historySearch").addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+      e.preventDefault(); findHistory();
     }
-  });
-  
-  document.getElementById("pin").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") { e.preventDefault(); login(); }
-  });
-
-  document.getElementById("confirmPin").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") { e.preventDefault(); changePin(); }
-  });
-
-  document.getElementById("searchValue").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") { e.preventDefault(); findProduct(); }
-  });
-
-  setupInactivityTracking();
-  restoreSavedLoginSession();
-  if (!currentUser) {
+  }); document.getElementById("historySearch").addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+      e.preventDefault(); findHistory();
+    }
+  }); document.getElementById("pin").addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+      e.preventDefault(); login();
+    }
+  }); document.getElementById("confirmPin").addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+      e.preventDefault(); changePin();
+    }
+  }); document.getElementById("searchValue").addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+      e.preventDefault(); findProduct();
+    }
+  }); setupInactivityTracking(); restoreSavedLoginSession(); if(!currentUser){
     setStatus("Ready.", "muted");
   }
 });
