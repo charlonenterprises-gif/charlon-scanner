@@ -161,7 +161,7 @@
   <div class="card hidden" id="ticketCard">
     <h3>Transaction Follow-up</h3>
     <p class="muted">
-      Enter the Ticket No., Order No., Receipt No., or Tracking No. to view the transaction and its items.
+      Search by Ticket No., Order No., Receipt No., or Tracking No. View transaction details or update delivery information.
     </p>
   
     <label>Ticket / Order / Receipt No.</label>
@@ -637,8 +637,12 @@ function renderHomeButtons(){
   if(canAccessAny(["RELEASING", "SALES", "PURCHASES", "COUNTCHECK", "INVENTORYADJUSTMENT", "TRANSFER"])){
     container.appendChild(makeMenuButton("New Transaction", "Gamitin kapag may bagong order, sale, purchase, stock count, inventory adjustment, or stock transfer.", showNewTransactionOptions));
   }
-  if(canAccessAny(["RETURNCANCELRELEASE", "SALES", "DELIVERY"])){
-    container.appendChild(makeMenuButton("Transaction Follow-up", "Gamitin kapag may nangyari after release/sale: cancel, refund, return, or delivery update.", openTicketLookup));
+  if(canAccessAny(["RETURNCANCELRELEASE","SALES","DELIVERY"])){
+    container.appendChild(makeMenuButton(
+      "Transaction Follow-up",
+      "Search transaction details or update delivery information.",
+      openTicketLookup
+    ));
   }
   if(canAccess("RETURNCANCELRELEASE")){
     container.appendChild(makeMenuButton("Return Stock-In", "Search receipt no., submit returned items, and wait for location approval.", openRevampReturnLookup));
@@ -2540,43 +2544,12 @@ function renderTicket(res){
           Remaining Returnable: ${escapeHtml(line.remainingQty || 0)}<br>
           Line Status: ${escapeHtml(line.lineStatus || "")}<br>
           Location Note: ${escapeHtml(line.locationNote || "")}
-          
-          ${
-            res.canReturnRefund && Number(line.remainingQty || 0) > 0
-              ? `
-                <label>Return Qty</label>
-                <input type="number" id="returnQty_${index}" min="0" max="${escapeHtml(line.remainingQty)}" value="${escapeHtml(line.remainingQty)}">
-                <p class="muted">Unit: ${escapeHtml(line.unit || "unit")}</p>
-              `
-              : ""
-          }
         </div>
       `;
     });
   }
   document.getElementById("ticketInfo").innerHTML = html;
   let actionsHtml = "";
-  if(res.canCompleteSale){
-    actionsHtml += `
-      <button class="success" type="button" onclick="submitTicketFollowUp('COMPLETE_SALE')">
-        Complete Sale
-      </button>
-    `;
-  }
-  if(res.canCancelRelease){
-    actionsHtml += `
-      <button class="danger" type="button" onclick="submitTicketFollowUp('CANCEL_RELEASE')">
-        Cancel Release / Did Not Push Through
-      </button>
-    `;
-  }
-  if(res.canReturnRefund){
-    actionsHtml += `
-      <button class="danger" type="button" onclick="submitReturnRefundTicket()">
-        Return / Refund Sale
-      </button>
-    `;
-  }
   if(res.canDeliveryUpdate){
     actionsHtml += `
       <hr>
