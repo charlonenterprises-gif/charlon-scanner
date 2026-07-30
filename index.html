@@ -2180,8 +2180,35 @@ async function submitReleaseSale(index){
       setStatus(res && res.message ? escapeHtml(res.message): "Sale could not be completed.", "error");
       return;
     }
-    setStatus(escapeHtml(res.message) + "<br>Ticket No.: <strong>" + escapeHtml(res.ticketNo || row.ticketNo) + "</strong><br>Status: <strong>SOLD</strong>", "success-text");
     await loadMyReleaseRequests();
+
+    let resultHtml=`
+      ${escapeHtml(res.message)}<br>
+      Ticket No.: <strong>${escapeHtml(res.ticketNo||row.ticketNo)}</strong><br>
+      Status: <strong>${escapeHtml(res.status||"SOLD")}</strong><br>
+      Items Updated: ${escapeHtml(res.itemCount||0)}
+    `;
+    
+    if(Array.isArray(res.results)&&res.results.length){
+      resultHtml+="<br><br>";
+    
+      res.results.forEach(item=>{
+        resultHtml+=`
+          <strong>${escapeHtml(item.productName||"")}</strong>
+          SKU: ${escapeHtml(item.sku||"")}<br>
+          Qty Sold: ${escapeHtml(item.qty)} ${escapeHtml(item.unit||"")}<br>
+          Location: ${escapeHtml(item.location||"")}<br>
+          Location Qty: ${escapeHtml(item.oldLocationQty)} → ${escapeHtml(item.newLocationQty)}<br>
+          Total Qty: ${escapeHtml(item.oldTotalQty)} → ${escapeHtml(item.newTotalQty)}<br>
+          Reserved Qty: ${escapeHtml(item.oldReservedQty)} → ${escapeHtml(item.newReservedQty)}<br>
+          Available Qty: ${escapeHtml(item.oldAvailableQty)} → ${escapeHtml(item.newAvailableQty)}<br>
+          ${item.negativeStockWarning?`<span class="error">${escapeHtml(item.negativeStockWarning)}</span><br>`:""}
+          <br>
+        `;
+      });
+    }
+    
+    setStatus(resultHtml,"success-text");
   } catch(err){
     console.error("Release sale error:", err);
     setStatus("Release sale error: " + escapeHtml(err.message || err), "error");
