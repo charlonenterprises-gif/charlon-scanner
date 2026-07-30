@@ -2129,8 +2129,77 @@ function renderMyReleaseRequests(res){
         >
           Close
         </button>
-      </div>
-    </div>
+        </div>
+        
+        <button
+          class="danger"
+          type="button"
+          onclick="toggleReleaseTransferForm(${index})"
+        >
+          Cancel and Transfer Location
+        </button>
+        
+        <div
+          id="releaseTransferForm_${index}"
+          class="hidden"
+        >
+          <hr>
+          <h3>Cancel and Transfer Location</h3>
+        
+          <p class="muted">
+            The release will be cancelled and the item quantities will be moved to another stock location.
+          </p>
+        
+          <label>From Location</label>
+          <input
+            type="text"
+            value="${escapeHtml(row.sourceLocation||"")}"
+            disabled
+          >
+        
+          <label>To Location</label>
+          ${inventoryLocationSelectHtml(
+            "releaseTransferTo_"+index,
+            ""
+          )}
+        
+          <label>Sent By</label>
+          <input
+            type="text"
+            value="${escapeHtml(currentUser.name||"")}"
+            disabled
+          >
+        
+          <label>Received By</label>
+          <input
+            type="text"
+            value="Destination location approver — automatic"
+            disabled
+          >
+        
+          <label>Notes</label>
+          <textarea
+            id="releaseTransferNotes_${index}"
+            placeholder="Optional reason for cancellation or transfer"
+          ></textarea>
+        
+          <button
+            class="danger"
+            type="button"
+            onclick="submitCancelReleaseTransfer(${index})"
+          >
+            Confirm Cancel and Transfer
+          </button>
+        
+          <button
+            class="secondary"
+            type="button"
+            onclick="toggleReleaseTransferForm(${index})"
+          >
+            Close
+          </button>
+        </div>
+        </div>
     `;
   });
   container.innerHTML = html;
@@ -2217,6 +2286,174 @@ async function submitReleaseSale(index){
   }
 }
 
+function toggleReleaseTransferForm(index){
+  const form=document.getElementById(
+    "releaseTransferForm_"+index
+  );
+
+  if(!form)return;
+
+  form.classList.toggle("hidden");
+}
+
+async function submitCancelReleaseTransfer(index){
+  if(isSubmitting)return;
+
+  const row=releaseRequestRows[index];
+
+  if(!row){
+    setStatus(
+      "Release request not found. Please refresh.",
+      "error"
+    );
+    return;
+  }
+
+  const toLocation=val(
+    "releaseTransferTo_"+index
+  );
+
+  if(!toLocation){
+    setStatus(
+      "Please select the destination location.",
+      "error"
+    );
+    return;
+  }
+
+  if(
+    String(toLocation).trim().toUpperCase()===
+    String(row.sourceLocation||"").trim().toUpperCase()
+  ){
+    setStatus(
+      "The destination must be different from the source location.",
+      "error"
+    );
+    return;
+  }
+
+  const items=Array.isArray(row.items)
+    ?row.items
+    :[];
+
+  const itemSummary=items
+    .map(item=>{
+      return "- "+
+        (item.productName||"")+
+        " | Qty: "+
+        item.quantity+
+        " "+
+        (item.unit||"");
+    })
+    .join("\n");
+
+  const confirmed=confirm(
+    "Cancel this release and transfer its items?\n\n"+
+    "Ticket: "+row.ticketNo+"\n"+
+    "From: "+row.sourceLocation+"\n"+
+    "To: "+toLocation+"\n"+
+    "Sent By: "+currentUser.name+"\n\n"+
+    "Items:\n"+itemSummary+"\n\n"+
+    "This will move the stock location and cancel the release request."
+  );
+
+  if(!confirmed){
+    setStatus(
+      "Cancellation and transfer stopped. Nothing was changed.",
+      "muted"
+    );
+    return;
+  }
+
+  isSubmitting=true;
+
+  setStatus(
+    "Cancelling release and transferring stock...",
+    "info"
+  );
+
+  try{
+    const res=await apiCall({
+      action:"cancelReleaseAndTransfer",
+      staffId:currentUser.staffId,
+      pin:currentPin,
+      ticketNo:row.ticketNo,
+      toLocation,
+      dateTransferred:today(),
+      notes:val(
+        "releaseTransferNotes_"+index
+      )
+    });
+
+    if(!res||!res.success){
+      setStatus(
+        res&&res.message
+          ?escapeHtml(res.message)
+          :"Cancellation and transfer failed.",
+        "error"
+      );
+      return;
+    }
+
+    await loadMyReleaseRequests();
+
+    let resultHtml=`
+      ${escapeHtml(res.message)}<br>
+      Ticket No.: <strong>${escapeHtml(res.ticketNo||row.ticketNo)}</strong><br>
+      Status: <strong>${escapeHtml(res.status||"CANCELLED / TRANSFERRED")}</strong><br>
+      From Location: <strong>${escapeHtml(res.fromLocation||"")}</strong><br>
+      To Location: <strong>${escapeHtml(res.toLocation||"")}</strong><br>
+      Sent By: ${escapeHtml(res.sentBy||"")}<br>
+      Received By: ${escapeHtml(res.receivedBy||"")}<br>
+      Items Transferred: ${escapeHtml(res.itemCount||0)}
+    `;
+
+    if(Array.isArray(res.results)&&res.results.length){
+      resultHtml+="<br><br>";
+
+      res.results.forEach(item=>{
+        resultHtml+=`
+          <strong>${escapeHtml(item.productName||"")}</strong>
+          SKU: ${escapeHtml(item.sku||"")}<br>
+          Qty Transferred: ${escapeHtml(item.qty)}<br>
+          ${escapeHtml(item.fromLocation||"")}:
+          ${escapeHtml(item.oldFromQty)}
+          →
+          ${escapeHtml(item.newFromQty)}<br>
+          ${escapeHtml(item.toLocation||"")}:
+          ${escapeHtml(item.oldToQty)}
+          →
+          ${escapeHtml(item.newToQty)}<br>
+          Total Qty:
+          ${escapeHtml(item.oldTotalQty)}
+          →
+          ${escapeHtml(item.newTotalQty)}<br><br>
+        `;
+      });
+    }
+
+    setStatus(
+      resultHtml,
+      "success-text"
+    );
+
+  }catch(err){
+    console.error(
+      "Cancel release transfer error:",
+      err
+    );
+
+    setStatus(
+      "Cancellation and transfer error: "+
+      escapeHtml(err.message||err),
+      "error"
+    );
+
+  }finally{
+    isSubmitting=false;
+  }
+}
+  
 function openTicketLookup(){
   currentType = "TICKET_FOLLOW_UP";
   currentProduct = null;
