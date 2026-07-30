@@ -2616,6 +2616,12 @@ function renderCartForm() {
         value="${escapeHtml(currentUser.name||"")}"
         disabled
       >
+
+      <label>Source Stock Location</label>
+        ${inventoryLocationSelectHtml(
+          "releaseSourceLocation",
+          currentUser.location
+        )}
   
       <label>Requested By</label>
       ${selectHtml(
@@ -3261,6 +3267,17 @@ async function submitCartTransaction() {
 
   if(currentType==="RELEASING"){
     const requestedBy=val("requestedBy");
+    const releaseSourceLocation=val(
+      "releaseSourceLocation"
+    );
+  
+    if(!releaseSourceLocation){
+      setStatus(
+        "Please select the source stock location.",
+        "error"
+      );
+      return;
+    }
   
     if(!requestedBy){
       setStatus(
@@ -3273,7 +3290,7 @@ async function submitCartTransaction() {
     params={
       ...params,
       dateReleased:today(),
-      sourceLocation:currentUser.location,
+      sourceLocation:releaseSourceLocation,
       releasedBy:currentUser.name,
       requestedBy
     };
