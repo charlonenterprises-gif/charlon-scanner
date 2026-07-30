@@ -47,7 +47,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System</h1>
-    <p class="muted">Login · v2026.1</p>
+    <p class="muted">Login · v2026.1.1</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -2446,16 +2446,9 @@ async function submitCancelReleaseTransfer(index){
     return;
   }
 
-  if(
+  const sameLocation=
     String(toLocation).trim().toUpperCase()===
-    String(row.sourceLocation||"").trim().toUpperCase()
-  ){
-    setStatus(
-      "The destination must be different from the source location.",
-      "error"
-    );
-    return;
-  }
+    String(row.sourceLocation||"").trim().toUpperCase();
 
   const items=Array.isArray(row.items)
     ?row.items
@@ -2473,19 +2466,29 @@ async function submitCancelReleaseTransfer(index){
     .join("\n");
 
   const confirmed=confirm(
-    "Cancel this release and transfer its items?\n\n"+
+    (
+      sameLocation
+        ?"Cancel this release and keep its items in the same location?"
+        :"Cancel this release and transfer its items?"
+    )+"\n\n"+
     "Ticket: "+row.ticketNo+"\n"+
     "From: "+row.sourceLocation+"\n"+
     "To: "+toLocation+"\n"+
-    "Sent By: "+currentUser.name+"\n\n"+
+    "Handled By: "+currentUser.name+"\n\n"+
     "Items:\n"+itemSummary+"\n\n"+
-    "This will move the stock location and cancel the release request."
+    (
+      sameLocation
+        ?"The release will be cancelled. Stock quantity will not change."
+        :"The release will be cancelled and stock will move to the selected location."
+    )
   );
 
   if(!confirmed){
     setStatus(
-      "Cancellation and transfer stopped. Nothing was changed.",
-      "muted"
+      sameLocation
+        ?"Cancelling release..."
+        :"Cancelling release and transferring stock...",
+      "info"
     );
     return;
   }
