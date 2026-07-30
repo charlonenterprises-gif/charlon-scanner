@@ -3378,7 +3378,6 @@ async function submitCartTransaction() {
     let resultHtml = `
       ${escapeHtml(res.message)}<br>
       Ticket No.: <strong>${escapeHtml(res.ticketNo || "")}</strong><br>
-      Order No.: ${escapeHtml(res.orderNo || "")}<br>
       Receipt Type: ${escapeHtml(res.receiptType || "")}<br>
       Receipt No.: ${escapeHtml(res.receiptNo || "")}<br>
       Items Saved: ${escapeHtml(res.itemCount || 0)}
