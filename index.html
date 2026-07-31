@@ -2425,80 +2425,42 @@ async function submitCancelReleaseTransfer(index){
   if(isSubmitting)return;
 
   const row=releaseRequestRows[index];
-
   if(!row){
-    setStatus(
-      "Release request not found. Please refresh.",
-      "error"
-    );
+    setStatus("Release request not found. Please refresh.","error");
     return;
   }
 
-  const toLocation=val(
-    "releaseTransferTo_"+index
-  );
-
+  const toLocation=val("releaseTransferTo_"+index);
   if(!toLocation){
-    setStatus(
-      "Please select the destination location.",
-      "error"
-    );
+    setStatus("Please select the destination location.","error");
     return;
   }
 
-  const sameLocation=
-    String(toLocation).trim().toUpperCase()===
-    String(row.sourceLocation||"").trim().toUpperCase();
-
-  const items=Array.isArray(row.items)
-    ?row.items
-    :[];
-
-  const itemSummary=items
-    .map(item=>{
-      return "- "+
-        (item.productName||"")+
-        " | Qty: "+
-        item.quantity+
-        " "+
-        (item.unit||"");
-    })
-    .join("\n");
+  const items=Array.isArray(row.items)?row.items:[];
+  const sameLocation=String(toLocation).trim().toUpperCase()===String(row.sourceLocation||"").trim().toUpperCase();
+  const itemSummary=items.map(item=>{
+    return "- "+(item.productName||"")+" | Qty: "+item.quantity+" "+(item.unit||"");
+  }).join("\n");
 
   const confirmed=confirm(
-    (
-      sameLocation
-        ?"Cancel this release and keep its items in the same location?"
-        :"Cancel this release and transfer its items?"
-    )+"\n\n"+
+    "Submit this release cancellation for approval?\n\n"+
     "Ticket: "+row.ticketNo+"\n"+
     "From: "+row.sourceLocation+"\n"+
     "To: "+toLocation+"\n"+
-    "Handled By: "+currentUser.name+"\n\n"+
+    "Requested By: "+currentUser.name+"\n\n"+
     "Items:\n"+itemSummary+"\n\n"+
-    (
-      sameLocation
-        ?"The release will be cancelled. Stock quantity will not change."
-        :"The release will be cancelled and stock will move to the selected location."
-    )
+    (sameLocation
+      ?"The assigned location approver must approve the cancellation. Stock will remain in the same location."
+      :"The destination approver must approve before stock moves.")
   );
 
   if(!confirmed){
-    setStatus(
-      sameLocation
-        ?"Cancelling release..."
-        :"Cancelling release and transferring stock...",
-      "info"
-    );
+    setStatus("Cancellation request stopped. Nothing was changed.","muted");
     return;
   }
 
   isSubmitting=true;
-
-  setStatus(
-    "Cancelling release and transferring stock...",
-    "info"
-  );
+  setStatus("Submitting cancellation and transfer request for approval...","info");
 
   try{
     const res=await apiCall({
@@ -2508,18 +2470,11 @@ async function submitCancelReleaseTransfer(index){
       ticketNo:row.ticketNo,
       toLocation,
       dateTransferred:today(),
-      notes:val(
-        "releaseTransferNotes_"+index
-      )
+      notes:val("releaseTransferNotes_"+index)
     });
 
     if(!res||!res.success){
-      setStatus(
-        res&&res.message
-          ?escapeHtml(res.message)
-          :"Cancellation and transfer failed.",
-        "error"
-      );
+      setStatus(res&&res.message?escapeHtml(res.message):"Cancellation and transfer request failed.","error");
       return;
     }
 
@@ -2528,59 +2483,35 @@ async function submitCancelReleaseTransfer(index){
     let resultHtml=`
       ${escapeHtml(res.message)}<br>
       Ticket No.: <strong>${escapeHtml(res.ticketNo||row.ticketNo)}</strong><br>
-      Status: <strong>${escapeHtml(res.status||"CANCELLED / TRANSFERRED")}</strong><br>
+      Transfer No.: <strong>${escapeHtml(res.transferNo||"")}</strong><br>
+      Release Status: <strong>${escapeHtml(res.status||"CANCELLED / TRANSFER PENDING")}</strong><br>
+      Approval Status: <strong>${escapeHtml(res.approvalStatus||"PENDING")}</strong><br>
       From Location: <strong>${escapeHtml(res.fromLocation||"")}</strong><br>
       To Location: <strong>${escapeHtml(res.toLocation||"")}</strong><br>
-      Sent By: ${escapeHtml(res.sentBy||"")}<br>
-      Received By: ${escapeHtml(res.receivedBy||"")}<br>
-      Items Transferred: ${escapeHtml(res.itemCount||0)}
+      Required Approver: <strong>${escapeHtml(res.requiredApprover||res.receivedBy||"")}</strong><br>
+      Items Submitted: ${escapeHtml(res.itemCount||0)}<br>
+      Stock Changed: <strong>No</strong>
     `;
 
     if(Array.isArray(res.results)&&res.results.length){
       resultHtml+="<br><br>";
-
       res.results.forEach(item=>{
         resultHtml+=`
           <strong>${escapeHtml(item.productName||"")}</strong>
           SKU: ${escapeHtml(item.sku||"")}<br>
-          Qty Transferred: ${escapeHtml(item.qty)}<br>
-          ${escapeHtml(item.fromLocation||"")}:
-          ${escapeHtml(item.oldFromQty)}
-          →
-          ${escapeHtml(item.newFromQty)}<br>
-          ${escapeHtml(item.toLocation||"")}:
-          ${escapeHtml(item.oldToQty)}
-          →
-          ${escapeHtml(item.newToQty)}<br>
-          Total Qty:
-          ${escapeHtml(item.oldTotalQty)}
-          →
-          ${escapeHtml(item.newTotalQty)}<br><br>
+          Qty: ${escapeHtml(item.qty)}<br>
+          Total Qty: ${escapeHtml(item.oldTotalQty)} → ${escapeHtml(item.newTotalQty)}<br><br>
         `;
       });
     }
 
-    setStatus(
-      resultHtml,
-      "success-text"
-    );
-
+    setStatus(resultHtml,"success-text");
   }catch(err){
-    console.error(
-      "Cancel release transfer error:",
-      err
-    );
-
-    setStatus(
-      "Cancellation and transfer error: "+
-      escapeHtml(err.message||err),
-      "error"
-    );
-
+    console.error("Cancel release transfer request error:",err);
+    setStatus("Cancellation and transfer request error: "+escapeHtml(err.message||err),"error");
   }finally{
     isSubmitting=false;
   }
-}
   
 function openTicketLookup(){
   currentType = "TICKET_FOLLOW_UP";
@@ -3100,148 +3031,89 @@ function submitRevampApprovalByIndex(index,decision){
 async function submitRevampApproval(row,decision){
   if(isSubmitting)return;
 
-  const isTransfer=
-    String(row.type||"").toUpperCase()===
-    "TRANSFER";
+  const isTransfer=String(row.type||"").toUpperCase()==="TRANSFER";
+  const reference=isTransfer?row.transferNo:row.returnId;
+  const label=decision==="APPROVE"?"approve":"reject";
+  const transactionLabel=isTransfer?"transfer":"return";
 
-  const reference=isTransfer
-    ?row.transferNo
-    :row.returnId;
-
-  const label=decision==="APPROVE"
-    ?"approve"
-    :"reject";
-
-  const transactionLabel=isTransfer
-    ?"transfer"
-    :"return";
-
-  if(!confirm(
-    "Are you sure you want to "+
-    label+
-    " this "+
-    transactionLabel+
-    "?\n\nReference: "+
-    reference
-  )){
-    setStatus(
-      "Approval cancelled.",
-      "muted"
-    );
+  if(!confirm("Are you sure you want to "+label+" this "+transactionLabel+"?\n\nReference: "+reference)){
+    setStatus("Approval cancelled.","muted");
     return;
   }
 
   isSubmitting=true;
-
-  setStatus(
-    "Submitting approval...",
-    "info"
-  );
+  setStatus("Submitting approval...","info");
 
   try{
     const params={
-      action:isTransfer
-        ?"submitRevampTransferApproval"
-        :"submitRevampReturnApproval",
+      action:isTransfer?"submitRevampTransferApproval":"submitRevampReturnApproval",
       staffId:currentUser.staffId,
       pin:currentPin,
       decision
     };
 
-    if(isTransfer){
-      params.transferId=row.transferId;
-    }else{
-      params.returnId=row.returnId;
-    }
+    if(isTransfer)params.transferId=row.transferId;
+    else params.returnId=row.returnId;
 
     const res=await apiCall(params);
-
     if(!res||!res.success){
-      setStatus(
-        res&&res.message
-          ?res.message
-          :"Approval failed.",
-        "error"
-      );
+      setStatus(res&&res.message?res.message:"Approval failed.","error");
       return;
     }
 
     let resultHtml=`
       ${escapeHtml(res.message)}<br>
-      Status:
-      <strong>${escapeHtml(res.status||"")}</strong>
+      Status: <strong>${escapeHtml(res.status||"")}</strong>
     `;
 
     if(isTransfer){
       resultHtml+=`
-        <br>Transfer No.:
-        <strong>${escapeHtml(res.transferNo||"")}</strong>
-        <br>Product:
-        ${escapeHtml(res.productName||"")}
-        <br>SKU:
-        ${escapeHtml(res.sku||"")}
-        <br>Qty:
-        ${escapeHtml(res.qty||0)}
-        <br>From:
-        ${escapeHtml(res.fromLocation||"")}
-        <br>To:
-        ${escapeHtml(res.toLocation||"")}
+        <br>Transfer No.: <strong>${escapeHtml(res.transferNo||"")}</strong>
+        <br>Items: <strong>${escapeHtml(res.itemCount||1)}</strong>
       `;
 
-      if(res.affectsInventory){
-        resultHtml+=`
-          <br>${escapeHtml(res.fromLocation||"")}:
-          ${escapeHtml(res.oldFromQty)}
-          →
-          ${escapeHtml(res.newFromQty)}
-          <br>${escapeHtml(res.toLocation||"")}:
-          ${escapeHtml(res.oldToQty)}
-          →
-          ${escapeHtml(res.newToQty)}
-          <br>Total Qty:
-          ${escapeHtml(res.oldTotalQty)}
-          →
-          ${escapeHtml(res.newTotalQty)}
-        `;
+      if(Array.isArray(res.results)&&res.results.length){
+        resultHtml+="<br><br>";
+        res.results.forEach(item=>{
+          resultHtml+=`
+            <strong>${escapeHtml(item.productName||"")}</strong>
+            SKU: ${escapeHtml(item.sku||"")}<br>
+            Qty: ${escapeHtml(item.qty||0)}<br>
+            From: ${escapeHtml(item.fromLocation||"")}<br>
+            To: ${escapeHtml(item.toLocation||"")}<br>
+          `;
+
+          if(item.affectsInventory){
+            resultHtml+=`
+              ${escapeHtml(item.fromLocation||"")}: ${escapeHtml(item.oldFromQty)} → ${escapeHtml(item.newFromQty)}<br>
+              ${escapeHtml(item.toLocation||"")}: ${escapeHtml(item.oldToQty)} → ${escapeHtml(item.newToQty)}<br>
+              Total Qty: ${escapeHtml(item.oldTotalQty)} → ${escapeHtml(item.newTotalQty)}<br>
+            `;
+          }else{
+            resultHtml+=`Stock quantity did not change.<br>`;
+          }
+
+          resultHtml+="<br>";
+        });
       }
     }else{
       resultHtml+=`
-        <br>Return ID:
-        <strong>${escapeHtml(res.returnId||"")}</strong>
-        <br>Product:
-        ${escapeHtml(res.productName||"")}
-        <br>SKU:
-        ${escapeHtml(res.sku||"")}
-        <br>Qty:
-        ${escapeHtml(res.qty||0)}
-        <br>Location:
-        ${escapeHtml(res.returnLocation||"")}
+        <br>Return ID: <strong>${escapeHtml(res.returnId||"")}</strong>
+        <br>Product: ${escapeHtml(res.productName||"")}
+        <br>SKU: ${escapeHtml(res.sku||"")}
+        <br>Qty: ${escapeHtml(res.qty||0)}
+        <br>Location: ${escapeHtml(res.returnLocation||"")}
       `;
     }
 
     await loadMyApprovals();
-
-    setStatus(
-      resultHtml,
-      "success-text"
-    );
-
+    setStatus(resultHtml,"success-text");
   }catch(err){
-    console.error(
-      "Approval error:",
-      err
-    );
-
-    setStatus(
-      "Approval error: "+
-      escapeHtml(err.message||err),
-      "error"
-    );
-
+    console.error("Approval error:",err);
+    setStatus("Approval error: "+escapeHtml(err.message||err),"error");
   }finally{
     isSubmitting=false;
   }
-}
 
 function openReportsView(){
   currentType = "REPORTS_HISTORY";
