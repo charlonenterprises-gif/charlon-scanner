@@ -1915,18 +1915,6 @@ async function submitTransaction(){
     }
   
     if(
-      fromLocation.trim().toUpperCase()===
-      toLocation.trim().toUpperCase()
-    ){
-      isSubmitting=false;
-      setStatus(
-        "From Location and To Location cannot be the same.",
-        "error"
-      );
-      return;
-    }
-  
-    if(
       !receivedBy||
       receivedBy==="No approver assigned"||
       receivedBy==="Select To Location"
