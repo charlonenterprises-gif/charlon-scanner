@@ -417,7 +417,7 @@ function apiCall(params){
     }, 180000); window[callbackName] = function(data){
       if(finished) return; finished = true; clearTimeout(timeout); delete window[callbackName]; if(script && script.parentNode) script.parentNode.removeChild(script); resolve(data);
     }; script.src = url; script.onerror = function(){
-      if(finished) return; finished = true; clearTimeout(timeout); delete window[callbackName]; if(script && script.parentNode) script.parentNode.removeChild(script); reject(new Error("API request failed. Check Apps Script deployment/access."));
+      if(finished) return; finished = true; clearTimeout(timeout); delete window[callbackName]; if(script && script.parentNode) script.parentNode.removeChild(script); reject(new Error("The API response could not be loaded. The backend may still have completed the transaction."));
     }; document.body.appendChild(script);
   });
 }
@@ -1796,6 +1796,68 @@ function buildConfirmMessage(){
   return("Please confirm before saving:\n\n" + "Action: " + actionName + "\n" + "Product: " + productName + "\n" + "SKU: " + sku + "\n\n" + details + "\n\n" + "Continue?");
 }
 
+
+function waitMs(ms){
+  return new Promise(resolve=>setTimeout(resolve,ms));
+}
+
+async function verifySavedSaleAfterResponseError_(params,originalError){
+  const ticketCandidate=String(
+    params.saleId||params.ticketNo||""
+  ).trim();
+
+  const receiptCandidate=String(
+    params.receiptNo||""
+  ).trim();
+
+  const lookupValue=/^SALE-\d{8}-\d{4}$/i.test(ticketCandidate)
+    ?ticketCandidate
+    :receiptCandidate;
+
+  if(!lookupValue){
+    throw originalError;
+  }
+
+  for(let attempt=1;attempt<=4;attempt++){
+    await waitMs(attempt===1?2500:3000);
+
+    try{
+      const check=await apiCall({
+        action:"getTicketDetails",
+        staffId:currentUser.staffId,
+        pin:currentPin,
+        ticketNo:lookupValue
+      });
+
+      if(
+        check&&
+        check.success&&
+        check.ticket&&
+        String(check.ticket.status||"").toUpperCase()!==""
+      ){
+        return{
+          success:true,
+          responseRecovered:true,
+          message:
+            "Sale was saved. The original confirmation response was interrupted, so the system verified the transaction using its ticket or receipt number.",
+          ticketNo:check.ticket.ticketNo||ticketCandidate||lookupValue,
+          receiptType:check.ticket.receiptType||params.receiptType||"",
+          receiptNo:check.ticket.receiptNo||receiptCandidate||"",
+          itemCount:Array.isArray(check.lines)?check.lines.length:0,
+          results:[]
+        };
+      }
+    }catch(checkError){
+      console.log(
+        "Sale verification attempt "+attempt+" failed:",
+        checkError
+      );
+    }
+  }
+
+  throw originalError;
+}
+
 async function submitCartTransaction(){
   if(isSubmitting) return;
   if(!cartItems.length){
@@ -1898,7 +1960,26 @@ async function submitCartTransaction(){
   isSubmitting = true;
   setStatus("Submitting cart transaction...", "info");
   try{
-    const res = await apiCall(params);
+    let res;
+
+    try{
+      res=await apiCall(params);
+    }catch(requestError){
+      if(currentType!=="SALE"){
+        throw requestError;
+      }
+
+      setStatus(
+        "The sale response was interrupted. Verifying whether the transaction was saved...",
+        "info"
+      );
+
+      res=await verifySavedSaleAfterResponseError_(
+        params,
+        requestError
+      );
+    }
+
     console.log("Cart submit response:", res);
     if(!res || !res.success){
       setStatus((res && res.message) ? res.message: "Cart transaction failed.", "error");
