@@ -41,13 +41,31 @@
       display: block;
       margin-bottom: 4px;
     }
+
+    #goTopBtn {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      width: auto;
+      min-width: 92px;
+      margin: 0;
+      padding: 11px 15px;
+      border-radius: 999px;
+      z-index: 9999;
+      display: none;
+      box-shadow: 0 4px 14px rgba(0,0,0,.25);
+    }
+
+    #goTopBtn.visible {
+      display: block;
+    }
   </style>
 </head>
 <body>
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System</h1>
-    <p class="muted">Login · v2026.1.9</p>
+    <p class="muted">Login · v2026.2.0</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -234,6 +252,15 @@
     <div id="status" class="muted">Ready.</div>
   </div>
 </div>
+
+<button
+  id="goTopBtn"
+  type="button"
+  onclick="scrollToTop()"
+  aria-label="Go to top"
+>
+  ↑ Go to Top
+</button>
 
 <script>
 'use strict';
@@ -734,6 +761,28 @@ function showNewTransactionOptions(){
     }, option.live));
   });
   container.appendChild(makeMenuButton("Back", "Bumalik sa main menu.", renderHomeButtons));
+}
+
+function scrollToTop(){
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+function updateGoTopButton_(){
+  const button = document.getElementById(
+    "goTopBtn"
+  );
+
+  if(!button){
+    return;
+  }
+
+  button.classList.toggle(
+    "visible",
+    window.scrollY > 320
+  );
 }
 
 function chooseType(type){
@@ -1675,9 +1724,6 @@ function renderTransferForm(){
       Received By is automatically assigned based on the destination location.
     </p>
 
-    <label>Courier / Driver</label>
-    <input type="text" id="courierDriver">
-
     <label>Notes</label>
     <textarea id="notes"></textarea>
   `;
@@ -2095,7 +2141,6 @@ async function submitTransaction(){
       toLocation,
       quantity:val("quantity"),
       sentBy:currentUser.name,
-      courierDriver:val("courierDriver"),
       notes:val("notes")
     };
   } else if(currentType === "LOCATION_NOTE"){
@@ -3502,7 +3547,19 @@ window.addEventListener("DOMContentLoaded", function(){
     if(e.key === "Enter"){
       e.preventDefault(); findProduct();
     }
-  }); setupInactivityTracking(); restoreSavedLoginSession(); if(!currentUser){
+  });
+
+  window.addEventListener(
+    "scroll",
+    updateGoTopButton_,
+    {passive:true}
+  );
+
+  updateGoTopButton_();
+  setupInactivityTracking();
+  restoreSavedLoginSession();
+
+  if(!currentUser){
     setStatus("Ready.", "muted");
   }
 });
