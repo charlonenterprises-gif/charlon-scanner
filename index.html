@@ -57,6 +57,11 @@
       box-shadow: 0 4px 14px rgba(0,0,0,.28) !important;
       background: #111 !important;
       color: #fff !important;
+      display: none !important;
+    }
+
+    #goTopBtn.visible {
+      display: block !important;
     }
   </style>
 </head>
@@ -64,7 +69,7 @@
 <button
   id="goTopBtn"
   type="button"
-  onclick="window.scrollTo({top:0,behavior:'smooth'})"
+  onclick="scrollToTop()"
 >
   ↑ Go to Top
 </button>
@@ -72,7 +77,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System</h1>
-    <p class="muted">Login · v2026.2.1</p>
+    <p class="muted">Login · v2026.1.1</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -760,6 +765,26 @@ function showNewTransactionOptions(){
     }, option.live));
   });
   container.appendChild(makeMenuButton("Back", "Bumalik sa main menu.", renderHomeButtons));
+}
+
+function scrollToTop(){
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+function updateGoTopButton_(){
+  const button = document.getElementById("goTopBtn");
+
+  if(!button){
+    return;
+  }
+
+  button.classList.toggle(
+    "visible",
+    window.scrollY > 320
+  );
 }
 
 function chooseType(type){
@@ -3524,7 +3549,19 @@ window.addEventListener("DOMContentLoaded", function(){
     if(e.key === "Enter"){
       e.preventDefault(); findProduct();
     }
-  }); setupInactivityTracking(); restoreSavedLoginSession(); if(!currentUser){
+  });
+
+  window.addEventListener(
+    "scroll",
+    updateGoTopButton_,
+    {passive:true}
+  );
+
+  updateGoTopButton_();
+  setupInactivityTracking();
+  restoreSavedLoginSession();
+
+  if(!currentUser){
     setStatus("Ready.", "muted");
   }
 });
