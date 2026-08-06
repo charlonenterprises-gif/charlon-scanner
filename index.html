@@ -47,7 +47,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System</h1>
-    <p class="muted">Login · v2026.1.4</p>
+    <p class="muted">Login · v2026.1.5</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -333,12 +333,10 @@ function paymentTermsSelectHtml(id){
   `;
 }
 
-function updatePaymentTermsFields(statusId,termsWrapId,termsId,receiptTypeId,receiptLabelId){
+function updatePaymentTermsFields(statusId,termsWrapId,termsId){
   const status=val(statusId).trim().toUpperCase();
   const termsWrap=document.getElementById(termsWrapId);
   const termsField=document.getElementById(termsId);
-  const receiptType=document.getElementById(receiptTypeId);
-  const receiptLabel=document.getElementById(receiptLabelId);
   const usesTerms=status==="PAYMENT TERMS";
 
   if(termsWrap){
@@ -347,20 +345,6 @@ function updatePaymentTermsFields(statusId,termsWrapId,termsId,receiptTypeId,rec
 
   if(!usesTerms&&termsField){
     termsField.value="";
-  }
-
-  if(receiptType){
-    if(usesTerms){
-      receiptType.value="Sales Invoice";
-    }else if(receiptType.value==="Sales Invoice"){
-      receiptType.value="Sales Receipt";
-    }
-  }
-
-  if(receiptLabel){
-    receiptLabel.textContent=usesTerms
-      ?"Sales Invoice Number"
-      :"Receipt No.";
   }
 }
 
@@ -1254,7 +1238,7 @@ function renderCartForm(){
       <label>Payment Status</label>
       ${salePaymentStatusSelectHtml(
         "paymentStatus",
-        "updatePaymentTermsFields('paymentStatus','paymentTermsFields','paymentTerms','receiptType','receiptNoLabel')"
+        "updatePaymentTermsFields('paymentStatus','paymentTermsFields','paymentTerms')"
       )}
 
       <div id="paymentTermsFields" class="hidden">
@@ -1262,16 +1246,8 @@ function renderCartForm(){
         ${paymentTermsSelectHtml("paymentTerms")}
       </div>
 
-      <label>Receipt Type</label>
-      <select id="receiptType">
-        <option value="Sales Receipt">Sales Receipt</option>
-        <option value="Sales Invoice">Sales Invoice</option>
-        <option value="Delivery Receipt">Delivery Receipt</option>
-        <option value="No Receipt">No Receipt</option>
-      </select>
-
-      <label id="receiptNoLabel">Receipt No.</label>
-      <input type="text" id="receiptNo" placeholder="Receipt or sales invoice number">
+      <label>Receipt No.</label>
+      <input type="text" id="receiptNo" placeholder="Enter receipt number">
 
       <label>Customer Name</label>
       <input type="text" id="customerName">
@@ -1883,7 +1859,7 @@ async function submitCartTransaction(){
         return;
       }
       if(!val("receiptNo").trim()){
-        setStatus("Please enter the Sales Invoice Number.","error");
+        setStatus("Please enter the Receipt No.","error");
         return;
       }
       if(!val("customerName").trim()){
@@ -1903,7 +1879,7 @@ async function submitCartTransaction(){
   }
   if(currentType === "SALE"){
     params = {...params, saleId: val("autoTicketNo"), ticketNo: val("autoTicketNo"), dateSold: val("dateSold"), salesChannel: val("salesChannel"), saleLocation: val("saleLocation"), soldBy: val("soldBy"),
-    releasedBy: val("releasedBy"), receiptType: val("receiptType"), receiptNo: val("receiptNo"), customerName: val("customerName"), paymentStatus: val("paymentStatus"), paymentTerms: val("paymentTerms")};
+    releasedBy: val("releasedBy"), receiptType: "Sales Receipt", receiptNo: val("receiptNo"), customerName: val("customerName"), paymentStatus: val("paymentStatus"), paymentTerms: val("paymentTerms")};
   }
   if(currentType === "PURCHASE"){
     params = {...params, dateReceived: val("dateReceived"), supplier: val("supplier"), receivedBy: val("receivedBy"), checkedBy: val("checkedBy"), receiptNo: val("receiptNo"), paymentStatus: val("paymentStatus")};
@@ -1944,7 +1920,7 @@ async function submitCartTransaction(){
   }
   let referenceSummary = "";
   if(currentType === "SALE"){
-    referenceSummary = "System Ticket No.: " + val("autoTicketNo") + "\n" + "Payment Status: " + val("paymentStatus") + "\n" + (val("paymentStatus") === "PAYMENT TERMS" ? "Payment Terms: " + val("paymentTerms") + " days\n" : "") + "Receipt Type: " + val("receiptType") + "\n" + "Receipt No.: " + val("receiptNo") + "\n";
+    referenceSummary = "System Ticket No.: " + val("autoTicketNo") + "\n" + "Payment Status: " + val("paymentStatus") + "\n" + (val("paymentStatus") === "PAYMENT TERMS" ? "Payment Terms: " + val("paymentTerms") + " days\n" : "") + "Receipt No.: " + val("receiptNo") + "\n";
   }
   if(currentType === "PURCHASE"){
     referenceSummary = "System Ticket No.: " + val("autoTicketNo") + "\n" + "Receipt / Invoice No.: " + val("receiptNo") + "\n";
@@ -2338,7 +2314,7 @@ function renderMyReleaseRequests(res){
         <label>Payment Status</label>
         ${salePaymentStatusSelectHtml(
           "releasePaymentStatus_"+index,
-          "updatePaymentTermsFields('releasePaymentStatus_"+index+"','releasePaymentTermsFields_"+index+"','releasePaymentTerms_"+index+"','releaseReceiptType_"+index+"','releaseReceiptNoLabel_"+index+"')"
+          "updatePaymentTermsFields('releasePaymentStatus_"+index+"','releasePaymentTermsFields_"+index+"','releasePaymentTerms_"+index+"')"
         )}
 
         <div
@@ -2351,29 +2327,11 @@ function renderMyReleaseRequests(res){
           )}
         </div>
 
-        <label>Receipt Type</label>
-        <select id="releaseReceiptType_${index}">
-          <option value="Sales Receipt">
-            Sales Receipt
-          </option>
-          <option value="Sales Invoice">
-            Sales Invoice
-          </option>
-          <option value="Delivery Receipt">
-            Delivery Receipt
-          </option>
-          <option value="No Receipt">
-            No Receipt
-          </option>
-        </select>
-
-        <label id="releaseReceiptNoLabel_${index}">
-          Receipt No.
-        </label>
+        <label>Receipt No.</label>
         <input
           type="text"
           id="releaseReceiptNo_${index}"
-          placeholder="Receipt or sales invoice number"
+          placeholder="Enter receipt number"
         >
 
         <label>Customer Name</label>
@@ -2553,7 +2511,7 @@ async function submitReleaseSale(index){
       return;
     }
     if(!receiptNo){
-      setStatus("Please enter the Sales Invoice Number.","error");
+      setStatus("Please enter the Receipt No.","error");
       return;
     }
     if(!customerName){
@@ -2582,7 +2540,7 @@ async function submitReleaseSale(index){
   setStatus("Completing release as sale...", "info");
   try{
     const res = await apiCall({action: "submitTicketFollowUp", staffId: currentUser.staffId, pin: currentPin, ticketNo: row.ticketNo, followUpAction: "COMPLETE_SALE", dateSold: today(),
-    salesChannel, saleLocation: row.sourceLocation, releasedBy: row.releasedBy, receiptType: val("releaseReceiptType_" + index), receiptNo, customerName, paymentStatus, paymentTerms,
+    salesChannel, saleLocation: row.sourceLocation, releasedBy: row.releasedBy, receiptType: "Sales Receipt", receiptNo, customerName, paymentStatus, paymentTerms,
     notes: val("releaseSaleNotes_" + index), saleItems: JSON.stringify(saleItems)});
     if(!res || !res.success){
       setStatus(res && res.message ? escapeHtml(res.message): "Sale could not be completed.", "error");
