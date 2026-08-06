@@ -47,7 +47,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System</h1>
-    <p class="muted">Login · v2026.1.6</p>
+    <p class="muted">Login · v2026.1.1</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -1246,6 +1246,13 @@ function renderCartForm(){
         ${paymentTermsSelectHtml("paymentTerms")}
       </div>
 
+      <label>Receipt Type</label>
+      <select id="receiptType">
+        <option value="Sales Receipt">Sales Receipt</option>
+        <option value="Delivery Receipt">Delivery Receipt</option>
+        <option value="No Receipt">No Receipt</option>
+      </select>
+
       <label>Receipt No.</label>
       <input type="text" id="receiptNo" placeholder="Enter receipt number">
 
@@ -1879,7 +1886,7 @@ async function submitCartTransaction(){
   }
   if(currentType === "SALE"){
     params = {...params, saleId: val("autoTicketNo"), ticketNo: val("autoTicketNo"), dateSold: val("dateSold"), salesChannel: val("salesChannel"), saleLocation: val("saleLocation"), soldBy: val("soldBy"),
-    releasedBy: val("releasedBy"), receiptType: "Sales Receipt", receiptNo: val("receiptNo"), customerName: val("customerName"), paymentStatus: val("paymentStatus"), paymentTerms: val("paymentTerms")};
+    releasedBy: val("releasedBy"), receiptType: val("receiptType"), receiptNo: val("receiptNo"), customerName: val("customerName"), paymentStatus: val("paymentStatus"), paymentTerms: val("paymentTerms")};
   }
   if(currentType === "PURCHASE"){
     params = {...params, dateReceived: val("dateReceived"), supplier: val("supplier"), receivedBy: val("receivedBy"), checkedBy: val("checkedBy"), receiptNo: val("receiptNo"), paymentStatus: val("paymentStatus")};
@@ -1920,7 +1927,7 @@ async function submitCartTransaction(){
   }
   let referenceSummary = "";
   if(currentType === "SALE"){
-    referenceSummary = "System Ticket No.: " + val("autoTicketNo") + "\n" + "Payment Status: " + val("paymentStatus") + "\n" + (val("paymentStatus") === "PAYMENT TERMS" ? "Payment Terms: " + val("paymentTerms") + " days\n" : "") + "Receipt No.: " + val("receiptNo") + "\n";
+    referenceSummary = "System Ticket No.: " + val("autoTicketNo") + "\n" + "Payment Status: " + val("paymentStatus") + "\n" + (val("paymentStatus") === "PAYMENT TERMS" ? "Payment Terms: " + val("paymentTerms") + " days\n" : "") + "Receipt Type: " + val("receiptType") + "\n" + "Receipt No.: " + val("receiptNo") + "\n";
   }
   if(currentType === "PURCHASE"){
     referenceSummary = "System Ticket No.: " + val("autoTicketNo") + "\n" + "Receipt / Invoice No.: " + val("receiptNo") + "\n";
@@ -2327,6 +2334,19 @@ function renderMyReleaseRequests(res){
           )}
         </div>
 
+        <label>Receipt Type</label>
+        <select id="releaseReceiptType_${index}">
+          <option value="Sales Receipt">
+            Sales Receipt
+          </option>
+          <option value="Delivery Receipt">
+            Delivery Receipt
+          </option>
+          <option value="No Receipt">
+            No Receipt
+          </option>
+        </select>
+
         <label>Receipt No.</label>
         <input
           type="text"
@@ -2540,7 +2560,7 @@ async function submitReleaseSale(index){
   setStatus("Completing release as sale...", "info");
   try{
     const res = await apiCall({action: "submitTicketFollowUp", staffId: currentUser.staffId, pin: currentPin, ticketNo: row.ticketNo, followUpAction: "COMPLETE_SALE", dateSold: today(),
-    salesChannel, saleLocation: row.sourceLocation, releasedBy: row.releasedBy, receiptType: "Sales Receipt", receiptNo, customerName, paymentStatus, paymentTerms,
+    salesChannel, saleLocation: row.sourceLocation, releasedBy: row.releasedBy, receiptType: val("releaseReceiptType_" + index), receiptNo, customerName, paymentStatus, paymentTerms,
     notes: val("releaseSaleNotes_" + index), saleItems: JSON.stringify(saleItems)});
     if(!res || !res.success){
       setStatus(res && res.message ? escapeHtml(res.message): "Sale could not be completed.", "error");
