@@ -43,29 +43,36 @@
     }
 
     #goTopBtn {
-      position: fixed;
-      right: 18px;
-      bottom: 18px;
-      width: auto;
-      min-width: 92px;
-      margin: 0;
-      padding: 11px 15px;
-      border-radius: 999px;
-      z-index: 9999;
-      display: none;
-      box-shadow: 0 4px 14px rgba(0,0,0,.25);
-    }
-
-    #goTopBtn.visible {
-      display: block;
+      position: fixed !important;
+      right: 14px !important;
+      bottom: 14px !important;
+      left: auto !important;
+      top: auto !important;
+      width: auto !important;
+      min-width: 105px !important;
+      margin: 0 !important;
+      padding: 11px 14px !important;
+      border-radius: 999px !important;
+      z-index: 99999 !important;
+      box-shadow: 0 4px 14px rgba(0,0,0,.28) !important;
+      background: #111 !important;
+      color: #fff !important;
     }
   </style>
 </head>
 <body>
+<button
+  id="goTopBtn"
+  type="button"
+  onclick="window.scrollTo({top:0,behavior:'smooth'})"
+>
+  ↑ Go to Top
+</button>
+
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System</h1>
-    <p class="muted">Login · v2026.2.0</p>
+    <p class="muted">Login · v2026.2.1</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -107,11 +114,12 @@
       Search Product
     </button>
     
-    <div id="keywordResults" class="product-box hidden"></div>
     <button class="secondary" type="button" onclick="startCamera()">Start Camera Scanner</button>
     <button class="secondary" type="button" onclick="stopCamera()">Stop Camera Scanner</button>
     <div id="reader"></div>
     <button class="secondary" type="button" onclick="backHome()">Back</button>
+
+    <div id="keywordResults" class="product-box hidden"></div>
   </div>
 
   <div class="card hidden" id="productCard">
@@ -252,15 +260,6 @@
     <div id="status" class="muted">Ready.</div>
   </div>
 </div>
-
-<button
-  id="goTopBtn"
-  type="button"
-  onclick="scrollToTop()"
-  aria-label="Go to top"
->
-  ↑ Go to Top
-</button>
 
 <script>
 'use strict';
@@ -761,28 +760,6 @@ function showNewTransactionOptions(){
     }, option.live));
   });
   container.appendChild(makeMenuButton("Back", "Bumalik sa main menu.", renderHomeButtons));
-}
-
-function scrollToTop(){
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
-}
-
-function updateGoTopButton_(){
-  const button = document.getElementById(
-    "goTopBtn"
-  );
-
-  if(!button){
-    return;
-  }
-
-  button.classList.toggle(
-    "visible",
-    window.scrollY > 320
-  );
 }
 
 function chooseType(type){
@@ -3547,19 +3524,7 @@ window.addEventListener("DOMContentLoaded", function(){
     if(e.key === "Enter"){
       e.preventDefault(); findProduct();
     }
-  });
-
-  window.addEventListener(
-    "scroll",
-    updateGoTopButton_,
-    {passive:true}
-  );
-
-  updateGoTopButton_();
-  setupInactivityTracking();
-  restoreSavedLoginSession();
-
-  if(!currentUser){
+  }); setupInactivityTracking(); restoreSavedLoginSession(); if(!currentUser){
     setStatus("Ready.", "muted");
   }
 });
