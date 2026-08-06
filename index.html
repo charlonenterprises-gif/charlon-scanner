@@ -47,7 +47,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System</h1>
-    <p class="muted">Login · v2026.1.7</p>
+    <p class="muted">Login · v2026.1.1</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -792,7 +792,12 @@ async function findProduct(){
     renderProduct();
     if(isCartTransactionType(currentType)){
       addProductToCart(currentProduct);
-      renderForm();
+      if(
+        document.getElementById("formCard")
+          .classList.contains("hidden")
+      ){
+        renderForm();
+      }
       document.getElementById("searchValue").value = "";
       setTimeout(() => {
         document.getElementById("searchValue").focus();
@@ -968,7 +973,12 @@ function selectKeywordProduct(index){
   renderProduct();
   if(isCartTransactionType(currentType)){
     addProductToCart(currentProduct);
-    renderForm();
+    if(
+      document.getElementById("formCard")
+        .classList.contains("hidden")
+    ){
+      renderForm();
+    }
     document.getElementById("searchValue").value = "";
     hide("keywordResults");
     setTimeout(() => {
@@ -1150,13 +1160,11 @@ function updateCartCost(index, value){
 function removeCartItem(index){
   cartItems.splice(index, 1);
   renderCart();
-  renderForm();
 }
 
 function clearCart(){
   cartItems = [];
   renderCart();
-  renderForm();
   setStatus("Cart cleared.", "muted");
 }
 
