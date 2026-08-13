@@ -77,7 +77,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System 2026</h1>
-    <p class="muted">Login · v2026.2.2</p>
+    <p class="muted">Login · v2026.2.3</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -1307,7 +1307,7 @@ function renderCartForm(){
 
       <label>Receipt Type</label>
       <select id="receiptType">
-        <option value="Sales Receipt">Sales Receipt</option>
+        <option value="Sales Invoice">Sales Invoice</option>
         <option value="Delivery Receipt">Delivery Receipt</option>
         <option value="No Receipt">No Receipt</option>
       </select>
@@ -2391,8 +2391,8 @@ function renderMyReleaseRequests(res){
 
         <label>Receipt Type</label>
         <select id="releaseReceiptType_${index}">
-          <option value="Sales Receipt">
-            Sales Receipt
+          <option value="Sales Invoice">
+            Sales Invoice
           </option>
           <option value="Delivery Receipt">
             Delivery Receipt
