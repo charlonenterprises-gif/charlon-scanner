@@ -1679,8 +1679,8 @@ function renderTransferForm(){
     <label>Transfer Date</label>
     <input type="date" id="transferDate" value="${today()}">
 
-    <label>Transfer No.</label>
-    <input type="text" id="transferNo" value="Generating..." disabled>
+    <label>Transfer ID</label>
+    <input type="text" id="transferId" value="Generating..." disabled>
 
     <div class="row">
       <div>
@@ -1733,7 +1733,7 @@ function renderTransferForm(){
 
   loadTicketPreview(
     "TRANSFER",
-    "transferNo"
+    "transferIo"
   );
 
   updateTransferReceivedBy();
@@ -2139,7 +2139,7 @@ async function submitTransaction(){
       ...params,
       action:"submitTransfer",
       transferDate:val("transferDate"),
-      transferNo:val("transferNo"),
+      transferNo:val("transferId"),
       fromLocation,
       toLocation,
       quantity:val("quantity"),
@@ -2180,8 +2180,8 @@ async function submitTransaction(){
     if(res.systemQty !== undefined) extra += `<br>System Qty: ${res.systemQty}<br>Actual Qty: ${res.actualQty}<br>Difference: ${res.difference}`;
     if(res.pendingApproval){
       extra+=`
-        <br>Transfer No.:
-        <strong>${escapeHtml(res.transferNo||"")}</strong>
+        <br>Transfer ID:
+        <strong>${escapeHtml(res.transferId||"")}</strong>
         <br>Approval Status:
         <strong>${escapeHtml(res.approvalStatus||"PENDING")}</strong>
         <br>Required Approver:
