@@ -77,7 +77,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System 2026</h1>
-    <p class="muted">Login · v2026.2.5</p>
+    <p class="muted">Login · v2026.2.6</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -3062,116 +3062,66 @@ async function loadMyApprovals(){
 
 function renderMyApprovals(res){
   const rows=res.rows||[];
-  const container=document.getElementById(
-    "approvalList"
-  );
-
-  let html=`
-    <hr>
-    <strong>Pending Approvals:</strong>
-    ${escapeHtml(rows.length)}<br>
-  `;
+  const container=document.getElementById("approvalList");
+  let html=`<hr><strong>Pending Approvals:</strong> ${escapeHtml(rows.length)}<br>`;
 
   if(!rows.length){
-    html+=`
-      <p class="muted">
-        No pending approvals assigned to you.
-      </p>
-    `;
-
-    container.innerHTML=html;
+    container.innerHTML=html+`<p class="muted">No pending approvals assigned to you.</p>`;
     return;
   }
 
   rows.forEach((row,index)=>{
-    const isTransfer=
-      String(row.type||"").toUpperCase()===
-      "TRANSFER";
-
+    const isTransfer=String(row.type||"").toUpperCase()==="TRANSFER";
     let details="";
 
     if(isTransfer){
+      const items=Array.isArray(row.items)?row.items:[];
+      const itemsHtml=items.length
+        ?items.map(item=>`
+          <div style="margin:8px 0;padding:8px;border:1px solid #ddd;border-radius:8px;">
+            <strong>${escapeHtml(item.productName||"")}</strong>
+            SKU: ${escapeHtml(item.sku||"")}<br>
+            Qty: <strong>${escapeHtml(item.qty||0)}</strong>
+          </div>
+        `).join("")
+        :`<strong>${escapeHtml(row.productName||"")}</strong><br>SKU: ${escapeHtml(row.sku||"")}<br>`;
+
       details=`
-        Transfer No.:
-        <strong>${escapeHtml(row.transferNo||"")}</strong><br>
-
-        Product:
-        <strong>${escapeHtml(row.productName||"")}</strong><br>
-
-        SKU:
-        ${escapeHtml(row.sku||"")}<br>
-
-        Qty:
-        <strong>${escapeHtml(row.qty||0)}</strong><br>
-
-        From Location:
-        <strong>${escapeHtml(row.fromLocation||"")}</strong><br>
-
-        To Location:
-        <strong>${escapeHtml(row.toLocation||"")}</strong><br>
-
-        Sent By:
-        ${escapeHtml(row.sentBy||"")}<br>
-
-        Received By:
-        ${escapeHtml(row.receivedBy||"")}<br>
-
-        Required Approver:
-        ${escapeHtml(row.requiredApprover||"")}
+        Transfer ID: <strong>${escapeHtml(row.transferId||"")}</strong><br>
+        Date Transferred: ${escapeHtml(row.dateTransferred||"")}<br>
+        From Location: <strong>${escapeHtml(row.fromLocation||"")}</strong><br>
+        To Location: <strong>${escapeHtml(row.toLocation||"")}</strong><br>
+        Sent By: ${escapeHtml(row.sentBy||"")}<br>
+        Received By: ${escapeHtml(row.receivedBy||"")}<br>
+        Total Qty: <strong>${escapeHtml(row.qty||0)}</strong><br><br>
+        <strong>Items:</strong>
+        ${itemsHtml}
       `;
     }else{
       details=`
-        Return ID:
-        <strong>${escapeHtml(row.returnId||"")}</strong><br>
-
-        Receipt No.:
-        ${escapeHtml(row.receiptNo||"")}<br>
-
-        Product:
-        <strong>${escapeHtml(row.productName||"")}</strong><br>
-
-        SKU:
-        ${escapeHtml(row.sku||"")}<br>
-
-        Qty:
-        <strong>${escapeHtml(row.qty||0)}</strong><br>
-
-        Return Location:
-        <strong>${escapeHtml(row.returnLocation||"")}</strong><br>
-
-        Handled By:
-        ${escapeHtml(row.handledBy||"")}<br>
-
-        Required Approver:
-        ${escapeHtml(row.requiredApprover||"")}
+        Return ID: <strong>${escapeHtml(row.returnId||"")}</strong><br>
+        Receipt No.: ${escapeHtml(row.receiptNo||"")}<br>
+        Product: <strong>${escapeHtml(row.productName||"")}</strong><br>
+        SKU: ${escapeHtml(row.sku||"")}<br>
+        Qty: <strong>${escapeHtml(row.qty||0)}</strong><br>
+        Return Location: <strong>${escapeHtml(row.returnLocation||"")}</strong><br>
+        Handled By: ${escapeHtml(row.handledBy||"")}<br>
+        Required Approver: ${escapeHtml(row.requiredApprover||"")}
       `;
     }
 
     html+=`
       <div class="cart-line">
-        <span class="badge">
-          ${escapeHtml(row.type||"")}
-        </span>
-
-        <span class="badge">
-          ${escapeHtml(row.approvalStatus||"")}
-        </span><br><br>
+        <span class="badge">${escapeHtml(row.type||"")}</span>
+        <span class="badge">${escapeHtml(row.approvalStatus||"")}</span><br><br>
 
         ${details}<br><br>
 
-        <button
-          class="success"
-          type="button"
-          onclick="submitRevampApprovalByIndex(${index},'APPROVE')"
-        >
+        <button class="success" type="button" onclick="submitRevampApprovalByIndex(${index},'APPROVE')">
           Approve
         </button>
 
-        <button
-          class="danger"
-          type="button"
-          onclick="submitRevampApprovalByIndex(${index},'REJECT')"
-        >
+        <button class="danger" type="button" onclick="submitRevampApprovalByIndex(${index},'REJECT')">
           Reject
         </button>
       </div>
@@ -3202,7 +3152,7 @@ async function submitRevampApproval(row,decision){
   if(isSubmitting)return;
 
   const isTransfer=String(row.type||"").toUpperCase()==="TRANSFER";
-  const reference=isTransfer?row.transferNo:row.returnId;
+  const reference=isTransfer?row.transferId:row.returnId;
   const label=decision==="APPROVE"?"approve":"reject";
   const transactionLabel=isTransfer?"transfer":"return";
 
@@ -3238,7 +3188,7 @@ async function submitRevampApproval(row,decision){
 
     if(isTransfer){
       resultHtml+=`
-        <br>Transfer No.: <strong>${escapeHtml(res.transferNo||"")}</strong>
+        <br>Transfer ID: <strong>${escapeHtml(res.transferNo||"")}</strong>
         <br>Items: <strong>${escapeHtml(res.itemCount||1)}</strong>
       `;
 
