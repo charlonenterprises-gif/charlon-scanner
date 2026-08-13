@@ -77,7 +77,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System 2026</h1>
-    <p class="muted">Login · v2026.2.4</p>
+    <p class="muted">Login · v2026.2.5</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -141,9 +141,10 @@
 
   <div class="card hidden" id="reportsCard">
     <h3>Reports / History</h3>
-    <p class="muted">
-      For manager/admin checking. Search by ticket no., SKU, product name, staff name, or notes.
-    </p>
+    <p class="muted">For manager/admin checking. Search by transaction ID, receipt no., SKU, product name, staff name, location, or notes.</p>
+
+    <label>Search</label>
+    <input type="text" id="historySearch" placeholder="Transaction ID, receipt no., SKU, product name">
   
     <label>Search</label>
     <input type="text" id="historySearch" placeholder="Ticket no., SKU, product name, staff name">
@@ -160,25 +161,26 @@
     </div>
   
     <label>Action Type</label>
+
     <select id="historyAction">
       <option value="">All Actions</option>
-      <option value="SALE">SALE</option>
-      <option value="PURCHASE">PURCHASE</option>
-      <option value="RELEASING">RELEASING</option>
-      <option value="COMPLETE_SALE">COMPLETE_SALE</option>
-      <option value="CANCEL_RELEASE">CANCEL_RELEASE</option>
-      <option value="RETURN_REFUND">RETURN_REFUND</option>
       <option value="PURCHASE_STOCK_IN">PURCHASE_STOCK_IN</option>
       <option value="SALE_STOCK_OUT">SALE_STOCK_OUT</option>
+      <option value="RELEASING_REQUEST">RELEASING_REQUEST</option>
+      <option value="TRANSFER_REQUEST">TRANSFER_REQUEST</option>
+      <option value="TRANSFER_APPROVED">TRANSFER_APPROVED</option>
+      <option value="TRANSFER_REJECTED">TRANSFER_REJECTED</option>
+      <option value="CANCEL_RELEASE_TRANSFER_REQUEST">CANCEL_RELEASE_TRANSFER_REQUEST</option>
+      <option value="CANCEL_RELEASE_TRANSFER_APPROVED">CANCEL_RELEASE_TRANSFER_APPROVED</option>
+      <option value="CANCEL_RELEASE_TRANSFER_REJECTED">CANCEL_RELEASE_TRANSFER_REJECTED</option>
+      <option value="CANCEL_RELEASE_APPROVED">CANCEL_RELEASE_APPROVED</option>
       <option value="RETURN_REQUEST">RETURN_REQUEST</option>
       <option value="RETURN_APPROVED">RETURN_APPROVED</option>
       <option value="RETURN_REJECTED">RETURN_REJECTED</option>
-      <option value="LOCATION_NOTE">LOCATION_NOTE</option>
-      <option value="COUNT CHECK">COUNT CHECK</option>
-      <option value="TRANSFER">TRANSFER</option>
       <option value="INVENTORY_ADJUSTMENT">INVENTORY_ADJUSTMENT</option>
+      <option value="LOCATION_NOTE">LOCATION_NOTE</option>
     </select>
-  
+    
     <label>Limit</label>
     <input type="number" id="historyLimit" min="10" max="200" value="50">
   
@@ -3331,48 +3333,39 @@ async function findHistory(){
 }
 
 function renderHistory(res){
-  const rows = res.rows || [];
-  const container = document.getElementById("historyResults");
-  let html = `
-    <hr>
-    <strong>Results:</strong> ${escapeHtml(rows.length)}<br>
-    <span class="muted">Showing latest matching records first.</span>
-  `;
+  const rows=res.rows||[], container=document.getElementById("historyResults");
+  let html=`<hr><strong>Results:</strong> ${escapeHtml(rows.length)}<br><span class="muted">Showing latest matching records first.</span>`;
+
   if(!rows.length){
-    html += `<p class="muted">No matching history found.</p>`;
-    container.innerHTML = html;
+    container.innerHTML=html+`<p class="muted">No matching history found.</p>`;
     return;
   }
-  rows.forEach(row => {
-    html += `
+
+  rows.forEach(row=>{
+    const locationHtml=row.location?`Location: <strong>${escapeHtml(row.location)}</strong><br>`:"";
+    const movementHtml=row.fromLocation||row.toLocation?`From: <strong>${escapeHtml(row.fromLocation||"")}</strong><br>To: <strong>${escapeHtml(row.toLocation||"")}</strong><br>`:"";
+    const receiptHtml=row.receiptType||row.receiptNo?`Receipt Type: ${escapeHtml(row.receiptType||"")}<br>Receipt No.: ${escapeHtml(row.receiptNo||"")}<br>`:"";
+    const drHtml=row.drNumber?`DR Number: ${escapeHtml(row.drNumber)}<br>`:"";
+
+    html+=`
       <div class="cart-line">
-        <strong>${escapeHtml(row.productName || "")}</strong>
-        <span class="badge">${escapeHtml(row.action || "")}</span>
-        <span class="badge">${escapeHtml(row.status || "")}</span><br><br>
-
+        <strong>${escapeHtml(row.productName||"")}</strong>
+        <span class="badge">${escapeHtml(row.action||"")}</span>
+        <span class="badge">${escapeHtml(row.status||"")}</span><br><br>
         Date/Time: ${escapeHtml(formatDateTime(row.dateTime))}<br>
-        Ticket No.: ${escapeHtml(row.ticketNo || "")}<br>
-        Ticket Type: ${escapeHtml(row.ticketType || "")}<br>
-        Order No.: ${escapeHtml(row.orderNo || "")}<br>
-        Receipt Type: ${escapeHtml(row.receiptType || "")}<br>
-        Receipt No.: ${escapeHtml(row.receiptNo || "")}<br>
-        SKU: ${escapeHtml(row.sku || "")}<br>
-        Barcode: ${escapeHtml(row.barcodeValue || "")}<br>
-        Qty: <strong>${escapeHtml(row.qty)} ${escapeHtml(row.unit || "")}</strong><br>
-        ${row.unitDetails ? `Unit Details: ${escapeHtml(row.unitDetails)}<br>` : ""}
-        <br>
-
-        Total Qty: ${escapeHtml(row.oldTotalQty)} → ${escapeHtml(row.newTotalQty)}<br>
-        Reserved Qty: ${escapeHtml(row.oldReservedQty)} → ${escapeHtml(row.newReservedQty)}<br>
-        Available Qty: ${escapeHtml(row.oldAvailableQty)} → ${escapeHtml(row.newAvailableQty)}<br><br>
-
-        User: ${escapeHtml(row.user || "")}<br>
-        Location Note: ${escapeHtml(row.locationNote || "")}<br>
-        Notes: ${escapeHtml(row.notes || "")}
+        Transaction ID: <strong>${escapeHtml(row.transactionId||"")}</strong><br>
+        Source Sheet: ${escapeHtml(row.sourceSheet||"")}<br>
+        SKU: ${escapeHtml(row.sku||"")}<br>
+        ${drHtml}
+        Qty: <strong>${escapeHtml(row.qty)}</strong><br>
+        ${locationHtml}${movementHtml}${receiptHtml}
+        User: ${escapeHtml(row.user||"")}<br>
+        ${row.notes?`Notes: ${escapeHtml(row.notes)}<br>`:""}
       </div>
     `;
   });
-  container.innerHTML = html;
+
+  container.innerHTML=html;
 }
 
 function unlockScanSound(){
@@ -3449,10 +3442,6 @@ window.addEventListener("DOMContentLoaded", function(){
   }); document.getElementById("revampReturnReceiptNo").addEventListener("keydown", function(e){
     if(e.key === "Enter"){
       e.preventDefault(); findRevampSaleByReceipt();
-    }
-  }); document.getElementById("historySearch").addEventListener("keydown", function(e){
-    if(e.key === "Enter"){
-      e.preventDefault(); findHistory();
     }
   }); document.getElementById("historySearch").addEventListener("keydown", function(e){
     if(e.key === "Enter"){
