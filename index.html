@@ -79,7 +79,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System 2026</h1>
-    <p class="muted">Login · v2026.2.9</p>
+    <p class="muted">Login · v2026.3.0</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -2912,20 +2912,30 @@ async function submitCancelReleaseTransfer(index){
 
   const items=Array.isArray(row.items)?row.items:[];
   const sameLocation=String(toLocation).trim().toUpperCase()===String(row.sourceLocation||"").trim().toUpperCase();
+  const assignedApprover=String((settings.locationApproverMap||{})[String(toLocation).trim().toUpperCase()]||"").trim();
+
+  const selfApprover= assignedApprover.toUpperCase()===String(currentUser.name||"").trim() .toUpperCase();
   const itemSummary=items.map(item=>{
-    return "- "+(item.productName||"")+" | Qty: "+item.quantity+" "+(item.unit||"");
-  }).join("\n");
+    return "- "+(item.productName||"")+" | Qty: "+item.quantity+" "+(item.unit||"");}).join("\n");
+  
+  const approvalMessage=selfApprover?(
+    sameLocation
+      ?"You are the assigned approver. This cancellation will be APPROVED AUTOMATICALLY. Stock will remain in the same location."
+      :"You are the destination approver. This cancellation and transfer will be APPROVED AUTOMATICALLY and stock will move immediately.")
+  :(
+    sameLocation
+      ?"The assigned location approver must approve the cancellation. Stock will remain in the same location."
+      :"The destination approver must approve before stock moves."
+  );
 
   const confirmed=confirm(
-    "Submit this release cancellation for approval?\n\n"+
+    "Confirm this release cancellation?\n\n"+
     "Ticket: "+row.ticketNo+"\n"+
     "From: "+row.sourceLocation+"\n"+
     "To: "+toLocation+"\n"+
     "Requested By: "+currentUser.name+"\n\n"+
     "Items:\n"+itemSummary+"\n\n"+
-    (sameLocation
-      ?"The assigned location approver must approve the cancellation. Stock will remain in the same location."
-      :"The destination approver must approve before stock moves.")
+    approvalMessage
   );
 
   if(!confirmed){
@@ -2964,8 +2974,8 @@ async function submitCancelReleaseTransfer(index){
       To Location: <strong>${escapeHtml(res.toLocation||"")}</strong><br>
       Received By: <strong>${escapeHtml(res.receivedBy||"")}</strong><br>
       Items Submitted: ${escapeHtml(res.itemCount||0)}<br>
-      Stock Changed: <strong>No</strong>
-    `;
+      Stock Changed:<strong> ${res.affectsInventory?"Yes":"No"}</strong> ${res.autoApproved ?`<br>Automatic Approval: <strong>Yes</strong>`:""
+    }`;
 
     if(Array.isArray(res.results)&&res.results.length){
       resultHtml+="<br><br>";
