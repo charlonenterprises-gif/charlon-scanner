@@ -2607,6 +2607,12 @@ async function submitCartTransaction(){
     }
 
     console.log("Cart submit response:", res);
+    if(res&&res.performanceTimings){
+      console.table(
+        res.performanceTimings
+      );
+    }
+    
     if(!res || !res.success){
       setStatus((res && res.message) ? res.message: "Cart transaction failed.", "error");
       return;
