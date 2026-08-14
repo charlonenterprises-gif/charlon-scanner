@@ -79,7 +79,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System 2026</h1>
-    <p class="muted">Login · v2026.3.1</p>
+    <p class="muted">Login · v2026.3.2</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -797,11 +797,46 @@ function updateNotificationTitle(){
     ?"("+total+") Charlon Enterprises Inventory System"
     :"Charlon Enterprises Inventory System";
 }
-  
+
 async function refreshHomeNotifications(){
   if(
     !currentUser||
-    notificationRefreshRunning
+    notificationRefreshRunning||
+    isSubmitting
+  ){
+    return;
+  }
+
+  /*
+   * Only check notifications while the
+   * Home screen is actually visible.
+   *
+   * This prevents background Apps Script
+   * calls while searching or submitting
+   * transactions.
+   */
+  const homeCard=
+    document.getElementById(
+      "homeCard"
+    );
+
+  const homeVisible=
+    homeCard&&
+    !homeCard.classList.contains(
+      "hidden"
+    );
+
+  if(!homeVisible){
+    return;
+  }
+
+  /*
+   * Don't waste requests while the browser
+   * tab is hidden.
+   */
+  if(
+    document.visibilityState!==
+    "visible"
   ){
     return;
   }
@@ -825,34 +860,44 @@ async function refreshHomeNotifications(){
           pendingReleaseCount=
             Array.isArray(res.rows)
               ?res.rows.length
-              :Number(res.count||0);
+              :Number(
+                  res.count||0
+                );
         }
+
       }catch(err){
         console.log(
           "Release notification check failed:",
           err
         );
       }
+
     }else{
       pendingReleaseCount=0;
     }
 
+
     /*
      * MY APPROVALS
      */
-    const currentNameKey=String(
-      currentUser.name||""
-    )
-      .trim()
-      .toUpperCase();
-
-    const approvalUserKeys=(
-      settings.approvalUsers||[]
-    ).map(name=>{
-      return String(name||"")
+    const currentNameKey=
+      String(
+        currentUser.name||""
+      )
         .trim()
         .toUpperCase();
-    });
+
+    const approvalUserKeys=
+      (
+        settings.approvalUsers||
+        []
+      ).map(name=>{
+        return String(
+          name||""
+        )
+          .trim()
+          .toUpperCase();
+      });
 
     if(
       approvalUserKeys.includes(
@@ -870,20 +915,25 @@ async function refreshHomeNotifications(){
           pendingApprovalCount=
             Array.isArray(res.rows)
               ?res.rows.length
-              :Number(res.count||0);
+              :Number(
+                  res.count||0
+                );
         }
+
       }catch(err){
         console.log(
           "Approval notification check failed:",
           err
         );
       }
+
     }else{
       pendingApprovalCount=0;
     }
 
+
     /*
-     * Update only the badges.
+     * UPDATE BADGES
      */
     updateHomeNotificationBadge(
       "RELEASES",
@@ -1036,6 +1086,7 @@ function chooseType(type){
 
 function backHome(){
   stopCamera();
+
   hide("scanCard");
   hide("productCard");
   hide("cartCard");
@@ -1045,8 +1096,24 @@ function backHome(){
   hide("revampReturnCard");
   hide("approvalCard");
   hide("releaseRequestsCard");
+
   show("homeCard");
-  setStatus("Choose transaction type.", "muted");
+
+  /*
+   * Rebuild buttons with current counts.
+   */
+  renderHomeButtons();
+
+  /*
+   * Refresh notifications immediately
+   * when returning Home.
+   */
+  refreshHomeNotifications();
+
+  setStatus(
+    "Choose transaction type.",
+    "muted"
+  );
 }
 
 async function findProduct(){
