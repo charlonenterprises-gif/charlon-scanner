@@ -77,7 +77,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System 2026</h1>
-    <p class="muted">Login · v2026.2.6</p>
+    <p class="muted">Login · v2026.2.7</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -2736,7 +2736,7 @@ async function submitCancelReleaseTransfer(index){
       Approval Status: <strong>${escapeHtml(res.approvalStatus||"PENDING")}</strong><br>
       From Location: <strong>${escapeHtml(res.fromLocation||"")}</strong><br>
       To Location: <strong>${escapeHtml(res.toLocation||"")}</strong><br>
-      Required Approver: <strong>${escapeHtml(res.requiredApprover||res.receivedBy||"")}</strong><br>
+      Received By: <strong>${escapeHtml(res.receivedBy||"")}</strong><br>
       Items Submitted: ${escapeHtml(res.itemCount||0)}<br>
       Stock Changed: <strong>No</strong>
     `;
