@@ -144,11 +144,8 @@
     <p class="muted">For manager/admin checking. Search by transaction ID, receipt no., SKU, product name, staff name, location, or notes.</p>
 
     <label>Search</label>
-    <input type="text" id="historySearch" placeholder="Transaction ID, receipt no., SKU, product name">
-  
-    <label>Search</label>
-    <input type="text" id="historySearch" placeholder="Ticket no., SKU, product name, staff name">
-  
+    <input type="text" id="historySearch" placeholder="Transaction ID, receipt no., SKU, product name, staff name, location">
+    
     <div class="row">
       <div>
         <label>Date From</label>
@@ -1733,7 +1730,7 @@ function renderTransferForm(){
 
   loadTicketPreview(
     "TRANSFER",
-    "transferIo"
+    "transferId"
   );
 
   updateTransferReceivedBy();
@@ -2074,7 +2071,7 @@ async function submitTransaction(){
     return;
   }
   isSubmitting = true;
-  const searchValue = val("searchValue").trim();
+  const searchValue=String(currentProduct?.qrValue||currentProduct?.barcodeValue||currentProduct?.sku||val("searchValue")).trim();
   let params = {staffId: currentUser.staffId, pin: currentPin, searchValue};
   if(currentType === "SALE"){
     params = {...params, action: "submitSale", dateSold: val("dateSold"), salesChannel: val("salesChannel"), soldBy: val("soldBy"), releasedBy: val("releasedBy"), packedBy: val("packedBy"),
@@ -2139,7 +2136,7 @@ async function submitTransaction(){
       ...params,
       action:"submitTransfer",
       transferDate:val("transferDate"),
-      transferNo:val("transferId"),
+      transferId:val("transferId"),
       fromLocation,
       toLocation,
       quantity:val("quantity"),
@@ -2184,8 +2181,8 @@ async function submitTransaction(){
         <strong>${escapeHtml(res.transferId||"")}</strong>
         <br>Approval Status:
         <strong>${escapeHtml(res.approvalStatus||"PENDING")}</strong>
-        <br>Required Approver:
-        <strong>${escapeHtml(res.requiredApprover||"")}</strong>
+        <br>Received By:
+        <strong>${escapeHtml(res.receivedBy||"")}</strong>
         <br><span class="muted">
           Stock has not moved yet. It will move only after approval.
         </span>
@@ -2731,7 +2728,7 @@ async function submitCancelReleaseTransfer(index){
     let resultHtml=`
       ${escapeHtml(res.message)}<br>
       Ticket No.: <strong>${escapeHtml(res.ticketNo||row.ticketNo)}</strong><br>
-      Transfer No.: <strong>${escapeHtml(res.transferNo||"")}</strong><br>
+      Transfer ID: <strong>${escapeHtml(res.transferId||"")}</strong><br>
       Release Status: <strong>${escapeHtml(res.status||"CANCELLED / TRANSFER PENDING")}</strong><br>
       Approval Status: <strong>${escapeHtml(res.approvalStatus||"PENDING")}</strong><br>
       From Location: <strong>${escapeHtml(res.fromLocation||"")}</strong><br>
@@ -2849,10 +2846,8 @@ function renderTicket(res){
     });
   }
   
-  if(!actionsHtml){
-    actionsHtml = `<p class="muted">No follow-up action available for this ticket status yet.</p>`;
-  }
-  document.getElementById("ticketActions").innerHTML = actionsHtml;
+  document.getElementById("ticketInfo").innerHTML=html;
+  document.getElementById("ticketActions").innerHTML="";
 }
 
 function openRevampReturnLookup(){
@@ -3188,7 +3183,7 @@ async function submitRevampApproval(row,decision){
 
     if(isTransfer){
       resultHtml+=`
-        <br>Transfer ID: <strong>${escapeHtml(res.transferNo||"")}</strong>
+        <br>Transfer ID: <strong>${escapeHtml(res.transferId||"")}</strong>
         <br>Items: <strong>${escapeHtml(res.itemCount||1)}</strong>
       `;
 
