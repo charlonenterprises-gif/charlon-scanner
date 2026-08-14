@@ -79,7 +79,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System 2026</h1>
-    <p class="muted">Login · v2026.3.0</p>
+    <p class="muted">Login · v2026.3.1</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -1050,57 +1050,280 @@ function backHome(){
 }
 
 async function findProduct(){
-  const searchValue = val("searchValue").trim();
+  const searchValue=val("searchValue").trim();
+
   if(!searchValue){
-    setStatus("Please scan or enter a product.", "error");
+    setStatus(
+      "Please scan or enter a product.",
+      "error"
+    );
     return;
   }
-  keywordSearchResults = [];
+
+  keywordSearchResults=[];
   hide("keywordResults");
-  setStatus("Searching product...", "info");
-  let exactResponse = null;
+
+  setStatus(
+    "Searching product...",
+    "info"
+  );
+
+  /*
+   * Decide BEFORE calling Apps Script.
+   *
+   * QR:
+   * SKU | DR NUMBER
+   *
+   * SKU example:
+   * YM190F-MP-YM
+   *
+   * Keyword examples:
+   * Makita
+   * Makita drill
+   * gasoline engine
+   * 7.5HP motor
+   */
+  const looksLikeQr=
+    searchValue.includes("|");
+
+  const looksLikeSku=
+    !searchValue.includes(" ")&&
+    /^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)+$/.test(
+      searchValue
+    );
+
+  const useExactSearch=
+    looksLikeQr||
+    looksLikeSku;
+
   try{
-    exactResponse = await apiCall({action: "findProduct", staffId: currentUser.staffId, pin: currentPin, searchValue});
-  } catch(err){
-    console.log("Exact lookup failed:", err);
-  }
-  if(exactResponse && exactResponse.success && exactResponse.product){
-    currentProduct = exactResponse.product;
-    renderProduct();
-    if(isCartTransactionType(currentType)){
-      addProductToCart(currentProduct);
+
+    /*
+     * ========================================
+     * EXACT SKU / QR SEARCH
+     * ========================================
+     */
+    if(useExactSearch){
+
+      const res=await apiCall({
+        action:"findProduct",
+        staffId:currentUser.staffId,
+        pin:currentPin,
+        searchValue
+      });
+
       if(
-        document.getElementById("formCard")
-          .classList.contains("hidden")
+        !res||
+        !res.success||
+        !res.product
       ){
-        renderForm();
+        throw new Error(
+          res&&res.message
+            ?res.message
+            :"Product not found."
+        );
       }
-      document.getElementById("searchValue").value = "";
-      setTimeout(() => {
-        document.getElementById("searchValue").focus();
-      }, 200);
-      setStatus("Product found and added to cart.", "success-text");
+
+      currentProduct=res.product;
+
+      renderProduct();
+
+      if(
+        isCartTransactionType(
+          currentType
+        )
+      ){
+        addProductToCart(
+          currentProduct
+        );
+
+        if(
+          document
+            .getElementById("formCard")
+            .classList
+            .contains("hidden")
+        ){
+          renderForm();
+        }
+
+        document.getElementById(
+          "searchValue"
+        ).value="";
+
+        setTimeout(()=>{
+          document
+            .getElementById(
+              "searchValue"
+            )
+            .focus();
+        },200);
+
+        setStatus(
+          "Product found and added to cart.",
+          "success-text"
+        );
+
+        return;
+      }
+
+      renderForm();
+
+      setStatus(
+        "Product found.",
+        "success-text"
+      );
+
       return;
     }
-    renderForm();
-    setStatus("Product found.", "success-text");
-    return;
-  }
-  try{
-    const keywordResponse = await apiCall({action: "searchProducts", staffId: currentUser.staffId, pin: currentPin, searchValue});
-    if(!keywordResponse || !keywordResponse.success){
-      throw new Error(keywordResponse && keywordResponse.message ? keywordResponse.message: "Product search failed.");
+
+
+    /*
+     * ========================================
+     * KEYWORD SEARCH
+     * ========================================
+     *
+     * Go DIRECTLY to searchProducts.
+     *
+     * We no longer waste time trying
+     * findProduct first.
+     */
+    const res=await apiCall({
+      action:"searchProducts",
+      staffId:currentUser.staffId,
+      pin:currentPin,
+      searchValue
+    });
+
+    if(
+      !res||
+      !res.success
+    ){
+      throw new Error(
+        res&&res.message
+          ?res.message
+          :"Product search failed."
+      );
     }
-    keywordSearchResults = Array.isArray(keywordResponse.results) ? keywordResponse.results: [];
-    renderKeywordResults(keywordResponse.count || 0, keywordResponse.limited === true);
-    if(!keywordSearchResults.length){
-      setStatus("No products found for: " + escapeHtml(searchValue), "muted");
+
+    keywordSearchResults=
+      Array.isArray(res.results)
+        ?res.results
+        :[];
+
+    /*
+     * If the user typed an exact SKU that
+     * does not contain "-", automatically
+     * select it instead of showing a list.
+     */
+    const exactSkuResult=
+      keywordSearchResults.find(
+        product=>
+          String(product.sku||"")
+            .trim()
+            .toUpperCase()===
+          searchValue.toUpperCase()
+      );
+
+    if(exactSkuResult){
+      currentProduct=
+        exactSkuResult;
+
+      renderProduct();
+
+      if(
+        isCartTransactionType(
+          currentType
+        )
+      ){
+        addProductToCart(
+          currentProduct
+        );
+
+        if(
+          document
+            .getElementById("formCard")
+            .classList
+            .contains("hidden")
+        ){
+          renderForm();
+        }
+
+        document.getElementById(
+          "searchValue"
+        ).value="";
+
+        hide("keywordResults");
+
+        setTimeout(()=>{
+          document
+            .getElementById(
+              "searchValue"
+            )
+            .focus();
+        },200);
+
+        setStatus(
+          "Product found and added to cart.",
+          "success-text"
+        );
+
+        return;
+      }
+
+      renderForm();
+      hide("keywordResults");
+
+      setStatus(
+        "Product found.",
+        "success-text"
+      );
+
       return;
     }
-    setStatus("Found " + Number(keywordResponse.count || 0).toLocaleString() + " matching product(s).", "success-text");
-  } catch(err){
-    console.error("Product search error:", err);
-    setStatus("Product search error: " + escapeHtml(err.message || err), "error");
+
+    /*
+     * Normal keyword results
+     */
+    renderKeywordResults(
+      res.count||0,
+      res.limited===true
+    );
+
+    if(
+      !keywordSearchResults.length
+    ){
+      setStatus(
+        "No products found for: "+
+        escapeHtml(searchValue),
+        "muted"
+      );
+
+      return;
+    }
+
+    setStatus(
+      "Found "+
+      Number(
+        res.count||0
+      ).toLocaleString()+
+      " matching product(s).",
+      "success-text"
+    );
+
+  }catch(err){
+
+    console.error(
+      "Product search error:",
+      err
+    );
+
+    setStatus(
+      "Product search error: "+
+      escapeHtml(
+        err.message||err
+      ),
+      "error"
+    );
   }
 }
 
