@@ -324,6 +324,17 @@ function val(id){
   return el ? el.value: "";
 }
 
+function getValidSaleTicketNo(){
+  const value=
+    val("autoTicketNo")
+      .trim()
+      .toUpperCase();
+
+  return /^SALE-\d{8}-\d{4}$/.test(value)
+    ?value
+    :"";
+}
+
 function escapeHtml(value){
   return String(value === undefined || value === null ? "": value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
@@ -1735,20 +1746,50 @@ function clearCart(){
   setStatus("Cart cleared.", "muted");
 }
 
-async function loadTicketPreview(transactionType, elementId){
-  const el = document.getElementById(elementId);
-  if(!el || !currentUser) return;
-  el.value = "Generating...";
+async function loadTicketPreview(
+  transactionType,
+  elementId
+){
+  const el=
+    document.getElementById(
+      elementId
+    );
+
+  if(!el||!currentUser){
+    return;
+  }
+
+  el.value="Generating...";
+
   try{
-    const res = await apiCall({action: "getNextTicketNo", staffId: currentUser.staffId, pin: currentPin, transactionType});
-    if(res && res.success){
-      el.value = res.ticketNo || "";
-    } else{
-      el.value = "Will auto-generate on submit";
+    const res=
+      await apiCall({
+        action:"getNextTicketNo",
+        staffId:currentUser.staffId,
+        pin:currentPin,
+        transactionType
+      });
+
+    if(
+      res&&
+      res.success&&
+      res.ticketNo
+    ){
+      el.value=res.ticketNo;
+      return;
     }
-  } catch(err){
-    console.log("Ticket preview failed:", err);
-    el.value = "Will auto-generate on submit";
+
+    el.value=
+      "Generation failed - refresh form";
+
+  }catch(err){
+    console.log(
+      "Ticket preview failed:",
+      err
+    );
+
+    el.value=
+      "Generation failed - refresh form";
   }
 }
 
@@ -2423,6 +2464,19 @@ async function submitCartTransaction(){
     setStatus("Please select the stock source location.", "error");
     return;
   }
+  
+  if(currentType==="SALE"){
+    const saleTicketNo=
+      getValidSaleTicketNo();
+
+    if(!saleTicketNo){
+      setStatus(
+        "Please wait for the Sale ID to finish generating before submitting.",
+        "info"
+      );
+      return;
+    }
+  }
   if(currentType === "SALE"){
     const paymentStatus=val("paymentStatus").trim().toUpperCase();
     const paymentTerms=val("paymentTerms").trim();
@@ -2456,10 +2510,27 @@ async function submitCartTransaction(){
     setStatus("Please select who released the item.", "error");
     return;
   }
-  if(currentType === "SALE"){
-    params = {...params, saleId: val("autoTicketNo"), ticketNo: val("autoTicketNo"), dateSold: val("dateSold"), salesChannel: val("salesChannel"), saleLocation: val("saleLocation"), soldBy: val("soldBy"),
-    releasedBy: val("releasedBy"), receiptType: val("receiptType"), receiptNo: val("receiptNo"), customerName: val("customerName"), paymentStatus: val("paymentStatus"), paymentTerms: val("paymentTerms")};
+
+  if(currentType==="SALE"){
+    const saleTicketNo=
+      getValidSaleTicketNo();
+    params={
+      ...params,
+      saleId:saleTicketNo,
+      ticketNo:saleTicketNo,
+      dateSold:val("dateSold"),
+      salesChannel:val("salesChannel"),
+      saleLocation:val("saleLocation"),
+      soldBy:val("soldBy"),
+      releasedBy:val("releasedBy"),
+      receiptType:val("receiptType"),
+      receiptNo:val("receiptNo"),
+      customerName:val("customerName"),
+      paymentStatus:val("paymentStatus"),
+      paymentTerms:val("paymentTerms")
+    };
   }
+  
   if(currentType === "PURCHASE"){
     params = {...params, dateReceived: val("dateReceived"), supplier: val("supplier"), receivedBy: val("receivedBy"), checkedBy: val("checkedBy"), receiptNo: val("receiptNo"), paymentStatus: val("paymentStatus")};
   }
@@ -2591,10 +2662,28 @@ async function submitTransaction(){
   isSubmitting = true;
   const searchValue=String(currentProduct?.qrValue||currentProduct?.barcodeValue||currentProduct?.sku||val("searchValue")).trim();
   let params = {staffId: currentUser.staffId, pin: currentPin, searchValue};
-  if(currentType === "SALE"){
-    params = {...params, action: "submitSale", dateSold: val("dateSold"), salesChannel: val("salesChannel"), soldBy: val("soldBy"), releasedBy: val("releasedBy"), packedBy: val("packedBy"),
-    quantity: val("quantity"), pricePerUnit: val("pricePerUnit"), orderNo: val("orderNo"), customerName: val("customerName"), paymentStatus: val("paymentStatus"), notes: val("notes")};
-  } else if(currentType === "PURCHASE"){
+  
+  if(currentType==="SALE"){
+    const saleTicketNo=
+      getValidSaleTicketNo();
+  
+    params={
+      ...params,
+      saleId:saleTicketNo,
+      ticketNo:saleTicketNo,
+      dateSold:val("dateSold"),
+      salesChannel:val("salesChannel"),
+      saleLocation:val("saleLocation"),
+      soldBy:val("soldBy"),
+      releasedBy:val("releasedBy"),
+      receiptType:val("receiptType"),
+      receiptNo:val("receiptNo"),
+      customerName:val("customerName"),
+      paymentStatus:val("paymentStatus"),
+      paymentTerms:val("paymentTerms")
+    };
+  }
+   else if(currentType === "PURCHASE"){
     params = {...params, action: "submitPurchase", dateReceived: val("dateReceived"), supplier: val("supplier"), receivedBy: val("receivedBy"), checkedBy: val("checkedBy"), quantity: val("quantity"),
     costPerUnit: val("costPerUnit"), receiptNo: val("receiptNo"), paymentStatus: val("paymentStatus"), notes: val("notes")};
   } else if(currentType === "COUNT_CHECK"){
