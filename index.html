@@ -648,6 +648,7 @@ async function restoreSavedLoginSession(){
 function logout(){
   clearLoginSession();
   stopInactivityTimer();
+  stopNotificationRefresh()
   stopCamera();
   currentUser = null;
   currentPin = "";
@@ -671,6 +672,9 @@ function logout(){
   document.getElementById("newPin").value = "";
   document.getElementById("confirmPin").value = "";
   document.getElementById("searchValue").value = "";
+  pendingApprovalCount=0;
+  pendingReleaseCount=0;
+  updateNotificationTitle();
   setStatus("Logged out.", "muted");
 }
 
@@ -696,16 +700,28 @@ function canUseReleaseItem(){
 function openHome(){
   show("homeCard");
 
-  document.getElementById("welcomeText").innerText="Welcome, "+currentUser.name;
+  document.getElementById(
+    "welcomeText"
+  ).innerText=
+    "Welcome, "+currentUser.name;
 
-  document.getElementById("userInfo").innerText= "Staff ID: "+currentUser.staffId+" | Role: "+currentUser.role;
+  document.getElementById(
+    "userInfo"
+  ).innerText=
+    "Staff ID: "+currentUser.staffId+
+    " | Role: "+currentUser.role;
 
   renderHomeButtons();
 
   /*
-   * Check pending notifications.
+   * Check immediately.
    */
   refreshHomeNotifications();
+
+  /*
+   * Then automatically every 5 seconds.
+   */
+  startNotificationRefresh();
 }
 
 function renderHomeButtons(){
@@ -730,96 +746,206 @@ function renderHomeButtons(){
     container.appendChild(makeMenuButton("Return Stock-In", "Search receipt no., submit returned items, and wait for location approval.", openRevampReturnLookup));
   }
   if(canViewMyReleaseRequests()){
-    container.appendChild(makeMenuButton("My Release Requests", "View pending released items requested for you.", openMyReleaseRequests, true, pendingReleaseCount));
+    container.appendChild(makeMenuButton("My Release Requests", "View pending released items requested for you.", openMyReleaseRequests, true, pendingReleaseCount, "RELEASES"));
   }
   const currentNameKey = String(currentUser.name || "").trim().toUpperCase();
   const approvalUserKeys = (settings.approvalUsers || []).map(name => {
     return String(name || "").trim().toUpperCase();
   });
   if(approvalUserKeys.includes(currentNameKey)){
-    container.appendChild(makeMenuButton("My Approvals", "Approve or reject pending return requests assigned to you.", openMyApprovals, true, pendingApprovalCount));
+    container.appendChild(makeMenuButton("My Approvals", "Approve or reject pending return requests assigned to you.", openMyApprovals, true, pendingApprovalCount, "APPROVALS"));
   }
   if(canAccess("REPORTSHISTORY")){
     container.appendChild(makeMenuButton("Reports / History", "For manager/admin checking only.", openReportsView));
   }
 }
 
-async function refreshHomeNotifications(){
-  if(!currentUser){
+function updateHomeNotificationBadge(
+  notificationKey,
+  count
+){
+  const badge=document.querySelector(
+    `[data-notification="${notificationKey}"]`
+  );
+
+  if(!badge){
     return;
   }
 
-  /*
-   * MY RELEASE REQUESTS
-   */
-  if(canViewMyReleaseRequests()){
-    try{
-      const res=await apiCall({action:"getMyReleaseRequests", staffId:currentUser.staffId, pin:currentPin});
-      if(res&&res.success){pendingReleaseCount=Array.isArray(res.rows) ?res.rows.length :Number(res.count||0);
-      }
-    }catch(err){
-      console.log("Release notification check failed:",
-        err
-      );
-    }
-  }else{
-    pendingReleaseCount=0;
-  }
+  const number=Math.max(
+    0,
+    Number(count||0)
+  );
 
-  /*
-   * MY APPROVALS
-   */
-  const currentNameKey=String(
-    currentUser.name||""
-  ).trim().toUpperCase();
+  badge.textContent=
+    number>99
+      ?"99+"
+      :String(number);
 
-  const approvalUserKeys=(
-    settings.approvalUsers||[]
-  ).map(name=>{
-    return String(name||"")
-      .trim()
-      .toUpperCase();
-  });
+  badge.classList.toggle(
+    "hidden",
+    number<=0
+  );
+}
 
-  if(approvalUserKeys.includes(currentNameKey)){
-    try{
-      const res=await apiCall({
-        action:"getMyRevampApprovals",
-        staffId:currentUser.staffId,
-        pin:currentPin
-      });
-
-      if(res&&res.success){
-        pendingApprovalCount=Array.isArray(res.rows)
-          ?res.rows.length
-          :Number(res.count||0);
-      }
-    }catch(err){
-      console.log(
-        "Approval notification check failed:",
-        err
-      );
-    }
-  }else{
-    pendingApprovalCount=0;
-  }
-
-  /*
-   * Update the menu
-   */
-  renderHomeButtons();
-
-  /*
-   * Optional browser-tab notification.
-   */
+function updateNotificationTitle(){
   const total=
-    pendingReleaseCount+
-    pendingApprovalCount;
+    pendingApprovalCount+
+    pendingReleaseCount;
 
   document.title=total>0
     ?"("+total+") Charlon Enterprises Inventory System"
     :"Charlon Enterprises Inventory System";
 }
+  
+async function refreshHomeNotifications(){
+  if(
+    !currentUser||
+    notificationRefreshRunning
+  ){
+    return;
+  }
+
+  notificationRefreshRunning=true;
+
+  try{
+
+    /*
+     * MY RELEASE REQUESTS
+     */
+    if(canViewMyReleaseRequests()){
+      try{
+        const res=await apiCall({
+          action:"getMyReleaseRequests",
+          staffId:currentUser.staffId,
+          pin:currentPin
+        });
+
+        if(res&&res.success){
+          pendingReleaseCount=
+            Array.isArray(res.rows)
+              ?res.rows.length
+              :Number(res.count||0);
+        }
+      }catch(err){
+        console.log(
+          "Release notification check failed:",
+          err
+        );
+      }
+    }else{
+      pendingReleaseCount=0;
+    }
+
+    /*
+     * MY APPROVALS
+     */
+    const currentNameKey=String(
+      currentUser.name||""
+    )
+      .trim()
+      .toUpperCase();
+
+    const approvalUserKeys=(
+      settings.approvalUsers||[]
+    ).map(name=>{
+      return String(name||"")
+        .trim()
+        .toUpperCase();
+    });
+
+    if(
+      approvalUserKeys.includes(
+        currentNameKey
+      )
+    ){
+      try{
+        const res=await apiCall({
+          action:"getMyRevampApprovals",
+          staffId:currentUser.staffId,
+          pin:currentPin
+        });
+
+        if(res&&res.success){
+          pendingApprovalCount=
+            Array.isArray(res.rows)
+              ?res.rows.length
+              :Number(res.count||0);
+        }
+      }catch(err){
+        console.log(
+          "Approval notification check failed:",
+          err
+        );
+      }
+    }else{
+      pendingApprovalCount=0;
+    }
+
+    /*
+     * Update only the badges.
+     */
+    updateHomeNotificationBadge(
+      "RELEASES",
+      pendingReleaseCount
+    );
+
+    updateHomeNotificationBadge(
+      "APPROVALS",
+      pendingApprovalCount
+    );
+
+    updateNotificationTitle();
+
+  }finally{
+    notificationRefreshRunning=false;
+  }
+}
+
+function startNotificationRefresh(){
+  stopNotificationRefresh();
+
+  if(!currentUser){
+    return;
+  }
+
+  notificationRefreshTimer=setInterval(()=>{
+    refreshHomeNotifications();
+  },NOTIFICATION_REFRESH_MS);
+}
+
+function stopNotificationRefresh(){
+  if(notificationRefreshTimer){
+    clearInterval(
+      notificationRefreshTimer
+    );
+
+    notificationRefreshTimer=null;
+  }
+
+  notificationRefreshRunning=false;
+}
+
+document.addEventListener(
+  "visibilitychange",
+  ()=>{
+    if(
+      document.visibilityState==="visible"&&
+      currentUser
+    ){
+      refreshHomeNotifications();
+    }
+  }
+);
+
+window.addEventListener(
+  "focus",
+  ()=>{
+    if(currentUser){
+      refreshHomeNotifications();
+    }
+  }
+);
   
 function makeMenuButton(label, helper, onClick, live=true, notificationCount=0, notificationKey=""){
   const button=document.createElement("button");
