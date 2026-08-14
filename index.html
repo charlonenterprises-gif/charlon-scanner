@@ -79,7 +79,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System 2026</h1>
-    <p class="muted">Login · v2026.2.8</p>
+    <p class="muted">Login · v2026.2.9</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -286,6 +286,9 @@ let revampApprovalRows = [];
 let releaseRequestRows = [];
 let pendingApprovalCount=0;
 let pendingReleaseCount=0;
+let notificationRefreshTimer=null;
+let notificationRefreshRunning=false;
+const NOTIFICATION_REFRESH_MS=5*1000;
 const SESSION_STORAGE_KEY = "charlonMiniPosSessionV1";
 const SESSION_TIMEOUT_MS = 20 * 60 * 1000;
 let inactivityTimer = null;
@@ -818,19 +821,26 @@ async function refreshHomeNotifications(){
     :"Charlon Enterprises Inventory System";
 }
   
-function makeMenuButton(label, helper, onClick, live=true, notificationCount=0){
+function makeMenuButton(label, helper, onClick, live=true, notificationCount=0, notificationKey=""){
   const button=document.createElement("button");
   button.type="button";
-  button.className=live?"choice":"choice secondary coming-soon";
+  button.className=live
+    ?"choice"
+    :"choice secondary coming-soon";
 
   const count=Number(notificationCount||0);
-  const badgeHtml=count>0?`<span class="notification-badge">${count>99?"99+":count} </span> `:"";
-  button.innerHTML=`<div class="menu-title-row"><span>${escapeHtml(label)}${live?"":" (next update)"}</span>
-      ${badgeHtml}
-    </div> <div class="muted" style="margin-top:4px;" > ${escapeHtml(helper)} </div> `;
 
-  button.onclick=function(){if(!live){setStatus(label+" is not ready yet.", "info");
-      return;
+  const badgeHtml=notificationKey
+    ?`
+      <span class="notification-badge ${count>0?"":"hidden"}" data-notification="${escapeHtml(notificationKey)}"> ${count>99?"99+":count} </span> `:"";
+
+  button.innerHTML=` <div class="menu-title-row"> <span> ${escapeHtml(label)} ${live?"":" (next update)"} </span>
+      ${badgeHtml}  </div>
+
+    <div class="muted" style="margin-top:4px;"> ${escapeHtml(helper)} </div>`;
+
+  button.onclick=function(){
+    if(!live){setStatus(label+" is not ready yet.", "info"); return;
     }
 
     onClick();
