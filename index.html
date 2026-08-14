@@ -18,6 +18,8 @@
     button.danger { background:#b42318; }
     button.choice { text-align:left; padding:16px; font-size:17px; }
     .button-grid { display:grid; grid-template-columns:1fr; gap:10px; }
+    .menu-title-row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+    .notification-badge{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 7px;border-radius:999px;background:#b42318;color:#fff;font-size:12px;font-weight:700;line-height:1;}
     .coming-soon { opacity:.7; }
     .hidden { display:none !important; }
     .muted { color:#666; font-size:13px; }
@@ -77,7 +79,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System 2026</h1>
-    <p class="muted">Login · v2026.2.7</p>
+    <p class="muted">Login · v2026.2.8</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -282,6 +284,8 @@ let currentTicketLines = [];
 let revampReturnLines = [];
 let revampApprovalRows = [];
 let releaseRequestRows = [];
+let pendingApprovalCount=0;
+let pendingReleaseCount=0;
 const SESSION_STORAGE_KEY = "charlonMiniPosSessionV1";
 const SESSION_TIMEOUT_MS = 20 * 60 * 1000;
 let inactivityTimer = null;
@@ -688,9 +692,17 @@ function canUseReleaseItem(){
 
 function openHome(){
   show("homeCard");
-  document.getElementById("welcomeText").innerText = "Welcome, " + currentUser.name;
-  document.getElementById("userInfo").innerText = "Staff ID: " + currentUser.staffId + " | Role: " + currentUser.role;
+
+  document.getElementById("welcomeText").innerText="Welcome, "+currentUser.name;
+
+  document.getElementById("userInfo").innerText= "Staff ID: "+currentUser.staffId+" | Role: "+currentUser.role;
+
   renderHomeButtons();
+
+  /*
+   * Check pending notifications.
+   */
+  refreshHomeNotifications();
 }
 
 function renderHomeButtons(){
@@ -715,35 +727,115 @@ function renderHomeButtons(){
     container.appendChild(makeMenuButton("Return Stock-In", "Search receipt no., submit returned items, and wait for location approval.", openRevampReturnLookup));
   }
   if(canViewMyReleaseRequests()){
-    container.appendChild(makeMenuButton("My Release Requests", "View pending released items requested for you.", openMyReleaseRequests));
+    container.appendChild(makeMenuButton("My Release Requests", "View pending released items requested for you.", openMyReleaseRequests, true, pendingReleaseCount));
   }
   const currentNameKey = String(currentUser.name || "").trim().toUpperCase();
   const approvalUserKeys = (settings.approvalUsers || []).map(name => {
     return String(name || "").trim().toUpperCase();
   });
   if(approvalUserKeys.includes(currentNameKey)){
-    container.appendChild(makeMenuButton("My Approvals", "Approve or reject pending return requests assigned to you.", openMyApprovals));
+    container.appendChild(makeMenuButton("My Approvals", "Approve or reject pending return requests assigned to you.", openMyApprovals, true, pendingApprovalCount));
   }
   if(canAccess("REPORTSHISTORY")){
     container.appendChild(makeMenuButton("Reports / History", "For manager/admin checking only.", openReportsView));
   }
 }
 
-function makeMenuButton(label, helper, onClick, live = true){
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = live ? "choice": "choice secondary coming-soon";
-  button.innerHTML = `
-    <div>${escapeHtml(label)}${live ? "" : " (next update)"}</div>
-    <div class="muted" style="margin-top:4px;">${escapeHtml(helper)}</div>
-  `;
-  button.onclick = function(){
-    if(!live){
-      setStatus(label + " is not ready yet.", "info");
+async function refreshHomeNotifications(){
+  if(!currentUser){
+    return;
+  }
+
+  /*
+   * MY RELEASE REQUESTS
+   */
+  if(canViewMyReleaseRequests()){
+    try{
+      const res=await apiCall({action:"getMyReleaseRequests", staffId:currentUser.staffId, pin:currentPin});
+      if(res&&res.success){pendingReleaseCount=Array.isArray(res.rows) ?res.rows.length :Number(res.count||0);
+      }
+    }catch(err){
+      console.log("Release notification check failed:",
+        err
+      );
+    }
+  }else{
+    pendingReleaseCount=0;
+  }
+
+  /*
+   * MY APPROVALS
+   */
+  const currentNameKey=String(
+    currentUser.name||""
+  ).trim().toUpperCase();
+
+  const approvalUserKeys=(
+    settings.approvalUsers||[]
+  ).map(name=>{
+    return String(name||"")
+      .trim()
+      .toUpperCase();
+  });
+
+  if(approvalUserKeys.includes(currentNameKey)){
+    try{
+      const res=await apiCall({
+        action:"getMyRevampApprovals",
+        staffId:currentUser.staffId,
+        pin:currentPin
+      });
+
+      if(res&&res.success){
+        pendingApprovalCount=Array.isArray(res.rows)
+          ?res.rows.length
+          :Number(res.count||0);
+      }
+    }catch(err){
+      console.log(
+        "Approval notification check failed:",
+        err
+      );
+    }
+  }else{
+    pendingApprovalCount=0;
+  }
+
+  /*
+   * Update the menu
+   */
+  renderHomeButtons();
+
+  /*
+   * Optional browser-tab notification.
+   */
+  const total=
+    pendingReleaseCount+
+    pendingApprovalCount;
+
+  document.title=total>0
+    ?"("+total+") Charlon Enterprises Inventory System"
+    :"Charlon Enterprises Inventory System";
+}
+  
+function makeMenuButton(label, helper, onClick, live=true, notificationCount=0){
+  const button=document.createElement("button");
+  button.type="button";
+  button.className=live?"choice":"choice secondary coming-soon";
+
+  const count=Number(notificationCount||0);
+  const badgeHtml=count>0?`<span class="notification-badge">${count>99?"99+":count} </span> `:"";
+  button.innerHTML=`<div class="menu-title-row"><span>${escapeHtml(label)}${live?"":" (next update)"}</span>
+      ${badgeHtml}
+    </div> <div class="muted" style="margin-top:4px;" > ${escapeHtml(helper)} </div> `;
+
+  button.onclick=function(){if(!live){setStatus(label+" is not ready yet.", "info");
       return;
     }
+
     onClick();
   };
+
   return button;
 }
 
@@ -2239,6 +2331,7 @@ async function loadMyReleaseRequests(){
       return;
     }
     releaseRequestRows = Array.isArray(res.rows) ? res.rows: [];
+    pendingReleaseCount=releaseRequestRows.length;
     renderMyReleaseRequests(res);
     setStatus("Release requests loaded.", "success-text");
   } catch(err){
@@ -3047,6 +3140,7 @@ async function loadMyApprovals(){
       return;
     }
     revampApprovalRows = res.rows || [];
+    pendingApprovalCount=revampApprovalRows.length;
     renderMyApprovals(res);
     setStatus("Approvals loaded.", "success-text");
   } catch(err){
