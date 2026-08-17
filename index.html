@@ -2922,9 +2922,136 @@ async function submitCartTransaction(){
       }
     }
   }
-  const cleanItems = cartItems.map(item => {
-    const p = item.product || {}; return{qboId: p.qboId || "", sku: p.sku || "", barcodeValue: p.barcodeValue || "", qrValue: p.qrValue || p.barcodeValue || "", productName: p.productName || "",
-    quantity: Number(item.quantity || 0), unit: item.unit || "unit", unitDetails: item.unitDetails || "", pricePerUnit: Number(item.pricePerUnit || 0), costPerUnit: Number(item.costPerUnit || 0)};
+  const cleanItems=cartItems.map(item=>{
+    const p=item.product||{};
+  
+    const isUnlisted=
+      item.isUnlisted===true;
+  
+    /*
+     * ========================================
+     * UNLISTED PRODUCT
+     * ========================================
+     */
+    if(isUnlisted){
+      return{
+        isUnlisted:true,
+  
+        sku:"",
+        barcodeValue:"",
+        qrValue:"",
+  
+        productName:
+          item.productName||
+          p.productName||
+          "",
+  
+        brand:
+          item.brand||
+          "",
+  
+        model:
+          item.model||
+          "",
+  
+        itemType:
+          item.itemType||
+          "",
+  
+        description:
+          item.description||
+          "",
+  
+        specifications:
+          item.specifications||
+          "",
+  
+        quantity:
+          Number(
+            item.quantity||0
+          ),
+  
+        unit:
+          item.unit||
+          "unit",
+  
+        unitDetails:
+          item.unitDetails||
+          "",
+  
+        sourceLocation:
+          item.sourceLocation||
+          "",
+  
+        pricePerUnit:
+          Number(
+            item.pricePerUnit||0
+          ),
+  
+        costPerUnit:
+          Number(
+            item.costPerUnit||0
+          ),
+  
+        notes:
+          item.notes||
+          ""
+      };
+    }
+  
+  
+    /*
+     * ========================================
+     * NORMAL LISTED PRODUCT
+     * ========================================
+     */
+    return{
+      isUnlisted:false,
+  
+      qboId:
+        p.qboId||
+        "",
+  
+      sku:
+        p.sku||
+        "",
+  
+      barcodeValue:
+        p.barcodeValue||
+        "",
+  
+      qrValue:
+        p.qrValue||
+        p.barcodeValue||
+        "",
+  
+      productName:
+        p.productName||
+        "",
+  
+      quantity:
+        Number(
+          item.quantity||0
+        ),
+  
+      unit:
+        item.unit||
+        "unit",
+  
+      unitDetails:
+        item.unitDetails||
+        "",
+  
+      pricePerUnit:
+        Number(
+          item.pricePerUnit||0
+        ),
+  
+      costPerUnit:
+        Number(
+          item.costPerUnit||0
+        )
+    };
   });
   let params = {action: "submitCartTransaction", staffId: currentUser.staffId, pin: currentPin, transactionType: currentType, cartItems: JSON.stringify(cleanItems), notes: val("notes")};
   if(currentType === "SALE" && !val("releasedBy")){
@@ -2976,15 +3103,90 @@ async function submitCartTransaction(){
       requestedBy
     };
   }
-  const itemSummary = cleanItems.map(item => `- ${item.productName} | Qty: ${item.quantity} ${item.unit || ""}${item.unitDetails ? " | " + item.unitDetails : ""}`).join("\n");
+  const itemSummary=
+    cleanItems
+      .map(item=>{
+  
+        const customLabel=
+          item.isUnlisted
+            ?" [UNLISTED]"
+            :"";
+  
+        const sourceLabel=
+          item.isUnlisted&&
+          item.sourceLocation
+            ?" | Source: "+
+              item.sourceLocation
+            :"";
+  
+        return(
+          "- "+
+          item.productName+
+          customLabel+
+          " | Qty: "+
+          item.quantity+
+          " "+
+          (
+            item.unit||
+            ""
+          )+
+          (
+            item.unitDetails
+              ?" | "+
+               item.unitDetails
+              :""
+          )+
+          sourceLabel
+        );
+      })
+      .join("\n");
   let negativeWarningText = "";
   if(currentType === "SALE" || currentType === "RELEASING"){
-    const warningItems = cartItems.map(item => {
-      const p = item.product || {}; const availableQty = Number(p.availableQty !== undefined ? p.availableQty: p.currentQty || 0); const qty = Number(item.quantity || 0); if(qty > availableQty){
-        return `- ${p.productName || ""} | Available: ${availableQty}, Transaction Qty: ${qty}`;
-      }
-      return "";
-    }).filter(text => text);
+    const warningItems=
+      cartItems
+        .map(item=>{
+    
+          /*
+           * Unlisted products do not yet have
+           * Dashboard / Location inventory,
+           * so do not perform stock warning.
+           */
+          if(item.isUnlisted===true){
+            return"";
+          }
+    
+          const p=
+            item.product||{};
+    
+          const availableQty=
+            Number(
+              p.availableQty!==undefined
+                ?p.availableQty
+                :p.currentQty||0
+            );
+    
+          const qty=
+            Number(
+              item.quantity||0
+            );
+    
+          if(qty>availableQty){
+            return(
+              "- "+
+              (
+                p.productName||
+                ""
+              )+
+              " | Available: "+
+              availableQty+
+              ", Transaction Qty: "+
+              qty
+            );
+          }
+    
+          return"";
+        })
+        .filter(text=>text);
     if(warningItems.length){
       negativeWarningText = "\n\nWARNING:\n" + "Some items do not have enough available stock. The system will still continue and record negative stock.\n\n" + warningItems.join("\n");
     }
