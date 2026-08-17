@@ -3247,17 +3247,133 @@ async function submitCartTransaction(){
       Receipt No.: ${escapeHtml(res.receiptNo || "")}<br>
       Items Saved: ${escapeHtml(res.itemCount || 0)}
     `;
-    if(Array.isArray(res.results)){
-      resultHtml += "<br><br>";
-      res.results.forEach(item => {
-        resultHtml += `
-          ${escapeHtml(item.productName || "")}<br>
-          Qty: ${escapeHtml(item.qty)} ${escapeHtml(item.unit || "")}<br>
-          ${item.unitDetails ? `Unit Details: ${escapeHtml(item.unitDetails)}<br>` : ""}
-          Total Qty: ${escapeHtml(item.oldTotalQty)} → ${escapeHtml(item.newTotalQty)}<br>
-          Reserved Qty: ${escapeHtml(item.oldReservedQty)} → ${escapeHtml(item.newReservedQty)}<br>
-          Available Qty: ${escapeHtml(item.oldAvailableQty)} → ${escapeHtml(item.newAvailableQty)}<br>
-          ${item.negativeStockWarning ? `<span class="error">${escapeHtml(item.negativeStockWarning)}</span><br>` : ""}
+    if(
+      Array.isArray(res.results)&&
+      res.results.length
+    ){
+      resultHtml+="<br><br>";
+    
+      res.results.forEach(item=>{
+    
+        /*
+         * ========================================
+         * UNLISTED PRODUCT RESULT
+         * ========================================
+         */
+        if(item.isUnlisted){
+    
+          resultHtml+=`
+            <strong>
+              ${escapeHtml(item.productName||"")}
+            </strong><br>
+    
+            <span class="badge">
+              UNLISTED PRODUCT
+            </span><br>
+    
+            Temporary ID:
+            <strong>
+              ${escapeHtml(
+                item.unlistedId||
+                item.sku||
+                ""
+              )}
+            </strong><br>
+    
+            Qty:
+            ${escapeHtml(item.qty||0)}
+            ${escapeHtml(item.unit||"unit")}
+            <br>
+    
+            ${
+              item.unitDetails
+                ?`Unit Details: ${escapeHtml(item.unitDetails)}<br>`
+                :""
+            }
+    
+            Source Location:
+            <strong>
+              ${escapeHtml(item.location||"")}
+            </strong><br>
+    
+            Status:
+            <strong>
+              ${escapeHtml(
+                item.reviewStatus||
+                "PENDING REVIEW"
+              )}
+            </strong><br>
+    
+            <span class="muted">
+              Inventory Dashboard and Product Location Log were not changed.
+              Admin must review this product.
+            </span>
+    
+            <br><br>
+          `;
+    
+          return;
+        }
+    
+    
+        /*
+         * ========================================
+         * NORMAL LISTED PRODUCT RESULT
+         * ========================================
+         */
+        resultHtml+=`
+          <strong>
+            ${escapeHtml(item.productName||"")}
+          </strong><br>
+    
+          Qty:
+          ${escapeHtml(item.qty)}
+          ${escapeHtml(item.unit||"")}
+          <br>
+    
+          ${
+            item.unitDetails
+              ?`Unit Details: ${escapeHtml(item.unitDetails)}<br>`
+              :""
+          }
+    
+          Location:
+          ${escapeHtml(item.location||"")}
+          <br>
+    
+          Location Qty:
+          ${escapeHtml(item.oldLocationQty)}
+          →
+          ${escapeHtml(item.newLocationQty)}
+          <br>
+    
+          Total Qty:
+          ${escapeHtml(item.oldTotalQty)}
+          →
+          ${escapeHtml(item.newTotalQty)}
+          <br>
+    
+          ${
+            Number(item.unknownFallbackQty||0)>0
+              ?`
+                <span class="info">
+                  ${escapeHtml(item.unknownFallbackQty)}
+                  qty deducted from UNKNOWN.
+                </span><br>
+              `
+              :""
+          }
+    
+          ${
+            item.negativeStockWarning
+              ?`
+                <span class="error">
+                  ${escapeHtml(item.negativeStockWarning)}
+                </span><br>
+              `
+              :""
+          }
+    
           <br>
         `;
       });
