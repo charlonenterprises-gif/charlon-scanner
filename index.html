@@ -120,6 +120,14 @@
     <button type="button" onclick="findProduct()">
       Search Product
     </button>
+    <button
+      id="addUnlistedProductBtn"
+      class="secondary hidden"
+      type="button"
+      onclick="openUnlistedProductForm()"
+    >
+      + Add Unlisted Product
+    </button>
     
     <button class="secondary" type="button" onclick="startCamera()">Start Camera Scanner</button>
     <button class="secondary" type="button" onclick="stopCamera()">Stop Camera Scanner</button>
@@ -132,6 +140,129 @@
   <div class="card hidden" id="productCard">
     <h3>Product Found</h3>
     <div class="product-box" id="productInfo"></div>
+  </div>
+
+  <div class="card hidden" id="unlistedProductCard">
+    <h3>Add Unlisted Product</h3>
+  
+    <p class="muted">
+      Use this only when the product cannot be found in the inventory system.
+      It will be marked for Admin review.
+    </p>
+  
+    <label>Product Name *</label>
+    <input
+      type="text"
+      id="unlistedProductName"
+      placeholder="Example: Makita 4-inch Grinder"
+      autocomplete="off"
+    >
+  
+    <div class="row">
+      <div>
+        <label>Brand</label>
+        <input
+          type="text"
+          id="unlistedBrand"
+          placeholder="Example: Makita"
+        >
+      </div>
+  
+      <div>
+        <label>Model</label>
+        <input
+          type="text"
+          id="unlistedModel"
+          placeholder="Example: 9553B"
+        >
+      </div>
+    </div>
+  
+    <label>Item Type</label>
+    <input
+      type="text"
+      id="unlistedItemType"
+      placeholder="Example: Angle Grinder"
+    >
+  
+    <label>Description</label>
+    <input
+      type="text"
+      id="unlistedDescription"
+      placeholder="Optional description"
+    >
+  
+    <label>Specifications</label>
+    <input
+      type="text"
+      id="unlistedSpecifications"
+      placeholder="Example: 4-inch, 720W, 220V"
+    >
+  
+    <div class="row">
+      <div>
+        <label>Quantity *</label>
+        <input
+          type="number"
+          id="unlistedQty"
+          min="1"
+          step="1"
+          value="1"
+        >
+      </div>
+  
+      <div>
+        <label>Source Location *</label>
+        <div id="unlistedSourceLocationWrap"></div>
+      </div>
+    </div>
+  
+    <div class="row">
+      <div>
+        <label>Price Per Unit *</label>
+        <input
+          type="number"
+          id="unlistedPrice"
+          min="0"
+          step="0.01"
+          value="0"
+        >
+      </div>
+  
+      <div>
+        <label>Cost Per Unit</label>
+        <input
+          type="number"
+          id="unlistedCost"
+          min="0"
+          step="0.01"
+          value="0"
+        >
+      </div>
+    </div>
+  
+    <label>Notes</label>
+    <textarea
+      id="unlistedNotes"
+      rows="2"
+      placeholder="Optional notes for Admin review"
+    ></textarea>
+  
+    <button
+      class="success"
+      type="button"
+      onclick="addUnlistedProductToCart()"
+    >
+      Add to Sale Cart
+    </button>
+  
+    <button
+      class="secondary"
+      type="button"
+      onclick="closeUnlistedProductForm()"
+    >
+      Cancel
+    </button>
   </div>
 
   <div class="card hidden" id="cartCard">
@@ -1076,6 +1207,19 @@ function updateGoTopButton_(){
 
 function chooseType(type){
   currentType = type;
+  const unlistedButton=
+    document.getElementById(
+      "addUnlistedProductBtn"
+    );
+  
+  if(unlistedButton){
+    unlistedButton.classList.toggle(
+      "hidden",
+      type!=="SALE"
+    );
+  }
+  
+  hide("unlistedProductCard");
   currentProduct = null;
   cartItems = [];
   hide("homeCard");
@@ -1647,6 +1791,266 @@ function addProductToCart(product){
   renderCart();
 }
 
+function openUnlistedProductForm(){
+  if(currentType!=="SALE"){
+    return;
+  }
+
+  hide("productCard");
+
+  const locationWrap=
+    document.getElementById(
+      "unlistedSourceLocationWrap"
+    );
+
+  if(locationWrap){
+    locationWrap.innerHTML=
+      inventoryLocationSelectHtml(
+        "unlistedSourceLocation"
+      );
+  }
+
+  document.getElementById(
+    "unlistedProductName"
+  ).value="";
+
+  document.getElementById(
+    "unlistedBrand"
+  ).value="";
+
+  document.getElementById(
+    "unlistedModel"
+  ).value="";
+
+  document.getElementById(
+    "unlistedItemType"
+  ).value="";
+
+  document.getElementById(
+    "unlistedDescription"
+  ).value="";
+
+  document.getElementById(
+    "unlistedSpecifications"
+  ).value="";
+
+  document.getElementById(
+    "unlistedQty"
+  ).value="1";
+
+  document.getElementById(
+    "unlistedPrice"
+  ).value="0";
+
+  document.getElementById(
+    "unlistedCost"
+  ).value="0";
+
+  document.getElementById(
+    "unlistedNotes"
+  ).value="";
+
+  show("unlistedProductCard");
+
+  setTimeout(()=>{
+    document.getElementById(
+      "unlistedProductName"
+    ).focus();
+  },200);
+}
+
+
+function closeUnlistedProductForm(){
+  hide("unlistedProductCard");
+
+  const searchField=
+    document.getElementById(
+      "searchValue"
+    );
+
+  if(searchField){
+    searchField.focus();
+  }
+}
+
+
+function addUnlistedProductToCart(){
+  const productName=
+    val("unlistedProductName").trim();
+
+  const brand=
+    val("unlistedBrand").trim();
+
+  const model=
+    val("unlistedModel").trim();
+
+  const itemType=
+    val("unlistedItemType").trim();
+
+  const description=
+    val("unlistedDescription").trim();
+
+  const specifications=
+    val("unlistedSpecifications").trim();
+
+  const qty=
+    Number(
+      val("unlistedQty")
+    );
+
+  const sourceLocation=
+    val(
+      "unlistedSourceLocation"
+    )
+      .trim()
+      .toUpperCase();
+
+  const pricePerUnit=
+    Number(
+      val("unlistedPrice")||0
+    );
+
+  const costPerUnit=
+    Number(
+      val("unlistedCost")||0
+    );
+
+  const notes=
+    val("unlistedNotes").trim();
+
+
+  if(!productName){
+    setStatus(
+      "Please enter the Custom Product Name.",
+      "error"
+    );
+    return;
+  }
+
+
+  if(
+    !Number.isFinite(qty)||
+    qty<=0||
+    !Number.isInteger(qty)
+  ){
+    setStatus(
+      "Custom Product Quantity must be a whole number greater than 0.",
+      "error"
+    );
+    return;
+  }
+
+
+  if(!sourceLocation){
+    setStatus(
+      "Please select the Source Location.",
+      "error"
+    );
+    return;
+  }
+
+
+  if(
+    !Number.isFinite(pricePerUnit)||
+    pricePerUnit<0
+  ){
+    setStatus(
+      "Price Per Unit is invalid.",
+      "error"
+    );
+    return;
+  }
+
+
+  if(
+    !Number.isFinite(costPerUnit)||
+    costPerUnit<0
+  ){
+    setStatus(
+      "Cost Per Unit is invalid.",
+      "error"
+    );
+    return;
+  }
+
+
+  /*
+   * Temporary browser-only key.
+   *
+   * The real UNL-YYYYMMDD-####
+   * ID will be generated by Code.gs
+   * when the Sale is submitted.
+   */
+  const key=
+    "UNLISTED-"+
+    Date.now()+
+    "-"+
+    Math.floor(
+      Math.random()*100000
+    );
+
+
+  cartItems.push({
+    key,
+
+    isUnlisted:true,
+
+    product:{
+      isUnlisted:true,
+      sku:"",
+      qrValue:"",
+      barcodeValue:"",
+      productName
+    },
+
+    productName,
+    brand,
+    model,
+    itemType,
+    description,
+    specifications,
+
+    quantity:
+      qty,
+
+    unit:"unit",
+
+    unitDetails:"",
+
+    sourceLocation,
+
+    pricePerUnit,
+
+    costPerUnit,
+
+    notes
+  });
+
+
+  hide("unlistedProductCard");
+
+  renderCart();
+
+  /*
+   * Show the normal Sale form if this
+   * is the first item added to the cart.
+   */
+  if(
+    document
+      .getElementById("formCard")
+      .classList
+      .contains("hidden")
+  ){
+    renderForm();
+  }
+
+
+  setStatus(
+    "Unlisted product added to cart. It will be sent for Admin review after the Sale is completed.",
+    "success-text"
+  );
+}
+
 function renderCart(){
   const container = document.getElementById("cartItems");
   if(!cartItems.length){
@@ -1656,14 +2060,31 @@ function renderCart(){
   }
   let html = "";
   cartItems.forEach((item, index) => {
-    const p = item.product || {}; html += `
+    const p = item.product || {}; 
+    const isUnlisted=item.isUnlisted===true;
+    html += `
       <div class="cart-line">
-        <strong>${escapeHtml(p.productName || "")}</strong>
+        <strong>
+          ${escapeHtml(p.productName || item.productName || "")}
+        </strong>
+        
         <div class="muted">
-          SKU: ${escapeHtml(p.sku || "")}<br>
-          QR Value: ${escapeHtml(p.qrValue || p.barcodeValue || "")}<br>
-          ${p.drNumber ? `DR Number: ${escapeHtml(p.drNumber)}<br>` : ""}
-          Available Qty: <strong>${getAvailableQty(p)}</strong>
+          ${
+            isUnlisted
+              ?`
+                <span class="badge">UNLISTED PRODUCT</span><br>
+                Brand: ${escapeHtml(item.brand || "-")}<br>
+                Model: ${escapeHtml(item.model || "-")}<br>
+                Source: <strong>${escapeHtml(item.sourceLocation || "")}</strong><br>
+                <span class="error">Pending Admin review</span>
+              `
+              :`
+                SKU: ${escapeHtml(p.sku || "")}<br>
+                QR Value: ${escapeHtml(p.qrValue || p.barcodeValue || "")}<br>
+                ${p.drNumber ? `DR Number: ${escapeHtml(p.drNumber)}<br>` : ""}
+                Available Qty: <strong>${getAvailableQty(p)}</strong>
+              `
+          }
         </div>
 
         <label>Quantity</label>
