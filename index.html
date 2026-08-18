@@ -79,7 +79,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System 2026</h1>
-    <p class="muted">Login · v2026.3.4</p>
+    <p class="muted">Login · v2026.3.5</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -172,41 +172,55 @@
       </div>
     </div>
   
-    <label>Description</label>
-    <input
-      type="text"
-      id="unlistedDescription"
-      placeholder="Example: Angle Grinder"
-      oninput="updateUnlistedProductNamePreview()"
-    >
-  
     <label>Specifications</label>
     <input
       type="text"
       id="unlistedSpecifications"
-      placeholder='Example: 4" 720W 220V'
+      placeholder='Example: 18V / 4" 720W / 25HP'
       oninput="updateUnlistedProductNamePreview()"
     >
-  
+    
+    <label>Description</label>
+    <input
+      type="text"
+      id="unlistedDescription"
+      placeholder="Example: Cordless / Air Cooled / 4-Stroke"
+      oninput="updateUnlistedProductNamePreview()"
+    >
+    
     <div class="row">
       <div>
-        <label>Item Type</label>
+        <label>Item Type *</label>
+    
         <input
           type="text"
           id="unlistedItemType"
-          placeholder="Example: Grinder"
+          list="unlistedItemTypeList"
+          placeholder="Select or type Item Type"
+          autocomplete="off"
           oninput="updateUnlistedProductNamePreview()"
         >
+    
+        <datalist id="unlistedItemTypeList"></datalist>
+    
+        <p class="muted">
+          Select from the list or type a new Item Type.
+        </p>
       </div>
-  
+    
       <div>
         <label>For / With</label>
+    
         <input
           type="text"
           id="unlistedForWith"
-          placeholder="Example: Metal"
+          placeholder="Example: for Metal / with Battery"
           oninput="updateUnlistedProductNamePreview()"
         >
+    
+        <p class="muted">
+          Start with "for" or "with".
+        </p>
       </div>
     </div>
   
@@ -1805,14 +1819,153 @@ function addProductToCart(product){
   renderCart();
 }
 
+function properUnlistedText(value){
+  return String(value||"")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g," ")
+    .replace(
+      /(^|[\s\/(\-])([a-z])/g,
+      function(match,before,letter){
+        return before+
+          letter.toUpperCase();
+      }
+    );
+}
+
+
+function formatUnlistedSpecifications(value){
+  let text=
+    properUnlistedText(value);
+
+  if(!text){
+    return"";
+  }
+
+  return text
+    .replace(
+      /(\d+(?:[./]\d+)*)\s*kva\b/gi,
+      "$1kVA"
+    )
+    .replace(
+      /(\d+(?:[./]\d+)*)\s*kw\b/gi,
+      "$1kW"
+    )
+    .replace(
+      /(\d+(?:[./]\d+)*)\s*hp\b/gi,
+      "$1HP"
+    )
+    .replace(
+      /(\d+(?:[./]\d+)*)\s*hz\b/gi,
+      "$1Hz"
+    )
+    .replace(
+      /(\d+(?:[./]\d+)*)\s*rpm\b/gi,
+      "$1RPM"
+    )
+    .replace(
+      /(\d+(?:[./]\d+)*)\s*psi\b/gi,
+      "$1PSI"
+    )
+    .replace(
+      /(\d+(?:[./]\d+)*)\s*gpm\b/gi,
+      "$1GPM"
+    )
+    .replace(
+      /(\d+(?:[./]\d+)*)\s*mm\b/gi,
+      "$1mm"
+    )
+    .replace(
+      /(\d+(?:[./]\d+)*)\s*cm\b/gi,
+      "$1cm"
+    )
+    .replace(
+      /(\d+(?:[./]\d+)*)\s*v\b/gi,
+      "$1V"
+    )
+    .replace(
+      /(\d+(?:[./]\d+)*)\s*w\b/gi,
+      "$1W"
+    )
+    .replace(
+      /(\d+(?:[./]\d+)*)\s*a\b/gi,
+      "$1A"
+    )
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+
+function formatUnlistedForWith(value){
+  const text=
+    String(value||"")
+      .trim()
+      .replace(/\s+/g," ");
+
+  if(!text){
+    return"";
+  }
+
+  const match=
+    text.match(
+      /^(for|with)\s+(.+)$/i
+    );
+
+  if(!match){
+    /*
+     * Don't throw while user is typing.
+     * Validation happens when Add to Cart
+     * is clicked.
+     */
+    return properUnlistedText(text);
+  }
+
+  return(
+    match[1].toLowerCase()+
+    " "+
+    properUnlistedText(match[2])
+  );
+}
+
+
 function buildUnlistedProductName(){
+  const brand=
+    properUnlistedText(
+      val("unlistedBrand")
+    );
+
+  const model=
+    val("unlistedModel")
+      .trim()
+      .toUpperCase();
+
+  const specifications=
+    formatUnlistedSpecifications(
+      val("unlistedSpecifications")
+    );
+
+  const description=
+    properUnlistedText(
+      val("unlistedDescription")
+    );
+
+  const itemType=
+    properUnlistedText(
+      val("unlistedItemType")
+    );
+
+  const forWith=
+    formatUnlistedForWith(
+      val("unlistedForWith")
+    );
+
   return[
-    val("unlistedBrand").trim(),
-    val("unlistedModel").trim(),
-    val("unlistedDescription").trim(),
-    val("unlistedSpecifications").trim(),
-    val("unlistedItemType").trim(),
-    val("unlistedForWith").trim()
+    brand,
+    model,
+    specifications,
+    description,
+    itemType,
+    forWith
   ]
     .filter(value=>value)
     .join(" ")
@@ -1834,11 +1987,12 @@ function updateUnlistedProductNamePreview(){
   field.value=
     buildUnlistedProductName();
 }
-
 function openUnlistedProductForm(){
   if(currentType!=="SALE"){
     return;
   }
+
+  loadUnlistedItemTypeOptions();
 
   hide("productCard");
 
@@ -1911,6 +2065,28 @@ function closeUnlistedProductForm(){
   }
 }
 
+function loadUnlistedItemTypeOptions(){
+  const list=
+    document.getElementById(
+      "unlistedItemTypeList"
+    );
+
+  if(!list){
+    return;
+  }
+
+  const itemTypes=
+    Array.isArray(settings.itemTypes)
+      ?settings.itemTypes
+      :[];
+
+  list.innerHTML=
+    itemTypes
+      .map(itemType=>
+        `<option value="${escapeHtml(itemType)}"></option>`
+      )
+      .join("");
+}
 
 function addUnlistedProductToCart(){
 
@@ -1928,6 +2104,17 @@ function addUnlistedProductToCart(){
 
   const itemType=
     val("unlistedItemType").trim();
+
+  if(
+    forWith&&
+    !/^(for|with)\s+.+/i.test(forWith)
+  ){
+    setStatus(
+      'For / With must start with "for" or "with". Example: for Metal or with Battery.',
+      "error"
+    );
+    return;
+  }
 
   const forWith=
     val("unlistedForWith").trim();
