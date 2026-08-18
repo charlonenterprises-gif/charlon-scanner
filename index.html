@@ -412,18 +412,57 @@
       Back
     </button>
   </div>
-
+  
+  <div
+    class="card hidden"
+    id="unlistedReviewCard"
+  >
+    <h3>Unlisted Product Review</h3>
+  
+    <p class="muted">
+      Review products sold before they were listed in the inventory system.
+      No inventory deduction has been made for these products yet.
+    </p>
+  
+    <button
+      type="button"
+      onclick="loadPendingUnlistedProducts()"
+    >
+      Refresh Pending Products
+    </button>
+  
+    <div
+      id="unlistedReviewList"
+      class="product-box"
+    ></div>
+  
+    <button
+      class="secondary"
+      type="button"
+      onclick="backHome()"
+    >
+      Back
+    </button>
+  </div>
+  
+  
   <div class="card hidden" id="formCard">
     <h3 id="formTitle">Transaction Form</h3>
     <div id="formFields"></div>
-    <button class="success" type="button" onclick="submitTransaction()">Submit</button>
+    <button
+      class="success"
+      type="button"
+      onclick="submitTransaction()"
+    >
+      Submit
+    </button>
   </div>
-
+  
   <div class="card">
     <strong>Status:</strong>
     <div id="status" class="muted">Ready.</div>
   </div>
-</div>
+
 
 <script>
 'use strict';
@@ -443,6 +482,8 @@ let currentTicketLines = [];
 let revampReturnLines = [];
 let revampApprovalRows = [];
 let releaseRequestRows = [];
+let unlistedReviewRows = [];
+let pendingUnlistedReviewCount = 0;
 let pendingApprovalCount=0;
 let pendingReleaseCount=0;
 let notificationRefreshTimer=null;
@@ -862,6 +903,329 @@ function canViewMyReleaseRequests(){
   return["MANAGER", "SALES", "SHOPEESTOCKCHECKER"].includes(roleKey);
 }
 
+function canReviewUnlistedProducts(){
+
+  const roleKey=
+    String(
+      currentUser&&
+      currentUser.role||
+      ""
+    )
+      .trim()
+      .toUpperCase()
+      .replace(
+        /[^A-Z0-9]/g,
+        ""
+      );
+
+  return[
+    "MANAGER",
+    "ADMIN",
+    "WEBDEVELOPER"
+  ].includes(
+    roleKey
+  );
+}
+
+async function openUnlistedProductReview(){
+
+  if(
+    !canReviewUnlistedProducts()
+  ){
+    setStatus(
+      "You are not allowed to review unlisted products.",
+      "error"
+    );
+    return;
+  }
+
+  /*
+   * Hide Home
+   * and open Review screen.
+   */
+  hide("homeCard");
+
+  show(
+    "unlistedReviewCard"
+  );
+
+  /*
+   * Load current pending products.
+   */
+  await loadPendingUnlistedProducts();
+}
+
+
+async function loadPendingUnlistedProducts(){
+
+  if(
+    !currentUser||
+    !canReviewUnlistedProducts()
+  ){
+    return;
+  }
+
+  const container=
+    document.getElementById(
+      "unlistedReviewList"
+    );
+
+  if(container){
+    container.innerHTML=`
+      <p class="muted">
+        Loading pending products...
+      </p>
+    `;
+  }
+
+  setStatus(
+    "Loading unlisted products...",
+    "info"
+  );
+
+  try{
+
+    const res=
+      await apiCall({
+        action:
+          "getPendingUnlistedProducts",
+
+        staffId:
+          currentUser.staffId,
+
+        pin:
+          currentPin
+      });
+
+    if(
+      !res||
+      !res.success
+    ){
+      throw new Error(
+        res&&res.message
+          ?res.message
+          :"Could not load pending products."
+      );
+    }
+
+    unlistedReviewRows=
+      Array.isArray(res.rows)
+        ?res.rows
+        :[];
+
+    pendingUnlistedReviewCount=
+      unlistedReviewRows.length;
+
+    renderPendingUnlistedProducts();
+
+    setStatus(
+      pendingUnlistedReviewCount+
+      " unlisted product(s) pending review.",
+      pendingUnlistedReviewCount>0
+        ?"info"
+        :"success-text"
+    );
+
+  }catch(err){
+
+    console.error(
+      "Load unlisted products error:",
+      err
+    );
+
+    if(container){
+      container.innerHTML=`
+        <p class="error">
+          ${escapeHtml(
+            err.message||err
+          )}
+        </p>
+      `;
+    }
+
+    setStatus(
+      "Unlisted Product Review error: "+
+      escapeHtml(
+        err.message||err
+      ),
+      "error"
+    );
+  }
+}
+
+
+function renderPendingUnlistedProducts(){
+
+  const container=
+    document.getElementById(
+      "unlistedReviewList"
+    );
+
+  if(!container){
+    return;
+  }
+
+  /*
+   * Nothing pending.
+   */
+  if(
+    !unlistedReviewRows.length
+  ){
+
+    container.innerHTML=`
+      <p class="success-text">
+        No unlisted products are waiting for review.
+      </p>
+    `;
+
+    return;
+  }
+
+  let html="";
+
+  unlistedReviewRows.forEach(
+    (item,index)=>{
+
+      html+=`
+        <div class="cart-line">
+
+          <strong>
+            ${escapeHtml(
+              item.productName||""
+            )}
+          </strong>
+
+          <br>
+
+          <span class="badge">
+            PENDING REVIEW
+          </span>
+
+          <br><br>
+
+          <strong>Temporary SKU:</strong>
+          ${escapeHtml(
+            item.unlistedId||""
+          )}
+          <br>
+
+          <strong>Sale ID:</strong>
+          ${escapeHtml(
+            item.saleId||""
+          )}
+          <br>
+
+          <strong>Date Added:</strong>
+          ${escapeHtml(
+            formatDateTime(
+              item.dateAdded
+            )
+          )}
+
+          <br><br>
+
+          <strong>Product Details</strong>
+          <br>
+
+          Brand:
+          ${escapeHtml(
+            item.brand||"-"
+          )}
+          <br>
+
+          Model:
+          ${escapeHtml(
+            item.model||"-"
+          )}
+          <br>
+
+          Specifications:
+          ${escapeHtml(
+            item.specifications||"-"
+          )}
+          <br>
+
+          Description:
+          ${escapeHtml(
+            item.description||"-"
+          )}
+          <br>
+
+          Item Type:
+          ${escapeHtml(
+            item.itemType||"-"
+          )}
+          <br>
+
+          For / With:
+          ${escapeHtml(
+            item.forWith||"-"
+          )}
+
+          <br><br>
+
+          <strong>Sale Details</strong>
+          <br>
+
+          Qty:
+          ${Number(
+            item.qty||0
+          ).toLocaleString()}
+          <br>
+
+          Source Location:
+          <strong>
+            ${escapeHtml(
+              item.sourceLocation||""
+            )}
+          </strong>
+          <br>
+
+          Price Per Unit:
+          ₱${Number(
+            item.pricePerUnit||0
+          ).toLocaleString()}
+          <br>
+
+          Cost Per Unit:
+          ₱${Number(
+            item.costPerUnit||0
+          ).toLocaleString()}
+          <br>
+
+          Added By:
+          ${escapeHtml(
+            item.addedBy||""
+          )}
+
+          ${
+            item.notes
+              ?`
+                <br>
+                Notes:
+                ${escapeHtml(
+                  item.notes
+                )}
+              `
+              :""
+          }
+
+          <br><br>
+
+          <p class="muted">
+            Match Existing Product and Create New Product
+            will be added after we confirm this list works.
+          </p>
+
+        </div>
+      `;
+    }
+  );
+
+  container.innerHTML=
+    html;
+}
+
 function canUseReleaseItem(){
   const roleKey = String(currentUser && currentUser.role || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
   return(canAccess("RELEASING") && ["SALES", "SHOPEESTOCKCHECKER", "RELEASING"].includes(roleKey));
@@ -925,6 +1289,21 @@ function renderHomeButtons(){
   if(approvalUserKeys.includes(currentNameKey)){
     container.appendChild(makeMenuButton("My Approvals", "Approve or reject pending return requests assigned to you.", openMyApprovals, true, pendingApprovalCount, "APPROVALS"));
   }
+  if(
+    canReviewUnlistedProducts()
+  ){
+    container.appendChild(
+      makeMenuButton(
+        "Unlisted Product Review",
+        "Review products that were sold before being added to inventory.",
+        openUnlistedProductReview,
+        true,
+        pendingUnlistedReviewCount,
+        "UNLISTED"
+      )
+    );
+  }
+  
   if(canAccess("REPORTSHISTORY")){
     container.appendChild(makeMenuButton("Reports / History", "For manager/admin checking only.", openReportsView));
   }
