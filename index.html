@@ -432,17 +432,63 @@
     </button>
   
     <div
-      id="unlistedReviewList"
-      class="product-box"
-    ></div>
-  
-    <button
-      class="secondary"
-      type="button"
-      onclick="backHome()"
-    >
-      Back
-    </button>
+      <div
+        id="unlistedReviewList"
+        class="product-box"
+      ></div>
+      
+      
+      <div
+        id="unlistedMatchCard"
+        class="hidden"
+      >
+        <hr>
+      
+        <h3>Match Existing Product</h3>
+      
+        <div
+          id="unlistedMatchSelected"
+          class="product-box"
+        ></div>
+      
+        <label>Search Existing Product</label>
+      
+        <input
+          type="text"
+          id="unlistedMatchSearch"
+          placeholder="SKU, brand, model, or product name"
+          autocomplete="off"
+        >
+      
+        <button
+          type="button"
+          onclick="searchExistingProductForUnlisted()"
+        >
+          Search Existing Product
+        </button>
+      
+        <div
+          id="unlistedMatchResults"
+          class="product-box"
+        ></div>
+      
+        <button
+          class="secondary"
+          type="button"
+          onclick="cancelUnlistedMatch()"
+        >
+          Cancel Match
+        </button>
+      </div>
+      
+      
+      <button
+        class="secondary"
+        type="button"
+        onclick="backHome()"
+      >
+        Back
+      </button>
   </div>
   
   
@@ -484,6 +530,8 @@ let revampApprovalRows = [];
 let releaseRequestRows = [];
 let unlistedReviewRows = [];
 let pendingUnlistedReviewCount = 0;
+let selectedUnlistedReviewIndex = -1;
+let unlistedMatchSearchResults = [];
 let pendingApprovalCount=0;
 let pendingReleaseCount=0;
 let notificationRefreshTimer=null;
@@ -1263,9 +1311,16 @@ function renderPendingUnlistedProducts(){
 
           <br><br>
 
+          <button
+            type="button"
+            onclick="startUnlistedMatch(${index})"
+          >
+            Match Existing Product
+          </button>
+          
           <p class="muted">
-            Match Existing Product and Create New Product
-            will be added after we confirm this list works.
+            Use this when this Sale actually belongs to a product
+            that already exists in the inventory system.
           </p>
 
         </div>
@@ -1277,11 +1332,620 @@ function renderPendingUnlistedProducts(){
     html;
 }
 
+function startUnlistedMatch(index){
+
+  const item=
+    unlistedReviewRows[index];
+
+  if(!item){
+    setStatus(
+      "Unlisted product could not be found.",
+      "error"
+    );
+    return;
+  }
+
+
+  selectedUnlistedReviewIndex=
+    index;
+
+  unlistedMatchSearchResults=[];
+
+
+  const selected=
+    document.getElementById(
+      "unlistedMatchSelected"
+    );
+
+  if(selected){
+
+    selected.innerHTML=`
+      <div class="cart-line">
+
+        <strong>
+          Product being reviewed:
+        </strong>
+
+        ${escapeHtml(
+          item.productName||""
+        )}
+
+        <br><br>
+
+        Temporary SKU:
+        ${escapeHtml(
+          item.unlistedId||""
+        )}
+
+        <br>
+
+        Qty:
+        ${Number(
+          item.qty||0
+        ).toLocaleString()}
+
+        <br>
+
+        Source Location:
+        <strong>
+          ${escapeHtml(
+            item.sourceLocation||""
+          )}
+        </strong>
+
+      </div>
+    `;
+  }
+
+
+  const searchField=
+    document.getElementById(
+      "unlistedMatchSearch"
+    );
+
+  if(searchField){
+    searchField.value=
+      item.model||
+      item.brand||
+      "";
+
+    setTimeout(()=>{
+      searchField.focus();
+    },100);
+  }
+
+
+  const results=
+    document.getElementById(
+      "unlistedMatchResults"
+    );
+
+  if(results){
+    results.innerHTML="";
+  }
+
+
+  show(
+    "unlistedMatchCard"
+  );
+
+
+  document
+    .getElementById(
+      "unlistedMatchCard"
+    )
+    .scrollIntoView({
+      behavior:"smooth",
+      block:"start"
+    });
+
+
+  setStatus(
+    "Search for the correct existing inventory product.",
+    "info"
+  );
+}
+
+
+function cancelUnlistedMatch(){
+
+  selectedUnlistedReviewIndex=-1;
+
+  unlistedMatchSearchResults=[];
+
+
+  const searchField=
+    document.getElementById(
+      "unlistedMatchSearch"
+    );
+
+  if(searchField){
+    searchField.value="";
+  }
+
+
+  const results=
+    document.getElementById(
+      "unlistedMatchResults"
+    );
+
+  if(results){
+    results.innerHTML="";
+  }
+
+
+  hide(
+    "unlistedMatchCard"
+  );
+
+
+  setStatus(
+    "Match cancelled.",
+    "muted"
+  );
+}
+
+async function searchExistingProductForUnlisted(){
+
+  if(
+    selectedUnlistedReviewIndex<0||
+    !unlistedReviewRows[
+      selectedUnlistedReviewIndex
+    ]
+  ){
+    setStatus(
+      "Please select an Unlisted Product first.",
+      "error"
+    );
+    return;
+  }
+
+
+  const searchValue=
+    val("unlistedMatchSearch")
+      .trim();
+
+
+  if(!searchValue){
+    setStatus(
+      "Please enter a product to search.",
+      "error"
+    );
+    return;
+  }
+
+
+  const container=
+    document.getElementById(
+      "unlistedMatchResults"
+    );
+
+
+  if(container){
+    container.innerHTML=`
+      <p class="muted">
+        Searching existing products...
+      </p>
+    `;
+  }
+
+
+  setStatus(
+    "Searching existing inventory...",
+    "info"
+  );
+
+
+  try{
+
+    const res=
+      await apiCall({
+        action:
+          "searchProducts",
+
+        staffId:
+          currentUser.staffId,
+
+        pin:
+          currentPin,
+
+        searchValue
+      });
+
+
+    if(
+      !res||
+      !res.success
+    ){
+      throw new Error(
+        res&&res.message
+          ?res.message
+          :"Product search failed."
+      );
+    }
+
+
+    unlistedMatchSearchResults=
+      Array.isArray(
+        res.results
+      )
+        ?res.results
+        :[];
+
+
+    renderUnlistedMatchResults(
+      res.count||0
+    );
+
+
+    if(
+      !unlistedMatchSearchResults.length
+    ){
+      setStatus(
+        "No existing products found.",
+        "muted"
+      );
+
+      return;
+    }
+
+
+    setStatus(
+      Number(
+        res.count||0
+      ).toLocaleString()+
+      " matching existing product(s) found.",
+      "success-text"
+    );
+
+
+  }catch(err){
+
+    console.error(
+      "Unlisted match search error:",
+      err
+    );
+
+
+    if(container){
+      container.innerHTML=`
+        <p class="error">
+          ${escapeHtml(
+            err.message||err
+          )}
+        </p>
+      `;
+    }
+
+
+    setStatus(
+      "Product search error: "+
+      escapeHtml(
+        err.message||err
+      ),
+      "error"
+    );
+  }
+}
+function renderUnlistedMatchResults(
+  totalCount
+){
+
+  const container=
+    document.getElementById(
+      "unlistedMatchResults"
+    );
+
+
+  if(!container){
+    return;
+  }
+
+
+  if(
+    !unlistedMatchSearchResults.length
+  ){
+
+    container.innerHTML=`
+      <p class="muted">
+        No matching existing products found.
+      </p>
+    `;
+
+    return;
+  }
+
+
+  let html=`
+    <hr>
+
+    <h3>Existing Products Found</h3>
+
+    <p class="muted">
+      Found ${Number(
+        totalCount||0
+      ).toLocaleString()} matching product(s).
+      Check the SKU, name and stock carefully before selecting.
+    </p>
+  `;
+
+
+  unlistedMatchSearchResults.forEach(
+    (product,index)=>{
+
+      html+=`
+        <div class="cart-line">
+
+          <strong>
+            ${escapeHtml(
+              product.productName||
+              ""
+            )}
+          </strong>
+
+          SKU:
+          <strong>
+            ${escapeHtml(
+              product.sku||
+              ""
+            )}
+          </strong>
+
+          <br>
+
+          ${
+            product.brand
+              ?`
+                Brand:
+                ${escapeHtml(
+                  product.brand
+                )}
+                <br>
+              `
+              :""
+          }
+
+          ${
+            product.model
+              ?`
+                Model:
+                ${escapeHtml(
+                  product.model
+                )}
+                <br>
+              `
+              :""
+          }
+
+          ${
+            product.itemType
+              ?`
+                Item Type:
+                ${escapeHtml(
+                  product.itemType
+                )}
+                <br>
+              `
+              :""
+          }
+
+          ${
+            product.specifications
+              ?`
+                Specifications:
+                ${escapeHtml(
+                  product.specifications
+                )}
+                <br>
+              `
+              :""
+          }
+
+          <br>
+
+          <strong>Current Inventory</strong>
+          <br>
+
+          CE1:
+          ${Number(
+            product.ce1Qty||0
+          ).toLocaleString()}
+          |
+
+          CE2:
+          ${Number(
+            product.ce2Qty||0
+          ).toLocaleString()}
+          |
+
+          CE3:
+          ${Number(
+            product.ce3Qty||0
+          ).toLocaleString()}
+
+          <br>
+
+          SOLER:
+          ${Number(
+            product.solerQty||0
+          ).toLocaleString()}
+          |
+
+          VACANT:
+          ${Number(
+            product.vacantQty||0
+          ).toLocaleString()}
+          |
+
+          UNKNOWN:
+          ${Number(
+            product.unknownQty||0
+          ).toLocaleString()}
+
+          <br>
+
+          Total:
+          <strong>
+            ${Number(
+              product.availableQty||0
+            ).toLocaleString()}
+          </strong>
+
+          <button
+            type="button"
+            onclick="selectExistingProductForUnlisted(${index})"
+          >
+            Select This Product
+          </button>
+
+        </div>
+      `;
+    }
+  );
+
+
+  container.innerHTML=
+    html;
+}
 function canUseReleaseItem(){
   const roleKey = String(currentUser && currentUser.role || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
   return(canAccess("RELEASING") && ["SALES", "SHOPEESTOCKCHECKER", "RELEASING"].includes(roleKey));
 }
+function selectExistingProductForUnlisted(
+  index
+){
 
+  const product=
+    unlistedMatchSearchResults[
+      index
+    ];
+
+
+  const unlisted=
+    unlistedReviewRows[
+      selectedUnlistedReviewIndex
+    ];
+
+
+  if(
+    !product||
+    !unlisted
+  ){
+    setStatus(
+      "The selected product could not be found.",
+      "error"
+    );
+    return;
+  }
+
+
+  const container=
+    document.getElementById(
+      "unlistedMatchResults"
+    );
+
+
+  if(!container){
+    return;
+  }
+
+
+  container.innerHTML=`
+    <div class="cart-line">
+
+      <h3>Confirm Product Match</h3>
+
+      <strong>Unlisted Sale Product</strong>
+
+      ${escapeHtml(
+        unlisted.productName||""
+      )}
+
+      <br>
+
+      Temporary SKU:
+      ${escapeHtml(
+        unlisted.unlistedId||""
+      )}
+
+      <br>
+
+      Qty Sold:
+      ${Number(
+        unlisted.qty||0
+      ).toLocaleString()}
+
+      <br>
+
+      Source:
+      <strong>
+        ${escapeHtml(
+          unlisted.sourceLocation||""
+        )}
+      </strong>
+
+
+      <hr>
+
+
+      <strong>Match To Existing Product</strong>
+
+      ${escapeHtml(
+        product.productName||""
+      )}
+
+      <br>
+
+      SKU:
+      <strong>
+        ${escapeHtml(
+          product.sku||""
+        )}
+      </strong>
+
+      <br><br>
+
+      <p class="info">
+        No inventory has been changed yet.
+      </p>
+
+      <button
+        class="success"
+        type="button"
+        disabled
+      >
+        Confirm Match
+      </button>
+
+      <p class="muted">
+        Confirm Match will be activated in the next step.
+      </p>
+
+      <button
+        class="secondary"
+        type="button"
+        onclick="searchExistingProductForUnlisted()"
+      >
+        Choose Another Product
+      </button>
+
+    </div>
+  `;
+
+
+  /*
+   * Save selection temporarily
+   * for the next step.
+   */
+  window.selectedExistingUnlistedProduct=
+    product;
+
+
+  setStatus(
+    "Existing product selected. Nothing has been changed yet.",
+    "info"
+  );
+}
 function openHome(){
   show("homeCard");
 
