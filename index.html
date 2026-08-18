@@ -904,6 +904,56 @@ function canViewMyReleaseRequests(){
   return["MANAGER", "SALES", "SHOPEESTOCKCHECKER"].includes(roleKey);
 }
 
+async function refreshPendingUnlistedCount(){
+
+  if(
+    !currentUser||
+    !canReviewUnlistedProducts()
+  ){
+    pendingUnlistedReviewCount=0;
+    return;
+  }
+
+  try{
+
+    const res=
+      await apiCall({
+        action:
+          "getPendingUnlistedProducts",
+
+        staffId:
+          currentUser.staffId,
+
+        pin:
+          currentPin
+      });
+
+    if(
+      !res||
+      !res.success
+    ){
+      return;
+    }
+
+    pendingUnlistedReviewCount=
+      Number(
+        res.count||0
+      );
+
+    updateHomeNotificationBadge(
+      "UNLISTED",
+      pendingUnlistedReviewCount
+    );
+
+  }catch(err){
+
+    console.log(
+      "Unlisted review count failed:",
+      err
+    );
+  }
+}
+
 function canReviewUnlistedProducts(){
 
   const roleKey=
@@ -1249,15 +1299,21 @@ function openHome(){
   renderHomeButtons();
 
   /*
-   * Check immediately.
+   * Check pending Unlisted Products
+   * once when Home opens.
+   */
+  refreshPendingUnlistedCount();
+  
+  /*
+   * Check normal notifications.
    */
   refreshHomeNotifications();
-
+  
   /*
-   * Then automatically every 5 seconds.
+   * Then automatically refresh only
+   * the normal notifications every 5 seconds.
    */
   startNotificationRefresh();
-}
 
 function renderHomeButtons(){
   const container = document.getElementById("homeButtons");
@@ -1661,17 +1717,10 @@ function backHome(){
   hide("releaseRequestsCard");
   hide("unlistedReviewCard");
 
-  show("homeCard");
-
-  /*
-   * Rebuild buttons with current counts.
-   */
   renderHomeButtons();
 
-  /*
-   * Refresh notifications immediately
-   * when returning Home.
-   */
+  refreshPendingUnlistedCount();
+  
   refreshHomeNotifications();
 
   setStatus(
