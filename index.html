@@ -428,14 +428,110 @@
     <h3>Create New Product</h3>
   
     <p class="muted">
-      Use this only when this product does not already exist
-      in the Inventory Dashboard.
+      The salesperson's original entry is shown below.
+      You may correct the product information before creating
+      the permanent inventory product.
     </p>
   
     <div
-      id="unlistedCreatePreview"
+      id="unlistedCreateOriginal"
       class="product-box"
     ></div>
+  
+    <hr>
+  
+    <h3>Final Product Information</h3>
+  
+    <div class="row">
+  
+      <div>
+        <label>Brand *</label>
+  
+        <input
+          type="text"
+          id="unlistedCreateBrand"
+          oninput="updateAdminCreateProductName()"
+        >
+      </div>
+  
+      <div>
+        <label>Model *</label>
+  
+        <input
+          type="text"
+          id="unlistedCreateModel"
+          oninput="updateAdminCreateProductName()"
+        >
+      </div>
+  
+    </div>
+  
+  
+    <label>Specifications</label>
+  
+    <input
+      type="text"
+      id="unlistedCreateSpecifications"
+      oninput="updateAdminCreateProductName()"
+    >
+  
+  
+    <label>Description</label>
+  
+    <input
+      type="text"
+      id="unlistedCreateDescription"
+      oninput="updateAdminCreateProductName()"
+    >
+  
+  
+    <label>Item Type *</label>
+  
+    <input
+      type="text"
+      id="unlistedCreateItemType"
+      list="unlistedItemTypeList"
+      autocomplete="off"
+      oninput="updateAdminCreateProductName()"
+    >
+  
+    <p class="muted">
+      Select an existing Item Type or type a new one.
+    </p>
+  
+  
+    <label>For / With</label>
+  
+    <input
+      type="text"
+      id="unlistedCreateForWith"
+      placeholder="Example: for Metal / with Battery"
+      oninput="updateAdminCreateProductName()"
+    >
+  
+  
+    <label>Cost Per Unit</label>
+  
+    <input
+      type="number"
+      id="unlistedCreateCost"
+      min="0"
+      step="0.01"
+    >
+  
+  
+    <label>Final Product Name</label>
+  
+    <input
+      type="text"
+      id="unlistedCreateProductName"
+      readonly
+    >
+  
+    <p class="muted">
+      Format: Brand Model Specifications Description Item Type For/With
+    </p>
+  
   
     <label>Permanent SKU *</label>
   
@@ -444,13 +540,19 @@
       id="unlistedCreateSku"
       placeholder="Example: GA4030-BO"
       autocomplete="off"
-      oninput="this.value=this.value.toUpperCase().replace(/\s+/g,'')"
+      oninput="
+        this.value=
+          this.value
+            .toUpperCase()
+            .replace(/\s+/g,'');
+      "
     >
   
+  
     <p class="muted">
-      The SKU must be new. If it already exists, use
-      Match Existing Product instead.
+      The new product will start with inventory quantity 0.
     </p>
+  
   
     <button
       id="confirmCreateUnlistedBtn"
@@ -460,6 +562,7 @@
     >
       Create New Product
     </button>
+  
   
     <button
       class="secondary"
@@ -1538,7 +1641,6 @@ function startUnlistedCreate(index){
   const item=
     unlistedReviewRows[index];
 
-
   if(!item){
     setStatus(
       "Unlisted Product could not be found.",
@@ -1547,132 +1649,165 @@ function startUnlistedCreate(index){
     return;
   }
 
-
-  selectedUnlistedCreateIndex=
-    index;
+  selectedUnlistedCreateIndex=index;
 
 
   /*
-   * Close Match Existing if open.
+   * Close Match Existing.
    */
-  if(
-    document.getElementById(
-      "unlistedMatchCard"
-    )
-  ){
-    hide(
-      "unlistedMatchCard"
-    );
-  }
-
+  hide("unlistedMatchCard");
 
   selectedUnlistedReviewIndex=-1;
-
   unlistedMatchSearchResults=[];
 
   window.selectedExistingUnlistedProduct=
     null;
 
 
-  const preview=
+  /*
+   * ========================================
+   * ORIGINAL SALESPERSON ENTRY
+   *
+   * READ ONLY DISPLAY.
+   * Nothing here gets overwritten.
+   * ========================================
+   */
+  const original=
     document.getElementById(
-      "unlistedCreatePreview"
+      "unlistedCreateOriginal"
+    );
+
+  original.innerHTML=`
+    <div class="cart-line">
+
+      <strong>
+        Original Salesperson Entry
+      </strong>
+
+      Product Name:
+      ${escapeHtml(
+        item.productName||"-"
+      )}
+      <br>
+
+      Brand:
+      ${escapeHtml(
+        item.brand||"-"
+      )}
+      <br>
+
+      Model:
+      ${escapeHtml(
+        item.model||"-"
+      )}
+      <br>
+
+      Specifications:
+      ${escapeHtml(
+        item.specifications||"-"
+      )}
+      <br>
+
+      Description:
+      ${escapeHtml(
+        item.description||"-"
+      )}
+      <br>
+
+      Item Type:
+      ${escapeHtml(
+        item.itemType||"-"
+      )}
+      <br>
+
+      For / With:
+      ${escapeHtml(
+        item.forWith||"-"
+      )}
+
+      <br><br>
+
+      Qty Sold:
+      ${Number(
+        item.qty||0
+      ).toLocaleString()}
+
+      <br>
+
+      Source:
+      ${escapeHtml(
+        item.sourceLocation||""
+      )}
+
+      <br>
+
+      Added By:
+      ${escapeHtml(
+        item.addedBy||""
+      )}
+
+    </div>
+  `;
+
+
+  /*
+   * ========================================
+   * PREFILL ADMIN EDITABLE FIELDS
+   * ========================================
+   */
+
+  document.getElementById(
+    "unlistedCreateBrand"
+  ).value=
+    item.brand||"";
+
+
+  document.getElementById(
+    "unlistedCreateModel"
+  ).value=
+    item.model||"";
+
+
+  document.getElementById(
+    "unlistedCreateSpecifications"
+  ).value=
+    item.specifications||"";
+
+
+  document.getElementById(
+    "unlistedCreateDescription"
+  ).value=
+    item.description||"";
+
+
+  document.getElementById(
+    "unlistedCreateItemType"
+  ).value=
+    item.itemType||"";
+
+
+  document.getElementById(
+    "unlistedCreateForWith"
+  ).value=
+    item.forWith||"";
+
+
+  document.getElementById(
+    "unlistedCreateCost"
+  ).value=
+    Number(
+      item.costPerUnit||0
     );
 
 
-  if(preview){
-
-    preview.innerHTML=`
-      <div class="cart-line">
-
-        <strong>
-          ${escapeHtml(
-            item.productName||""
-          )}
-        </strong>
-
-        <br>
-
-        Brand:
-        ${escapeHtml(
-          item.brand||"-"
-        )}
-        <br>
-
-        Model:
-        ${escapeHtml(
-          item.model||"-"
-        )}
-        <br>
-
-        Specifications:
-        ${escapeHtml(
-          item.specifications||"-"
-        )}
-        <br>
-
-        Description:
-        ${escapeHtml(
-          item.description||"-"
-        )}
-        <br>
-
-        Item Type:
-        ${escapeHtml(
-          item.itemType||"-"
-        )}
-        <br>
-
-        For / With:
-        ${escapeHtml(
-          item.forWith||"-"
-        )}
-
-        <br><br>
-
-        Sold Qty:
-        ${Number(
-          item.qty||0
-        ).toLocaleString()}
-
-        <br>
-
-        Original Source:
-        ${escapeHtml(
-          item.sourceLocation||""
-        )}
-
-        <br>
-
-        Cost Per Unit:
-        ₱${Number(
-          item.costPerUnit||0
-        ).toLocaleString()}
-
-        <br><br>
-
-        <span class="info">
-          New inventory quantity will start at 0.
-        </span>
-
-      </div>
-    `;
-  }
+  document.getElementById(
+    "unlistedCreateSku"
+  ).value="";
 
 
-  const skuField=
-    document.getElementById(
-      "unlistedCreateSku"
-    );
+  loadUnlistedItemTypeOptions();
 
-
-  if(skuField){
-    skuField.value="";
-
-    setTimeout(()=>{
-      skuField.focus();
-    },100);
-  }
+  updateAdminCreateProductName();
 
 
   show(
@@ -1691,12 +1826,81 @@ function startUnlistedCreate(index){
 
 
   setStatus(
-    "Enter the permanent SKU for this new product.",
+    "Review and correct the product information before creating it.",
     "info"
   );
 }
 
+function buildAdminCreateProductName(){
 
+  const brand=
+    properUnlistedText(
+      val("unlistedCreateBrand")
+    );
+
+  const model=
+    val("unlistedCreateModel")
+      .trim()
+      .toUpperCase();
+
+  const specifications=
+    formatUnlistedSpecifications(
+      val(
+        "unlistedCreateSpecifications"
+      )
+    );
+
+  const description=
+    properUnlistedText(
+      val(
+        "unlistedCreateDescription"
+      )
+    );
+
+  const itemType=
+    properUnlistedText(
+      val(
+        "unlistedCreateItemType"
+      )
+    );
+
+  const forWith=
+    formatUnlistedForWith(
+      val(
+        "unlistedCreateForWith"
+      )
+    );
+
+
+  return[
+    brand,
+    model,
+    specifications,
+    description,
+    itemType,
+    forWith
+  ]
+    .filter(value=>value)
+    .join(" ")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+
+function updateAdminCreateProductName(){
+
+  const field=
+    document.getElementById(
+      "unlistedCreateProductName"
+    );
+
+  if(!field){
+    return;
+  }
+
+  field.value=
+    buildAdminCreateProductName();
+}
 
 function cancelUnlistedCreate(){
 
@@ -1749,12 +1953,97 @@ async function confirmCreateNewUnlistedProduct(){
   }
 
 
+  const brand=
+    val(
+      "unlistedCreateBrand"
+    ).trim();
+
+
+  const model=
+    val(
+      "unlistedCreateModel"
+    ).trim();
+
+
+  const specifications=
+    val(
+      "unlistedCreateSpecifications"
+    ).trim();
+
+
+  const description=
+    val(
+      "unlistedCreateDescription"
+    ).trim();
+
+
+  const itemType=
+    val(
+      "unlistedCreateItemType"
+    ).trim();
+
+
+  const forWith=
+    val(
+      "unlistedCreateForWith"
+    ).trim();
+
+
+  const costPerUnit=
+    Number(
+      val(
+        "unlistedCreateCost"
+      )||0
+    );
+
+
   const newSku=
     val(
       "unlistedCreateSku"
     )
       .trim()
       .toUpperCase();
+
+
+  if(!brand){
+    setStatus(
+      "Please enter the Brand.",
+      "error"
+    );
+    return;
+  }
+
+
+  if(!model){
+    setStatus(
+      "Please enter the Model.",
+      "error"
+    );
+    return;
+  }
+
+
+  if(!itemType){
+    setStatus(
+      "Please enter the Item Type.",
+      "error"
+    );
+    return;
+  }
+
+
+  if(
+    forWith&&
+    !/^(for|with)\s+.+/i.test(
+      forWith
+    )
+  ){
+    setStatus(
+      'For / With must start with "for" or "with".',
+      "error"
+    );
+    return;
+  }
 
 
   if(!newSku){
@@ -1772,7 +2061,21 @@ async function confirmCreateNewUnlistedProduct(){
     )
   ){
     setStatus(
-      "Permanent SKU may contain letters, numbers, hyphens, periods, and underscores only. No spaces.",
+      "Permanent SKU contains invalid characters.",
+      "error"
+    );
+    return;
+  }
+
+
+  if(
+    !Number.isFinite(
+      costPerUnit
+    )||
+    costPerUnit<0
+  ){
+    setStatus(
+      "Cost Per Unit is invalid.",
       "error"
     );
     return;
@@ -1789,12 +2092,10 @@ async function confirmCreateNewUnlistedProduct(){
 
     isSubmitting=true;
 
+    button.disabled=true;
 
-    if(button){
-      button.disabled=true;
-      button.innerText=
-        "Creating Product...";
-    }
+    button.innerText=
+      "Creating Product...";
 
 
     setStatus(
@@ -1818,7 +2119,21 @@ async function confirmCreateNewUnlistedProduct(){
         unlistedId:
           item.unlistedId,
 
-        newSku
+        newSku,
+
+        brand,
+
+        model,
+
+        specifications,
+
+        description,
+
+        itemType,
+
+        forWith,
+
+        costPerUnit
 
       });
 
@@ -1830,22 +2145,18 @@ async function confirmCreateNewUnlistedProduct(){
       throw new Error(
         res&&res.message
           ?res.message
-          :"Could not create the new product."
+          :"Could not create product."
       );
     }
 
 
     selectedUnlistedCreateIndex=-1;
 
-
     hide(
       "unlistedCreateCard"
     );
 
 
-    /*
-     * Reload pending list.
-     */
     await loadPendingUnlistedProducts();
 
 
@@ -1867,8 +2178,7 @@ async function confirmCreateNewUnlistedProduct(){
         res.sku||""
       )+
       "<br>"+
-      "Initial Inventory Qty: 0<br><br>"+
-      "If physical stock still exists, update the actual quantity using Bulk Inventory Adjustment.",
+      "Initial Inventory Qty: 0",
       "success-text"
     );
 
@@ -1876,7 +2186,7 @@ async function confirmCreateNewUnlistedProduct(){
   }catch(err){
 
     console.error(
-      "Create New Unlisted Product error:",
+      "Create New Product error:",
       err
     );
 
@@ -1894,16 +2204,15 @@ async function confirmCreateNewUnlistedProduct(){
 
     isSubmitting=false;
 
-
     if(button){
       button.disabled=false;
+
       button.innerText=
         "Create New Product";
     }
 
   }
 }
-
 function cancelUnlistedMatch(){
 
   selectedUnlistedReviewIndex=-1;
