@@ -335,6 +335,8 @@
       <option value="RETURN_REQUEST">RETURN_REQUEST</option>
       <option value="RETURN_APPROVED">RETURN_APPROVED</option>
       <option value="RETURN_REJECTED">RETURN_REJECTED</option>
+      <option value="UNLISTED_MATCH_EXISTING">UNLISTED_MATCH_EXISTING</option>
+      <option value="UNLISTED_NEW_PRODUCT_CREATED">UNLISTED_NEW_PRODUCT_CREATED</option>
       <option value="INVENTORY_ADJUSTMENT">INVENTORY_ADJUSTMENT</option>
       <option value="LOCATION_NOTE">LOCATION_NOTE</option>
     </select>
@@ -417,6 +419,57 @@
     class="card hidden"
     id="unlistedReviewCard"
   >
+  <div
+    id="unlistedCreateCard"
+    class="hidden"
+  >
+    <hr>
+  
+    <h3>Create New Product</h3>
+  
+    <p class="muted">
+      Use this only when this product does not already exist
+      in the Inventory Dashboard.
+    </p>
+  
+    <div
+      id="unlistedCreatePreview"
+      class="product-box"
+    ></div>
+  
+    <label>Permanent SKU *</label>
+  
+    <input
+      type="text"
+      id="unlistedCreateSku"
+      placeholder="Example: GA4030-BO"
+      autocomplete="off"
+      oninput="this.value=this.value.toUpperCase().replace(/\s+/g,'')"
+    >
+  
+    <p class="muted">
+      The SKU must be new. If it already exists, use
+      Match Existing Product instead.
+    </p>
+  
+    <button
+      id="confirmCreateUnlistedBtn"
+      class="success"
+      type="button"
+      onclick="confirmCreateNewUnlistedProduct()"
+    >
+      Create New Product
+    </button>
+  
+    <button
+      class="secondary"
+      type="button"
+      onclick="cancelUnlistedCreate()"
+    >
+      Cancel
+    </button>
+  
+  </div>
     <h3>Unlisted Product Review</h3>
   
     <p class="muted">
@@ -532,6 +585,7 @@ let unlistedReviewRows = [];
 let pendingUnlistedReviewCount = 0;
 let selectedUnlistedReviewIndex = -1;
 let unlistedMatchSearchResults = [];
+let selectedUnlistedCreateIndex = -1;
 let pendingApprovalCount=0;
 let pendingReleaseCount=0;
 let notificationRefreshTimer=null;
@@ -1051,6 +1105,27 @@ async function openUnlistedProductReview(){
   /*
    * Load current pending products.
    */
+  selectedUnlistedCreateIndex=-1;
+
+  if(
+    document.getElementById(
+      "unlistedCreateCard"
+    )
+  ){
+    hide(
+      "unlistedCreateCard"
+    );
+  }
+  
+  if(
+    document.getElementById(
+      "unlistedMatchCard"
+    )
+  ){
+    hide(
+      "unlistedMatchCard"
+    );
+  }
   await loadPendingUnlistedProducts();
 }
 
@@ -1322,6 +1397,13 @@ function renderPendingUnlistedProducts(){
           >
             Match Existing Product
           </button>
+          <button
+            class="secondary"
+            type="button"
+            onclick="startUnlistedCreate(${index})"
+          >
+            Create New Product
+          </button>
           
           <p class="muted">
             Use this when this Sale actually belongs to a product
@@ -1451,6 +1533,376 @@ function startUnlistedMatch(index){
   );
 }
 
+function startUnlistedCreate(index){
+
+  const item=
+    unlistedReviewRows[index];
+
+
+  if(!item){
+    setStatus(
+      "Unlisted Product could not be found.",
+      "error"
+    );
+    return;
+  }
+
+
+  selectedUnlistedCreateIndex=
+    index;
+
+
+  /*
+   * Close Match Existing if open.
+   */
+  if(
+    document.getElementById(
+      "unlistedMatchCard"
+    )
+  ){
+    hide(
+      "unlistedMatchCard"
+    );
+  }
+
+
+  selectedUnlistedReviewIndex=-1;
+
+  unlistedMatchSearchResults=[];
+
+  window.selectedExistingUnlistedProduct=
+    null;
+
+
+  const preview=
+    document.getElementById(
+      "unlistedCreatePreview"
+    );
+
+
+  if(preview){
+
+    preview.innerHTML=`
+      <div class="cart-line">
+
+        <strong>
+          ${escapeHtml(
+            item.productName||""
+          )}
+        </strong>
+
+        <br>
+
+        Brand:
+        ${escapeHtml(
+          item.brand||"-"
+        )}
+        <br>
+
+        Model:
+        ${escapeHtml(
+          item.model||"-"
+        )}
+        <br>
+
+        Specifications:
+        ${escapeHtml(
+          item.specifications||"-"
+        )}
+        <br>
+
+        Description:
+        ${escapeHtml(
+          item.description||"-"
+        )}
+        <br>
+
+        Item Type:
+        ${escapeHtml(
+          item.itemType||"-"
+        )}
+        <br>
+
+        For / With:
+        ${escapeHtml(
+          item.forWith||"-"
+        )}
+
+        <br><br>
+
+        Sold Qty:
+        ${Number(
+          item.qty||0
+        ).toLocaleString()}
+
+        <br>
+
+        Original Source:
+        ${escapeHtml(
+          item.sourceLocation||""
+        )}
+
+        <br>
+
+        Cost Per Unit:
+        ₱${Number(
+          item.costPerUnit||0
+        ).toLocaleString()}
+
+        <br><br>
+
+        <span class="info">
+          New inventory quantity will start at 0.
+        </span>
+
+      </div>
+    `;
+  }
+
+
+  const skuField=
+    document.getElementById(
+      "unlistedCreateSku"
+    );
+
+
+  if(skuField){
+    skuField.value="";
+
+    setTimeout(()=>{
+      skuField.focus();
+    },100);
+  }
+
+
+  show(
+    "unlistedCreateCard"
+  );
+
+
+  document
+    .getElementById(
+      "unlistedCreateCard"
+    )
+    .scrollIntoView({
+      behavior:"smooth",
+      block:"start"
+    });
+
+
+  setStatus(
+    "Enter the permanent SKU for this new product.",
+    "info"
+  );
+}
+
+
+
+function cancelUnlistedCreate(){
+
+  selectedUnlistedCreateIndex=-1;
+
+
+  const skuField=
+    document.getElementById(
+      "unlistedCreateSku"
+    );
+
+
+  if(skuField){
+    skuField.value="";
+  }
+
+
+  hide(
+    "unlistedCreateCard"
+  );
+
+
+  setStatus(
+    "Create New Product cancelled.",
+    "muted"
+  );
+}
+
+
+
+async function confirmCreateNewUnlistedProduct(){
+
+  if(isSubmitting){
+    return;
+  }
+
+
+  const item=
+    unlistedReviewRows[
+      selectedUnlistedCreateIndex
+    ];
+
+
+  if(!item){
+    setStatus(
+      "The Unlisted Product is no longer selected.",
+      "error"
+    );
+    return;
+  }
+
+
+  const newSku=
+    val(
+      "unlistedCreateSku"
+    )
+      .trim()
+      .toUpperCase();
+
+
+  if(!newSku){
+    setStatus(
+      "Please enter the Permanent SKU.",
+      "error"
+    );
+    return;
+  }
+
+
+  if(
+    !/^[A-Z0-9][A-Z0-9._-]*$/.test(
+      newSku
+    )
+  ){
+    setStatus(
+      "Permanent SKU may contain letters, numbers, hyphens, periods, and underscores only. No spaces.",
+      "error"
+    );
+    return;
+  }
+
+
+  const button=
+    document.getElementById(
+      "confirmCreateUnlistedBtn"
+    );
+
+
+  try{
+
+    isSubmitting=true;
+
+
+    if(button){
+      button.disabled=true;
+      button.innerText=
+        "Creating Product...";
+    }
+
+
+    setStatus(
+      "Creating new inventory product...",
+      "info"
+    );
+
+
+    const res=
+      await apiCall({
+
+        action:
+          "createNewProductFromUnlisted",
+
+        staffId:
+          currentUser.staffId,
+
+        pin:
+          currentPin,
+
+        unlistedId:
+          item.unlistedId,
+
+        newSku
+
+      });
+
+
+    if(
+      !res||
+      !res.success
+    ){
+      throw new Error(
+        res&&res.message
+          ?res.message
+          :"Could not create the new product."
+      );
+    }
+
+
+    selectedUnlistedCreateIndex=-1;
+
+
+    hide(
+      "unlistedCreateCard"
+    );
+
+
+    /*
+     * Reload pending list.
+     */
+    await loadPendingUnlistedProducts();
+
+
+    updateHomeNotificationBadge(
+      "UNLISTED",
+      pendingUnlistedReviewCount
+    );
+
+
+    setStatus(
+      "New product created successfully.<br><br>"+
+      "<strong>"+
+      escapeHtml(
+        res.productName||""
+      )+
+      "</strong><br>"+
+      "SKU: "+
+      escapeHtml(
+        res.sku||""
+      )+
+      "<br>"+
+      "Initial Inventory Qty: 0<br><br>"+
+      "If physical stock still exists, update the actual quantity using Bulk Inventory Adjustment.",
+      "success-text"
+    );
+
+
+  }catch(err){
+
+    console.error(
+      "Create New Unlisted Product error:",
+      err
+    );
+
+
+    setStatus(
+      "Create New Product failed: "+
+      escapeHtml(
+        err.message||err
+      ),
+      "error"
+    );
+
+
+  }finally{
+
+    isSubmitting=false;
+
+
+    if(button){
+      button.disabled=false;
+      button.innerText=
+        "Create New Product";
+    }
+
+  }
+}
 
 function cancelUnlistedMatch(){
 
