@@ -1314,6 +1314,7 @@ function openHome(){
    * the normal notifications every 5 seconds.
    */
   startNotificationRefresh();
+}
 
 function renderHomeButtons(){
   const container = document.getElementById("homeButtons");
@@ -1717,10 +1718,24 @@ function backHome(){
   hide("releaseRequestsCard");
   hide("unlistedReviewCard");
 
+  /*
+   * Return to Home.
+   */
+  show("homeCard");
+
+  /*
+   * Rebuild Home buttons.
+   */
   renderHomeButtons();
 
+  /*
+   * Refresh Unlisted Product count.
+   */
   refreshPendingUnlistedCount();
-  
+
+  /*
+   * Refresh normal notifications.
+   */
   refreshHomeNotifications();
 
   setStatus(
