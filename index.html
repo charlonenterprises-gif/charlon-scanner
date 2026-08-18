@@ -79,7 +79,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System 2026</h1>
-    <p class="muted">Login · v2026.3.7</p>
+    <p class="muted">Login · v2026.3.8</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -1114,8 +1114,13 @@ async function loadPendingUnlistedProducts(){
 
     pendingUnlistedReviewCount=
       unlistedReviewRows.length;
-
+    
     renderPendingUnlistedProducts();
+    
+    updateHomeNotificationBadge(
+      "UNLISTED",
+      pendingUnlistedReviewCount
+    );
 
     setStatus(
       pendingUnlistedReviewCount+
@@ -1453,6 +1458,8 @@ function cancelUnlistedMatch(){
 
   unlistedMatchSearchResults=[];
 
+  window.selectedExistingUnlistedProduct=
+  null;
 
   const searchField=
     document.getElementById(
@@ -1811,26 +1818,17 @@ function canUseReleaseItem(){
   const roleKey = String(currentUser && currentUser.role || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
   return(canAccess("RELEASING") && ["SALES", "SHOPEESTOCKCHECKER", "RELEASING"].includes(roleKey));
 }
-function selectExistingProductForUnlisted(
-  index
-){
+function selectExistingProductForUnlisted(index){
 
   const product=
-    unlistedMatchSearchResults[
-      index
-    ];
-
+    unlistedMatchSearchResults[index];
 
   const unlisted=
     unlistedReviewRows[
       selectedUnlistedReviewIndex
     ];
 
-
-  if(
-    !product||
-    !unlisted
-  ){
+  if(!product||!unlisted){
     setStatus(
       "The selected product could not be found.",
       "error"
@@ -1838,17 +1836,20 @@ function selectExistingProductForUnlisted(
     return;
   }
 
+  /*
+   * Save the selected existing product.
+   */
+  window.selectedExistingUnlistedProduct=
+    product;
 
   const container=
     document.getElementById(
       "unlistedMatchResults"
     );
 
-
   if(!container){
     return;
   }
-
 
   container.innerHTML=`
     <div class="cart-line">
@@ -1864,9 +1865,11 @@ function selectExistingProductForUnlisted(
       <br>
 
       Temporary SKU:
-      ${escapeHtml(
-        unlisted.unlistedId||""
-      )}
+      <strong>
+        ${escapeHtml(
+          unlisted.unlistedId||""
+        )}
+      </strong>
 
       <br>
 
@@ -1877,7 +1880,7 @@ function selectExistingProductForUnlisted(
 
       <br>
 
-      Source:
+      Source Location:
       <strong>
         ${escapeHtml(
           unlisted.sourceLocation||""
@@ -1906,20 +1909,20 @@ function selectExistingProductForUnlisted(
       <br><br>
 
       <p class="info">
-        No inventory has been changed yet.
+        Confirming this will connect the Sale to this SKU
+        and deduct the sold quantity from inventory.
       </p>
 
+
       <button
+        id="confirmUnlistedMatchBtn"
         class="success"
         type="button"
-        disabled
+        onclick="confirmSelectedUnlistedMatch()"
       >
         Confirm Match
       </button>
 
-      <p class="muted">
-        Confirm Match will be activated in the next step.
-      </p>
 
       <button
         class="secondary"
@@ -1932,20 +1935,231 @@ function selectExistingProductForUnlisted(
     </div>
   `;
 
-
-  /*
-   * Save selection temporarily
-   * for the next step.
-   */
-  window.selectedExistingUnlistedProduct=
-    product;
-
-
   setStatus(
-    "Existing product selected. Nothing has been changed yet.",
+    "Review the match, then click Confirm Match.",
     "info"
   );
 }
+
+async function confirmSelectedUnlistedMatch(){
+
+  if(isSubmitting){
+    return;
+  }
+
+  const unlisted=
+    unlistedReviewRows[
+      selectedUnlistedReviewIndex
+    ];
+
+  const product=
+    window.selectedExistingUnlistedProduct;
+
+
+  if(!unlisted){
+    setStatus(
+      "The Unlisted Product is no longer selected.",
+      "error"
+    );
+    return;
+  }
+
+
+  if(
+    !product||
+    !product.sku
+  ){
+    setStatus(
+      "Please select the existing product again.",
+      "error"
+    );
+    return;
+  }
+
+
+  const button=
+    document.getElementById(
+      "confirmUnlistedMatchBtn"
+    );
+
+
+  try{
+
+    isSubmitting=true;
+
+    if(button){
+      button.disabled=true;
+      button.innerText=
+        "Matching Product...";
+    }
+
+
+    setStatus(
+      "Matching product and updating inventory...",
+      "info"
+    );
+
+
+    const res=
+      await apiCall({
+
+        action:
+          "confirmUnlistedMatch",
+
+        staffId:
+          currentUser.staffId,
+
+        pin:
+          currentPin,
+
+        unlistedId:
+          unlisted.unlistedId,
+
+        matchedSku:
+          product.sku
+
+      });
+
+
+    if(
+      !res||
+      !res.success
+    ){
+      throw new Error(
+        res&&res.message
+          ?res.message
+          :"Product match failed."
+      );
+    }
+
+
+    /*
+     * Clear current selection.
+     */
+    selectedUnlistedReviewIndex=-1;
+
+    unlistedMatchSearchResults=[];
+
+    window.selectedExistingUnlistedProduct=
+      null;
+
+
+    hide(
+      "unlistedMatchCard"
+    );
+
+
+    /*
+     * Reload pending products.
+     *
+     * The matched product should disappear
+     * because its status is no longer
+     * PENDING REVIEW.
+     */
+    await loadPendingUnlistedProducts();
+
+
+    /*
+     * Update the Home notification badge too.
+     */
+    updateHomeNotificationBadge(
+      "UNLISTED",
+      pendingUnlistedReviewCount
+    );
+
+
+    let message=
+      "Product matched successfully.<br><br>"+
+      "<strong>"+
+      escapeHtml(
+        res.productName||""
+      )+
+      "</strong><br>"+
+      "SKU: "+
+      escapeHtml(
+        res.matchedSku||""
+      )+
+      "<br>"+
+      "Qty deducted: "+
+      Number(
+        res.qty||0
+      ).toLocaleString()+
+      "<br>"+
+      "Source: "+
+      escapeHtml(
+        res.sourceLocation||""
+      );
+
+
+    if(
+      Number(
+        res.unknownFallbackQty||0
+      )>0
+    ){
+
+      message+=
+        "<br>UNKNOWN fallback used: "+
+        Number(
+          res.unknownFallbackQty
+        ).toLocaleString();
+
+    }
+
+
+    if(
+      res.negativeStockWarning
+    ){
+
+      message+=`
+        <br><br>
+        <span class="error">
+          Warning: This match resulted in negative stock.
+          Please review the inventory quantity.
+        </span>
+      `;
+
+    }
+
+
+    setStatus(
+      message,
+      res.negativeStockWarning
+        ?"error"
+        :"success-text"
+    );
+
+
+  }catch(err){
+
+    console.error(
+      "Confirm Unlisted Match error:",
+      err
+    );
+
+
+    setStatus(
+      "Match failed: "+
+      escapeHtml(
+        err.message||err
+      ),
+      "error"
+    );
+
+
+    if(button){
+      button.disabled=false;
+      button.innerText=
+        "Confirm Match";
+    }
+
+
+  }finally{
+
+    isSubmitting=false;
+
+  }
+}
+
 function openHome(){
   show("homeCard");
 
