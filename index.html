@@ -2971,142 +2971,150 @@ async function submitCartTransaction(){
       }
     }
   }
-  const cleanItems=cartItems.map(item=>{
-    const p=item.product||{};
+  const cleanItems=
+    cartItems.map(item=>{
   
-    const isUnlisted=
-      item.isUnlisted===true;
+      const p=
+        item.product||{};
   
-    /*
-     * ========================================
-     * UNLISTED PRODUCT
-     * ========================================
-     */
-    return{
-      isUnlisted:true,
-    
-      sku:"",
-      barcodeValue:"",
-      qrValue:"",
-    
-      productName:
-        item.productName||
-        p.productName||
-        "",
-    
-      brand:
-        item.brand||
-        "",
-    
-      model:
-        item.model||
-        "",
-    
-      description:
-        item.description||
-        "",
-    
-      specifications:
-        item.specifications||
-        "",
-    
-      itemType:
-        item.itemType||
-        "",
-    
-      forWith:
-        item.forWith||
-        "",
-    
-      quantity:
-        Number(
-          item.quantity||0
-        ),
-    
-      unit:
-        item.unit||
-        "unit",
-    
-      unitDetails:
-        item.unitDetails||
-        "",
-    
+      const isUnlisted=
+        item.isUnlisted===true;
+  
+  
       /*
-       * Use the ONE final Sale
-       * Location / Stock Source.
+       * ========================================
+       * UNLISTED PRODUCT
+       * ========================================
        */
-      sourceLocation:
-        val("saleLocation"),
-    
-      pricePerUnit:
-        Number(
-          item.pricePerUnit||0
-        ),
-    
-      costPerUnit:
-        Number(
-          item.costPerUnit||0
-        ),
-    
-      notes:
-        item.notes||
-        ""
-    };
+      if(isUnlisted){
+  
+        return{
+          isUnlisted:true,
+  
+          sku:"",
+          barcodeValue:"",
+          qrValue:"",
+  
+          productName:
+            item.productName||
+            p.productName||
+            "",
+  
+          brand:
+            item.brand||
+            "",
+  
+          model:
+            item.model||
+            "",
+  
+          description:
+            item.description||
+            "",
+  
+          specifications:
+            item.specifications||
+            "",
+  
+          itemType:
+            item.itemType||
+            "",
+  
+          forWith:
+            item.forWith||
+            "",
+  
+          quantity:
+            Number(
+              item.quantity||0
+            ),
+  
+          unit:
+            item.unit||
+            "unit",
+  
+          unitDetails:
+            item.unitDetails||
+            "",
+  
+          /*
+           * Use the ONE Location /
+           * Stock Source selected in
+           * the Sale form.
+           */
+          sourceLocation:
+            val("saleLocation"),
+  
+          pricePerUnit:
+            Number(
+              item.pricePerUnit||0
+            ),
+  
+          costPerUnit:
+            Number(
+              item.costPerUnit||0
+            ),
+  
+          notes:
+            item.notes||
+            ""
+        };
+      }
   
   
-    /*
-     * ========================================
-     * NORMAL LISTED PRODUCT
-     * ========================================
-     */
-    return{
-      isUnlisted:false,
+      /*
+       * ========================================
+       * NORMAL LISTED PRODUCT
+       * ========================================
+       */
+      return{
+        isUnlisted:false,
   
-      qboId:
-        p.qboId||
-        "",
+        qboId:
+          p.qboId||
+          "",
   
-      sku:
-        p.sku||
-        "",
+        sku:
+          p.sku||
+          "",
   
-      barcodeValue:
-        p.barcodeValue||
-        "",
+        barcodeValue:
+          p.barcodeValue||
+          "",
   
-      qrValue:
-        p.qrValue||
-        p.barcodeValue||
-        "",
+        qrValue:
+          p.qrValue||
+          p.barcodeValue||
+          "",
   
-      productName:
-        p.productName||
-        "",
+        productName:
+          p.productName||
+          "",
   
-      quantity:
-        Number(
-          item.quantity||0
-        ),
+        quantity:
+          Number(
+            item.quantity||0
+          ),
   
-      unit:
-        item.unit||
-        "unit",
+        unit:
+          item.unit||
+          "unit",
   
-      unitDetails:
-        item.unitDetails||
-        "",
+        unitDetails:
+          item.unitDetails||
+          "",
   
-      pricePerUnit:
-        Number(
-          item.pricePerUnit||0
-        ),
+        pricePerUnit:
+          Number(
+            item.pricePerUnit||0
+          ),
   
-      costPerUnit:
-        Number(
-          item.costPerUnit||0
-        )
-    };
-  });
+        costPerUnit:
+          Number(
+            item.costPerUnit||0
+          )
+      };
+    });
   let params = {action: "submitCartTransaction", staffId: currentUser.staffId, pin: currentPin, transactionType: currentType, cartItems: JSON.stringify(cleanItems), notes: val("notes")};
   if(currentType === "SALE" && !val("releasedBy")){
     setStatus("Please select who released the item.", "error");
