@@ -233,7 +233,7 @@
     >
   
     <p class="muted">
-      Format: Brand Model Description Specifications Item Type For/With
+      Format: Brand Model Specifications Description Item Type For/With
     </p>
   
     <div class="row">
@@ -2096,25 +2096,14 @@ function addUnlistedProductToCart(){
   const model=
     val("unlistedModel").trim();
 
-  const description=
-    val("unlistedDescription").trim();
-
   const specifications=
     val("unlistedSpecifications").trim();
 
+  const description=
+    val("unlistedDescription").trim();
+
   const itemType=
     val("unlistedItemType").trim();
-
-  if(
-    forWith&&
-    !/^(for|with)\s+.+/i.test(forWith)
-  ){
-    setStatus(
-      'For / With must start with "for" or "with". Example: for Metal or with Battery.',
-      "error"
-    );
-    return;
-  }
 
   const forWith=
     val("unlistedForWith").trim();
@@ -2142,8 +2131,9 @@ function addUnlistedProductToCart(){
 
 
   /*
-   * At minimum we need enough details
-   * to identify the product.
+   * ========================================
+   * REQUIRED DETAILS
+   * ========================================
    */
   if(!brand){
     setStatus(
@@ -2169,6 +2159,24 @@ function addUnlistedProductToCart(){
     return;
   }
 
+
+  /*
+   * ========================================
+   * FOR / WITH VALIDATION
+   * ========================================
+   */
+  if(
+    forWith&&
+    !/^(for|with)\s+.+/i.test(forWith)
+  ){
+    setStatus(
+      'For / With must start with "for" or "with". Example: for Metal or with Battery.',
+      "error"
+    );
+    return;
+  }
+
+
   if(!productName){
     setStatus(
       "Please enter the product information.",
@@ -2178,6 +2186,11 @@ function addUnlistedProductToCart(){
   }
 
 
+  /*
+   * ========================================
+   * QUANTITY
+   * ========================================
+   */
   if(
     !Number.isFinite(qty)||
     qty<=0||
@@ -2191,6 +2204,11 @@ function addUnlistedProductToCart(){
   }
 
 
+  /*
+   * ========================================
+   * PRICE
+   * ========================================
+   */
   if(
     !Number.isFinite(pricePerUnit)||
     pricePerUnit<0
@@ -2203,6 +2221,11 @@ function addUnlistedProductToCart(){
   }
 
 
+  /*
+   * ========================================
+   * COST
+   * ========================================
+   */
   if(
     !Number.isFinite(costPerUnit)||
     costPerUnit<0
@@ -2238,10 +2261,11 @@ function addUnlistedProductToCart(){
     },
 
     productName,
+
     brand,
     model,
-    description,
     specifications,
+    description,
     itemType,
     forWith,
 
@@ -2250,11 +2274,6 @@ function addUnlistedProductToCart(){
     unit:"unit",
     unitDetails:"",
 
-    /*
-     * DO NOT save Source Location here.
-     * Final Sale Location will be used
-     * when the transaction is submitted.
-     */
     sourceLocation:"",
 
     pricePerUnit,
