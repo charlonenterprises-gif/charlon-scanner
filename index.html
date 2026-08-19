@@ -79,7 +79,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System 2026</h1>
-    <p class="muted">Login · v2026.3.82</p>
+    <p class="muted">Login · v2026.3.83</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -152,7 +152,7 @@
   
     <div class="row">
       <div>
-        <label>Brand</label>
+        <label>Brand *</label>
         <input
           type="text"
           id="unlistedBrand"
@@ -605,11 +605,9 @@
     </button>
   
     <div
-      <div
-        id="unlistedReviewList"
-        class="product-box"
-      ></div>
-      
+      id="unlistedReviewList"
+      class="product-box"
+    ></div>
       
       <div
         id="unlistedMatchCard"
@@ -682,6 +680,7 @@
     <div id="status" class="muted">Ready.</div>
   </div>
 
+</div>
 
 <script>
 'use strict';
@@ -2769,14 +2768,27 @@ async function confirmCreateNewUnlistedProduct(){
 
 
   if(!item){
+
     setStatus(
       "The Unlisted Product is no longer selected.",
       "error"
     );
+
     return;
   }
 
 
+  /*
+   * Refresh Product Name + SKU preview.
+   */
+  updateAdminCreateDerivedFields();
+
+
+  /*
+   * ========================================
+   * PRODUCT DETAILS
+   * ========================================
+   */
   const brand=
     val(
       "unlistedCreateBrand"
@@ -2821,7 +2833,12 @@ async function confirmCreateNewUnlistedProduct(){
     );
 
 
-  const newSku=
+  /*
+   * Preview only.
+   *
+   * Code.gs generates the official SKU again.
+   */
+  const generatedSku=
     val(
       "unlistedCreateSku"
     )
@@ -2829,65 +2846,68 @@ async function confirmCreateNewUnlistedProduct(){
       .toUpperCase();
 
 
+  /*
+   * ========================================
+   * BASIC VALIDATION
+   * ========================================
+   */
   if(!brand){
+
     setStatus(
       "Please enter the Brand.",
       "error"
     );
-    return;
-  }
 
-
-  if(!model){
-    setStatus(
-      "Please enter the Model.",
-      "error"
-    );
     return;
   }
 
 
   if(!itemType){
+
     setStatus(
       "Please enter the Item Type.",
       "error"
     );
+
     return;
   }
 
 
+  /*
+   * Model is OPTIONAL.
+   *
+   * If there is no Model,
+   * Description becomes required.
+   */
+  if(
+    !model&&
+    !description
+  ){
+
+    setStatus(
+      "Description is required when the product has no Model.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  /*
+   * For / With is optional.
+   */
   if(
     forWith&&
     !/^(for|with)\s+.+/i.test(
       forWith
     )
   ){
+
     setStatus(
       'For / With must start with "for" or "with".',
       "error"
     );
-    return;
-  }
 
-
-  if(!newSku){
-    setStatus(
-      "Please enter the Permanent SKU.",
-      "error"
-    );
-    return;
-  }
-
-
-  if(
-    !/^[A-Z0-9][A-Z0-9._-]*$/.test(
-      newSku
-    )
-  ){
-    setStatus(
-      "Permanent SKU contains invalid characters.",
-      "error"
-    );
     return;
   }
 
@@ -2898,10 +2918,163 @@ async function confirmCreateNewUnlistedProduct(){
     )||
     costPerUnit<0
   ){
+
     setStatus(
       "Cost Per Unit is invalid.",
       "error"
     );
+
+    return;
+  }
+
+
+  /*
+   * ========================================
+   * BRAND CODE
+   * ========================================
+   */
+  const existingBrand=
+    adminCreateFindLegend(
+      "brands",
+      brand
+    );
+
+
+  let brandCode="";
+
+
+  /*
+   * Existing Brand:
+   * use SETTINGS L:M.
+   */
+  if(
+    existingBrand&&
+    existingBrand.code
+  ){
+
+    brandCode=
+      adminCreateCleanCode(
+        existingBrand.code
+      );
+
+  }else{
+
+    /*
+     * New Brand:
+     * Admin confirms the suggested code.
+     */
+    brandCode=
+      adminCreateCleanCode(
+        val(
+          "unlistedCreateBrandCode"
+        )
+      );
+
+
+    if(
+      !/^[A-Z0-9]{1,2}$/.test(
+        brandCode
+      )
+    ){
+
+      setStatus(
+        "New Brand Code must contain 1-2 letters/numbers.",
+        "error"
+      );
+
+      return;
+    }
+
+  }
+
+
+  /*
+   * ========================================
+   * ITEM TYPE CODE
+   * ========================================
+   */
+  const existingItemType=
+    adminCreateFindLegend(
+      "itemTypes",
+      itemType
+    );
+
+
+  let itemTypeCode="";
+
+
+  /*
+   * Existing Item Type:
+   * use SETTINGS P:Q.
+   */
+  if(
+    existingItemType&&
+    existingItemType.code
+  ){
+
+    itemTypeCode=
+      adminCreateCleanCode(
+        existingItemType.code
+      );
+
+  }else{
+
+    /*
+     * New Item Type:
+     * Admin confirms the suggested code.
+     */
+    itemTypeCode=
+      adminCreateCleanCode(
+        val(
+          "unlistedCreateItemTypeCode"
+        )
+      );
+
+
+    if(
+      !/^[A-Z0-9]{3,4}$/.test(
+        itemTypeCode
+      )
+    ){
+
+      setStatus(
+        "New Item Type Code must contain 3-4 letters/numbers.",
+        "error"
+      );
+
+      return;
+    }
+
+  }
+
+
+  /*
+   * ========================================
+   * GENERATED SKU PREVIEW CHECK
+   * ========================================
+   */
+  if(!generatedSku){
+
+    setStatus(
+      "The SKU could not be generated. Please review the product information.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  if(
+    !/^[A-Z0-9]+(?:-[A-Z0-9]+)*$/.test(
+      generatedSku
+    )
+  ){
+
+    setStatus(
+      "Generated SKU is invalid.",
+      "error"
+    );
+
     return;
   }
 
@@ -2916,10 +3089,15 @@ async function confirmCreateNewUnlistedProduct(){
 
     isSubmitting=true;
 
-    button.disabled=true;
 
-    button.innerText=
-      "Creating Product...";
+    if(button){
+
+      button.disabled=true;
+
+      button.innerText=
+        "Creating Product...";
+
+    }
 
 
     setStatus(
@@ -2928,6 +3106,15 @@ async function confirmCreateNewUnlistedProduct(){
     );
 
 
+    /*
+     * ========================================
+     * SEND TO CODE.GS
+     *
+     * NO manual SKU is sent.
+     *
+     * Code.gs generates the official SKU.
+     * ========================================
+     */
     const res=
       await apiCall({
 
@@ -2943,9 +3130,9 @@ async function confirmCreateNewUnlistedProduct(){
         unlistedId:
           item.unlistedId,
 
-        newSku,
-
         brand,
+
+        brandCode,
 
         model,
 
@@ -2954,6 +3141,8 @@ async function confirmCreateNewUnlistedProduct(){
         description,
 
         itemType,
+
+        itemTypeCode,
 
         forWith,
 
@@ -2966,15 +3155,23 @@ async function confirmCreateNewUnlistedProduct(){
       !res||
       !res.success
     ){
+
       throw new Error(
         res&&res.message
           ?res.message
           :"Could not create product."
       );
+
     }
 
 
+    /*
+     * ========================================
+     * SUCCESS
+     * ========================================
+     */
     selectedUnlistedCreateIndex=-1;
+
 
     hide(
       "unlistedCreateCard"
@@ -2991,16 +3188,19 @@ async function confirmCreateNewUnlistedProduct(){
 
 
     setStatus(
-      "New product created successfully.<br><br>"+
+      "New product created successfully."+
+      "<br><br>"+
       "<strong>"+
       escapeHtml(
         res.productName||""
       )+
-      "</strong><br>"+
-      "SKU: "+
+      "</strong>"+
+      "<br>"+
+      "SKU: <strong>"+
       escapeHtml(
         res.sku||""
       )+
+      "</strong>"+
       "<br>"+
       "Initial Inventory Qty: 0",
       "success-text"
@@ -3028,15 +3228,19 @@ async function confirmCreateNewUnlistedProduct(){
 
     isSubmitting=false;
 
+
     if(button){
+
       button.disabled=false;
 
       button.innerText=
         "Create New Product";
+
     }
 
   }
 }
+  
 function cancelUnlistedMatch(){
 
   selectedUnlistedReviewIndex=-1;
@@ -5051,9 +5255,21 @@ function addUnlistedProductToCart(){
     return;
   }
 
-  if(!model){
+  /*
+   * Model is optional.
+   *
+   * If there is no Model,
+   * Description is required because Admin
+   * will use the no-model SKU format:
+   *
+   * DESCRIPTION-ITEMTYPE-SPEC-BRAND
+   */
+  if(
+    !model&&
+    !description
+  ){
     setStatus(
-      "Please enter the Model.",
+      "Please enter the Description when the product has no Model.",
       "error"
     );
     return;
