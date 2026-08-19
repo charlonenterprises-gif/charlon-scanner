@@ -155,7 +155,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System 2026</h1>
-    <p class="muted">Login · v2026.3.86</p>
+    <p class="muted">Login · v2026.3.87</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -1103,44 +1103,200 @@ function apiCall(params){
 }
 
 async function login(){
-  const staffId = val("staffId").trim().toUpperCase();
-  const pin = val("pin").trim();
+
+  const staffId=
+    val("staffId")
+      .trim()
+      .toUpperCase();
+
+  const pin=
+    val("pin")
+      .trim();
+
+
   if(!staffId){
-    setStatus("Please enter Staff ID.", "error");
+
+    setStatus(
+      "Please enter Staff ID.",
+      "error"
+    );
+
     return;
   }
+
+
   if(!pin){
-    setStatus("Please enter PIN.", "error");
+
+    setStatus(
+      "Please enter PIN.",
+      "error"
+    );
+
     return;
   }
-  setStatus("Logging in...", "info");
+
+
+  const button=
+    document.getElementById(
+      "loginBtn"
+    );
+
+
   try{
-    const res = await apiCall({action: "login", staffId, pin});
-    console.log("Login response:", res);
-    if(!res || !res.success){
-      setStatus((res && res.message) ? res.message: "Login failed.", "error");
+
+    /*
+     * Immediate visual feedback.
+     */
+    if(button){
+
+      button.disabled=true;
+
+      button.innerText=
+        "Logging in...";
+
+    }
+
+
+    setStatus(
+      "Logging in...",
+      "info"
+    );
+
+
+    const res=
+      await apiCall({
+
+        action:"login",
+
+        staffId,
+
+        pin
+
+      });
+
+
+    console.log(
+      "Login response:",
+      res
+    );
+
+
+    if(
+      !res||
+      !res.success
+    ){
+
+      setStatus(
+        res&&res.message
+          ?res.message
+          :"Login failed.",
+        "error"
+      );
+
       return;
     }
-    currentUser = res.user;
-    currentPin = pin;
-    settings = res.settings || {};
-    hide("loginCard");
-    if(currentUser.mustChangePin){
-      show("changePinCard");
-      setStatus("Temporary PIN detected. Please create your own PIN.", "info");
-      setTimeout(() => document.getElementById("newPin").focus(), 200);
+
+
+    currentUser=
+      res.user;
+
+    currentPin=
+      pin;
+
+    settings=
+      res.settings||
+      {};
+
+
+    hide(
+      "loginCard"
+    );
+
+
+    if(
+      currentUser.mustChangePin
+    ){
+
+      show(
+        "changePinCard"
+      );
+
+
+      setStatus(
+        "Temporary PIN detected. Please create your own PIN.",
+        "info"
+      );
+
+
+      setTimeout(
+        ()=>
+          document
+            .getElementById(
+              "newPin"
+            )
+            .focus(),
+        200
+      );
+
+
       return;
     }
+
+
     saveLoginSession();
+
+
     openHome();
+
+
     startInactivityTimer();
-    setStatus("Login successful.", "success-text");
-  } catch(err){
-    console.error("Login error:", err);
-    setStatus("Login error: " + escapeHtml(err.message || err), "error");
+
+
+    setStatus(
+      "Login successful.",
+      "success-text"
+    );
+
+
+  }catch(err){
+
+    console.error(
+      "Login error:",
+      err
+    );
+
+
+    setStatus(
+      "Login error: "+
+      escapeHtml(
+        err.message||err
+      ),
+      "error"
+    );
+
+
+  }finally{
+
+    /*
+     * Restore button if Login screen
+     * is still visible.
+     */
+    if(button){
+
+      button.disabled=false;
+
+      button.innerText=
+        "Login";
+
+      button:disabled{
+        opacity:.6;
+        cursor:not-allowed;
+      }
+
+    }
+
   }
 }
-
 async function changePin(){
   if(!currentUser){
     setStatus("Please login first.", "error");
