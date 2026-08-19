@@ -156,7 +156,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System 2026</h1>
-    <p class="muted">Login · v2026.3.88</p>
+    <p class="muted">Login · v2026.3.89</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -799,7 +799,8 @@ label: "Count Actual Stock", helper: "Gamitin kapag magche-check ng actual count
 helper: "Manager/Admin only. Gamitin kapag kailangang itama ang stock after checking.", live: true}, {key: "TRANSFER", type: "TRANSFER", label: "Transfer Stock Location", helper: "Gamitin kapag ililipat ang stock mula sa isang inventory location papunta sa iba.",
 live: true}];
 
-let statusToastTimer=null;
+let statusToastDelayTimer=null;
+let statusToastHideTimer=null;
 
 
 function setStatus(
@@ -814,8 +815,11 @@ function setStatus(
 
   /*
    * ========================================
-   * PERMANENT STATUS AT BOTTOM
+   * HIDDEN STATUS STORAGE
    * ========================================
+   *
+   * Keep this for compatibility with the
+   * existing code, but NEVER show it.
    */
   const el=
     document.getElementById(
@@ -825,18 +829,24 @@ function setStatus(
 
   if(el){
 
-    el.className=
-      statusType;
-
     el.innerHTML=
       text||"";
+
+    /*
+     * IMPORTANT:
+     * Never replace className because that
+     * would remove the hidden class.
+     */
+    el.classList.add(
+      "hidden"
+    );
 
   }
 
 
   /*
    * ========================================
-   * FLOATING STATUS AT TOP
+   * FLOATING STATUS
    * ========================================
    */
   const toast=
@@ -850,100 +860,110 @@ function setStatus(
   }
 
 
+  /*
+   * Cancel any old timers.
+   */
   clearTimeout(
-    statusToastTimer
+    statusToastDelayTimer
+  );
+
+  clearTimeout(
+    statusToastHideTimer
   );
 
 
+  /*
+   * Was the loading toast already visible?
+   *
+   * This matters because a quick operation
+   * should NOT suddenly show a success toast.
+   */
+  const wasVisible=
+    toast.classList.contains(
+      "visible"
+    );
+
+
+  /*
+   * Reset current toast.
+   */
+  toast.classList.remove(
+    "visible"
+  );
+
   toast.className=
     statusType;
-
 
   toast.innerHTML=
     text||"";
 
 
   /*
-   * Don't show an empty notification.
+   * Empty or minor status:
+   * never show popup.
    */
-  if(!text){
-
-    toast.classList.remove(
-      "visible"
-    );
-
-    return;
-  }
-
-  /*
-   * Don't show minor background messages
-   * as floating notifications.
-   */
-  if(statusType==="muted"){
-  
-    toast.classList.remove(
-      "visible"
-    );
-  
+  if(
+    !text||
+    statusType==="muted"
+  ){
     return;
   }
 
 
-  toast.classList.add(
-    "visible"
-  );
+  /*
+   * ========================================
+   * INFO / LOADING
+   * ========================================
+   *
+   * Don't show immediately.
+   *
+   * Only show if the operation is still
+   * running after 2.5 seconds.
+   */
+  if(
+    statusType==="info"
+  ){
+
+    statusToastDelayTimer=
+      setTimeout(
+        ()=>{
+
+          toast.className=
+            "info visible";
+
+        },
+        2500
+      );
+
+    return;
+  }
 
 
   /*
    * ========================================
-   * AUTO-HIDE RULES
+   * SUCCESS
    * ========================================
    *
-   * INFO:
-   * Do NOT auto-hide.
-   * Example:
-   * "Creating Product..."
+   * If the operation finished quickly,
+   * don't show a popup at all.
    *
-   * It stays until the operation returns
-   * success/error.
-   *
-   * SUCCESS:
-   * Hide after 6 seconds.
-   *
-   * ERROR:
-   * Hide after 8 seconds.
-   *
-   * MUTED:
-   * Hide after 4 seconds.
-   * ========================================
+   * If the loading popup had already appeared,
+   * replace it with the success result.
    */
-  let hideAfter=0;
-
-
   if(
     statusType==="success-text"
   ){
 
-    hideAfter=6000;
-
-  }else if(
-    statusType==="error"
-  ){
-
-    hideAfter=8000;
-
-  }else if(
-    statusType==="muted"
-  ){
-
-    hideAfter=4000;
-
-  }
+    if(!wasVisible){
+      return;
+    }
 
 
-  if(hideAfter>0){
+    toast.className=
+      "success-text visible";
 
-    statusToastTimer=
+
+    statusToastHideTimer=
       setTimeout(
         ()=>{
 
@@ -952,7 +972,39 @@ function setStatus(
           );
 
         },
-        hideAfter
+        4000
+      );
+
+    return;
+  }
+
+
+  /*
+   * ========================================
+   * ERROR
+   * ========================================
+   *
+   * Errors should always be visible because
+   * the user needs to know what went wrong.
+   */
+  if(
+    statusType==="error"
+  ){
+
+    toast.className=
+      "error visible";
+
+
+    statusToastHideTimer=
+      setTimeout(
+        ()=>{
+
+          toast.classList.remove(
+            "visible"
+          );
+
+        },
+        7000
       );
 
   }
