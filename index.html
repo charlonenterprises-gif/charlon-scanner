@@ -29,20 +29,53 @@
     #status { white-space:normal; line-height:1.4; }
     #statusToast{
       position:fixed;
-      top:14px;
+      top:10px;
       left:50%;
       transform:translateX(-50%);
-      width:calc(100% - 32px);
-      max-width:720px;
+    
+      width:fit-content;
+      min-width:260px;
+      max-width:calc(100% - 32px);
+    
       box-sizing:border-box;
-      padding:14px 16px;
-      border-radius:12px;
+      padding:10px 14px;
+    
+      border-radius:10px;
       background:#fff;
-      box-shadow:0 5px 24px rgba(0,0,0,.22);
+    
+      box-shadow:0 3px 12px rgba(0,0,0,.16);
+    
       z-index:99998;
-      line-height:1.45;
-      font-size:15px;
+    
+      line-height:1.35;
+      font-size:13px;
+      font-weight:600;
+    
       display:none;
+    }
+    
+    #statusToast.visible{
+      display:block;
+    }
+    
+    #statusToast.info{
+      color:#1f4e79;
+      border:1px solid #cbdcec;
+    }
+    
+    #statusToast.success-text{
+      color:#176b42;
+      border:1px solid #b9dfcc;
+    }
+    
+    #statusToast.error{
+      color:#a61b12;
+      border:1px solid #efc1bd;
+    }
+    
+    #statusToast.muted{
+      color:#555;
+      border:1px solid #ddd;
     }
     
     #statusToast.visible{
@@ -718,10 +751,10 @@
     </button>
   </div>
   
-  <div class="card">
-    <strong>Status:</strong>
-    <div id="status" class="muted">Ready.</div>
-  </div>
+  <div
+    id="status"
+    class="hidden"
+  ></div>
 
 </div>
 
@@ -838,6 +871,19 @@ function setStatus(
       "visible"
     );
 
+    return;
+  }
+
+  /*
+   * Don't show minor background messages
+   * as floating notifications.
+   */
+  if(statusType==="muted"){
+  
+    toast.classList.remove(
+      "visible"
+    );
+  
     return;
   }
 
@@ -2569,13 +2615,21 @@ function updateAdminCreateDerivedFields(){
       adminCreateLegendKey(
         brand
       );
+    
+    if(!brand){
+
+      brandCodeField.value="";
+    
+      brandCodeField.dataset.forName="";
+  
+    }
 
 
     /*
      * Existing Brand:
      * silently use existing code.
      */
-    if(
+    else if(
       existingBrand&&
       existingBrand.code
     ){
@@ -2590,7 +2644,6 @@ function updateAdminCreateDerivedFields(){
         brandKey;
 
     }
-
 
     /*
      * New Brand:
@@ -2675,39 +2728,39 @@ function updateAdminCreateDerivedFields(){
       adminCreateLegendKey(
         itemType
       );
-
-
-    /*
-     * Existing Item Type:
-     * silently use P:Q code.
-     */
-    if(
+  
+  
+    if(!itemType){
+  
+      itemTypeCodeField.value="";
+  
+      itemTypeCodeField.dataset.forName="";
+  
+    }
+  
+  
+    else if(
       existingItemType&&
       existingItemType.code
     ){
-
+  
       itemTypeCodeField.value=
         adminCreateCleanCode(
           existingItemType.code
         );
-
-
+  
       itemTypeCodeField.dataset.forName=
         itemTypeKey;
-
+  
     }
-
-
-    /*
-     * New Item Type:
-     * show and suggest code.
-     */
+  
+  
     else if(
       itemType&&
       itemTypeCodeField.dataset.forName!==
       itemTypeKey
     ){
-
+  
       itemTypeCodeField.value=
         adminCreateSuggestCode(
           itemType,
@@ -2715,13 +2768,34 @@ function updateAdminCreateDerivedFields(){
           4,
           "itemTypes"
         );
-
-
+  
       itemTypeCodeField.dataset.forName=
         itemTypeKey;
-
+  
     }
-
+  
+  }
+  
+  
+    else if(
+      itemType&&
+      itemTypeCodeField.dataset.forName!==
+      itemTypeKey
+    ){
+  
+      itemTypeCodeField.value=
+        adminCreateSuggestCode(
+          itemType,
+          3,
+          4,
+          "itemTypes"
+        );
+  
+      itemTypeCodeField.dataset.forName=
+        itemTypeKey;
+  
+    }
+  
   }
 
 
