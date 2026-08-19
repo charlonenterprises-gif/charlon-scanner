@@ -27,6 +27,43 @@
     .error { color:#b42318; font-weight:700; }
     .info { color:#1f4e79; font-weight:700; }
     #status { white-space:normal; line-height:1.4; }
+    #statusToast{
+      position:fixed;
+      top:14px;
+      left:50%;
+      transform:translateX(-50%);
+      width:calc(100% - 32px);
+      max-width:720px;
+      box-sizing:border-box;
+      padding:14px 16px;
+      border-radius:12px;
+      background:#fff;
+      box-shadow:0 5px 24px rgba(0,0,0,.22);
+      z-index:99998;
+      line-height:1.45;
+      font-size:15px;
+      display:none;
+    }
+    
+    #statusToast.visible{
+      display:block;
+    }
+    
+    #statusToast.info{
+      border-left:5px solid #1f4e79;
+    }
+    
+    #statusToast.success-text{
+      border-left:5px solid #198754;
+    }
+    
+    #statusToast.error{
+      border-left:5px solid #b42318;
+    }
+    
+    #statusToast.muted{
+      border-left:5px solid #777;
+    }
     #reader { width:100%; margin-top:10px; }
     .product-box { line-height:1.6; font-size:15px; }
     .badge { display:inline-block; padding:4px 8px; border-radius:999px; background:#eee; font-size:12px; font-weight:700; }
@@ -68,6 +105,12 @@
   </style>
 </head>
 <body>
+  <div
+    id="statusToast"
+    class="muted"
+    role="status"
+    aria-live="polite"
+  ></div>
 <button
   id="goTopBtn"
   type="button"
@@ -79,7 +122,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System 2026</h1>
-    <p class="muted">Login · v2026.3.84</p>
+    <p class="muted">Login · v2026.3.85</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -722,12 +765,151 @@ label: "Count Actual Stock", helper: "Gamitin kapag magche-check ng actual count
 helper: "Manager/Admin only. Gamitin kapag kailangang itama ang stock after checking.", live: true}, {key: "TRANSFER", type: "TRANSFER", label: "Transfer Stock Location", helper: "Gamitin kapag ililipat ang stock mula sa isang inventory location papunta sa iba.",
 live: true}];
 
-function setStatus(text, type = ""){
-  const el = document.getElementById("status");
-  el.className = type || "muted";
-  el.innerHTML = text || "";
-}
+let statusToastTimer=null;
 
+
+function setStatus(
+  text,
+  type=""
+){
+
+  const statusType=
+    type||
+    "muted";
+
+
+  /*
+   * ========================================
+   * PERMANENT STATUS AT BOTTOM
+   * ========================================
+   */
+  const el=
+    document.getElementById(
+      "status"
+    );
+
+
+  if(el){
+
+    el.className=
+      statusType;
+
+    el.innerHTML=
+      text||"";
+
+  }
+
+
+  /*
+   * ========================================
+   * FLOATING STATUS AT TOP
+   * ========================================
+   */
+  const toast=
+    document.getElementById(
+      "statusToast"
+    );
+
+
+  if(!toast){
+    return;
+  }
+
+
+  clearTimeout(
+    statusToastTimer
+  );
+
+
+  toast.className=
+    statusType;
+
+
+  toast.innerHTML=
+    text||"";
+
+
+  /*
+   * Don't show an empty notification.
+   */
+  if(!text){
+
+    toast.classList.remove(
+      "visible"
+    );
+
+    return;
+  }
+
+
+  toast.classList.add(
+    "visible"
+  );
+
+
+  /*
+   * ========================================
+   * AUTO-HIDE RULES
+   * ========================================
+   *
+   * INFO:
+   * Do NOT auto-hide.
+   * Example:
+   * "Creating Product..."
+   *
+   * It stays until the operation returns
+   * success/error.
+   *
+   * SUCCESS:
+   * Hide after 6 seconds.
+   *
+   * ERROR:
+   * Hide after 8 seconds.
+   *
+   * MUTED:
+   * Hide after 4 seconds.
+   * ========================================
+   */
+  let hideAfter=0;
+
+
+  if(
+    statusType==="success-text"
+  ){
+
+    hideAfter=6000;
+
+  }else if(
+    statusType==="error"
+  ){
+
+    hideAfter=8000;
+
+  }else if(
+    statusType==="muted"
+  ){
+
+    hideAfter=4000;
+
+  }
+
+
+  if(hideAfter>0){
+
+    statusToastTimer=
+      setTimeout(
+        ()=>{
+
+          toast.classList.remove(
+            "visible"
+          );
+
+        },
+        hideAfter
+      );
+
+  }
+}
 function show(id){
   document.getElementById(id).classList.remove("hidden");
 }
