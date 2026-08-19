@@ -428,9 +428,7 @@
     <h3>Create New Product</h3>
   
     <p class="muted">
-      The salesperson's original entry is shown below.
-      You may correct the product information before creating
-      the permanent inventory product.
+      Review and correct the product information before creating it.
     </p>
   
     <div
@@ -442,76 +440,108 @@
   
     <h3>Final Product Information</h3>
   
-    <div class="row">
   
-      <div>
-        <label>Brand *</label>
+    <label>Brand *</label>
+    <input
+      type="text"
+      id="unlistedCreateBrand"
+      autocomplete="off"
+      oninput="updateAdminCreateDerivedFields()"
+    >
   
-        <input
-          type="text"
-          id="unlistedCreateBrand"
-          oninput="updateAdminCreateProductName()"
-        >
-      </div>
   
-      <div>
-        <label>Model *</label>
+    <!-- ONLY APPEARS IF BRAND IS NEW -->
+    <div
+      id="unlistedCreateBrandCodeWrap"
+      class="hidden"
+    >
+      <label>New Brand Code *</label>
   
-        <input
-          type="text"
-          id="unlistedCreateModel"
-          oninput="updateAdminCreateProductName()"
-        >
-      </div>
+      <input
+        type="text"
+        id="unlistedCreateBrandCode"
+        maxlength="2"
+        placeholder="1-2 characters"
+        oninput="
+          sanitizeAdminCreateCode(this,2);
+          updateAdminCreateDerivedFields();
+        "
+      >
   
+      <p class="muted">
+        New Brand detected. Confirm the 1-2 character Brand Code.
+      </p>
     </div>
   
   
-    <label>Specifications</label>
+    <label>Model</label>
+    <input
+      type="text"
+      id="unlistedCreateModel"
+      oninput="updateAdminCreateDerivedFields()"
+    >
   
+  
+    <label>Specifications</label>
     <input
       type="text"
       id="unlistedCreateSpecifications"
-      oninput="updateAdminCreateProductName()"
+      oninput="updateAdminCreateDerivedFields()"
     >
   
   
     <label>Description</label>
-  
     <input
       type="text"
       id="unlistedCreateDescription"
-      oninput="updateAdminCreateProductName()"
+      oninput="updateAdminCreateDerivedFields()"
     >
   
   
     <label>Item Type *</label>
-  
     <input
       type="text"
       id="unlistedCreateItemType"
       list="unlistedItemTypeList"
       autocomplete="off"
-      oninput="updateAdminCreateProductName()"
+      oninput="updateAdminCreateDerivedFields()"
     >
   
-    <p class="muted">
-      Select an existing Item Type or type a new one.
-    </p>
+  
+    <!-- ONLY APPEARS IF ITEM TYPE IS NEW -->
+    <div
+      id="unlistedCreateItemTypeCodeWrap"
+      class="hidden"
+    >
+      <label>New Item Type Code *</label>
+  
+      <input
+        type="text"
+        id="unlistedCreateItemTypeCode"
+        maxlength="4"
+        placeholder="3-4 characters"
+        oninput="
+          sanitizeAdminCreateCode(this,4);
+          updateAdminCreateDerivedFields();
+        "
+      >
+  
+      <p class="muted">
+        New Item Type detected. Confirm the 3-4 character Item Type Code.
+      </p>
+    </div>
   
   
     <label>For / With</label>
-  
     <input
       type="text"
       id="unlistedCreateForWith"
       placeholder="Example: for Metal / with Battery"
-      oninput="updateAdminCreateProductName()"
+      oninput="updateAdminCreateDerivedFields()"
     >
   
   
     <label>Cost Per Unit</label>
-  
     <input
       type="number"
       id="unlistedCreateCost"
@@ -521,36 +551,23 @@
   
   
     <label>Final Product Name</label>
-  
     <input
       type="text"
       id="unlistedCreateProductName"
       readonly
     >
   
-    <p class="muted">
-      Format: Brand Model Specifications Description Item Type For/With
-    </p>
   
-  
-    <label>Permanent SKU *</label>
-  
+    <label>Generated SKU</label>
     <input
       type="text"
       id="unlistedCreateSku"
-      placeholder="Example: GA4030-BO"
-      autocomplete="off"
-      oninput="
-        this.value=
-          this.value
-            .toUpperCase()
-            .replace(/\s+/g,'');
-      "
+      placeholder="SKU will be generated automatically"
+      readonly
     >
   
-  
     <p class="muted">
-      The new product will start with inventory quantity 0.
+      The SKU is generated automatically from the product information.
     </p>
   
   
@@ -1641,24 +1658,37 @@ function startUnlistedCreate(index){
   const item=
     unlistedReviewRows[index];
 
+
   if(!item){
+
     setStatus(
       "Unlisted Product could not be found.",
       "error"
     );
+
     return;
   }
 
-  selectedUnlistedCreateIndex=index;
+
+  selectedUnlistedCreateIndex=
+    index;
 
 
   /*
-   * Close Match Existing.
+   * Hide Match Existing card.
    */
-  hide("unlistedMatchCard");
+  hide(
+    "unlistedMatchCard"
+  );
 
-  selectedUnlistedReviewIndex=-1;
-  unlistedMatchSearchResults=[];
+
+  selectedUnlistedReviewIndex=
+    -1;
+
+
+  unlistedMatchSearchResults=
+    [];
+
 
   window.selectedExistingUnlistedProduct=
     null;
@@ -1666,10 +1696,7 @@ function startUnlistedCreate(index){
 
   /*
    * ========================================
-   * ORIGINAL SALESPERSON ENTRY
-   *
-   * READ ONLY DISPLAY.
-   * Nothing here gets overwritten.
+   * SHOW ORIGINAL SALESPERSON ENTRY
    * ========================================
    */
   const original=
@@ -1677,85 +1704,97 @@ function startUnlistedCreate(index){
       "unlistedCreateOriginal"
     );
 
-  original.innerHTML=`
-    <div class="cart-line">
 
-      <strong>
-        Original Salesperson Entry
-      </strong>
+  if(original){
 
-      Product Name:
-      ${escapeHtml(
-        item.productName||"-"
-      )}
-      <br>
+    original.innerHTML=`
+      <div class="cart-line">
 
-      Brand:
-      ${escapeHtml(
-        item.brand||"-"
-      )}
-      <br>
+        <strong>
+          Original Salesperson Entry
+        </strong>
 
-      Model:
-      ${escapeHtml(
-        item.model||"-"
-      )}
-      <br>
+        <br><br>
 
-      Specifications:
-      ${escapeHtml(
-        item.specifications||"-"
-      )}
-      <br>
+        Product Name:
+        ${escapeHtml(
+          item.productName||"-"
+        )}
 
-      Description:
-      ${escapeHtml(
-        item.description||"-"
-      )}
-      <br>
+        <br>
 
-      Item Type:
-      ${escapeHtml(
-        item.itemType||"-"
-      )}
-      <br>
+        Brand:
+        ${escapeHtml(
+          item.brand||"-"
+        )}
 
-      For / With:
-      ${escapeHtml(
-        item.forWith||"-"
-      )}
+        <br>
 
-      <br><br>
+        Model:
+        ${escapeHtml(
+          item.model||"-"
+        )}
 
-      Qty Sold:
-      ${Number(
-        item.qty||0
-      ).toLocaleString()}
+        <br>
 
-      <br>
+        Specifications:
+        ${escapeHtml(
+          item.specifications||"-"
+        )}
 
-      Source:
-      ${escapeHtml(
-        item.sourceLocation||""
-      )}
+        <br>
 
-      <br>
+        Description:
+        ${escapeHtml(
+          item.description||"-"
+        )}
 
-      Added By:
-      ${escapeHtml(
-        item.addedBy||""
-      )}
+        <br>
 
-    </div>
-  `;
+        Item Type:
+        ${escapeHtml(
+          item.itemType||"-"
+        )}
+
+        <br>
+
+        For / With:
+        ${escapeHtml(
+          item.forWith||"-"
+        )}
+
+        <br><br>
+
+        Qty Sold:
+        ${Number(
+          item.qty||0
+        ).toLocaleString()}
+
+        <br>
+
+        Source:
+        ${escapeHtml(
+          item.sourceLocation||""
+        )}
+
+        <br>
+
+        Added By:
+        ${escapeHtml(
+          item.addedBy||""
+        )}
+
+      </div>
+    `;
+
+  }
 
 
   /*
    * ========================================
-   * PREFILL ADMIN EDITABLE FIELDS
+   * PREFILL ADMIN-CORRECTED FIELDS
    * ========================================
    */
-
   document.getElementById(
     "unlistedCreateBrand"
   ).value=
@@ -1800,16 +1839,75 @@ function startUnlistedCreate(index){
     );
 
 
-  document.getElementById(
-    "unlistedCreateSku"
-  ).value="";
+  /*
+   * ========================================
+   * RESET OLD BRAND CODE STATE
+   * ========================================
+   *
+   * Important when Admin opens one product,
+   * cancels it, then opens another product.
+   */
+  const brandCodeField=
+    document.getElementById(
+      "unlistedCreateBrandCode"
+    );
 
 
+  if(brandCodeField){
+
+    brandCodeField.value="";
+
+    brandCodeField.dataset.forName="";
+
+  }
+
+
+  /*
+   * ========================================
+   * RESET OLD ITEM TYPE CODE STATE
+   * ========================================
+   */
+  const itemTypeCodeField=
+    document.getElementById(
+      "unlistedCreateItemTypeCode"
+    );
+
+
+  if(itemTypeCodeField){
+
+    itemTypeCodeField.value="";
+
+    itemTypeCodeField.dataset.forName="";
+
+  }
+
+
+  /*
+   * ========================================
+   * LOAD ITEM TYPE DROPDOWN
+   * ========================================
+   */
   loadUnlistedItemTypeOptions();
 
-  updateAdminCreateProductName();
+
+  /*
+   * ========================================
+   * GENERATE:
+   *
+   * - Final Product Name
+   * - Conditional Brand Code
+   * - Conditional Item Type Code
+   * - Generated SKU
+   * ========================================
+   */
+  updateAdminCreateDerivedFields();
 
 
+  /*
+   * ========================================
+   * SHOW CREATE CARD
+   * ========================================
+   */
   show(
     "unlistedCreateCard"
   );
@@ -1830,7 +1928,6 @@ function startUnlistedCreate(index){
     "info"
   );
 }
-
 function buildAdminCreateProductName(){
 
   const brand=
@@ -1886,6 +1983,733 @@ function buildAdminCreateProductName(){
     .trim();
 }
 
+function adminCreateCleanCode(value){
+
+  return String(value||"")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g,"");
+}
+
+
+function adminCreateModelCode(value){
+
+  return String(value||"")
+    .trim()
+    .toUpperCase()
+    .replace(/\./g,"P")
+    .replace(/\//g,"F")
+    .replace(/×/g,"X")
+    .replace(/\s+/g,"")
+    .replace(/[^A-Z0-9-]/g,"")
+    .replace(/-+/g,"-")
+    .replace(/^-|-$/g,"");
+}
+
+
+function adminCreateLegendKey(value){
+
+  return String(value||"")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g," ");
+}
+
+
+function adminCreateFindLegend(type,value){
+
+  const legends=
+    settings.skuLegends||{};
+
+
+  const list=
+    Array.isArray(
+      legends[type]
+    )
+      ?legends[type]
+      :[];
+
+
+  const key=
+    adminCreateLegendKey(
+      value
+    );
+
+
+  if(!key){
+    return null;
+  }
+
+
+  return(
+    list.find(item=>
+      adminCreateLegendKey(
+        item.name
+      )===key
+    )||
+    null
+  );
+}
+
+
+function adminCreateSuggestCode(
+  value,
+  minLength,
+  maxLength,
+  type
+){
+
+  const words=
+    String(value||"")
+      .trim()
+      .toUpperCase()
+      .match(/[A-Z0-9]+/g)
+      ||[];
+
+
+  if(!words.length){
+    return"";
+  }
+
+
+  const legends=
+    settings.skuLegends||{};
+
+
+  const list=
+    Array.isArray(
+      legends[type]
+    )
+      ?legends[type]
+      :[];
+
+
+  const usedCodes=
+    new Set(
+      list
+        .map(item=>
+          adminCreateCleanCode(
+            item.code
+          )
+        )
+        .filter(Boolean)
+    );
+
+
+  const joined=
+    words.join("");
+
+
+  const candidates=[];
+
+
+  /*
+   * Multiple words.
+   *
+   * Air Cooled -> AC
+   * Electric Start -> ES
+   */
+  if(words.length>1){
+
+    candidates.push(
+      words
+        .map(word=>
+          word.charAt(0)
+        )
+        .join("")
+        .slice(
+          0,
+          maxLength
+        )
+    );
+
+
+    candidates.push(
+      words
+        .map(word=>
+          word.slice(0,2)
+        )
+        .join("")
+        .slice(
+          0,
+          maxLength
+        )
+    );
+
+  }
+
+
+  /*
+   * Single word / fallback.
+   *
+   * Cordless -> CRD
+   * Portable -> PRT
+   */
+  const consonantCode=
+    (
+      joined.charAt(0)+
+      joined
+        .slice(1)
+        .replace(/[AEIOU]/g,"")
+    )
+      .slice(
+        0,
+        maxLength
+      );
+
+
+  candidates.push(
+    consonantCode
+  );
+
+
+  candidates.push(
+    joined.slice(
+      0,
+      maxLength
+    )
+  );
+
+
+  for(
+    const rawCandidate
+    of candidates
+  ){
+
+    const candidate=
+      adminCreateCleanCode(
+        rawCandidate
+      );
+
+
+    if(
+      candidate.length>=minLength&&
+      candidate.length<=maxLength&&
+      !usedCodes.has(candidate)
+    ){
+      return candidate;
+    }
+
+  }
+
+
+  /*
+   * Collision fallback.
+   *
+   * Example:
+   * AC already exists -> AC2
+   */
+  let base=
+    adminCreateCleanCode(
+      consonantCode||
+      joined
+    );
+
+
+  base=
+    base.slice(
+      0,
+      Math.max(
+        1,
+        maxLength-1
+      )
+    );
+
+
+  for(
+    let number=2;
+    number<=9;
+    number++
+  ){
+
+    const candidate=
+      (
+        base+
+        number
+      )
+        .slice(
+          0,
+          maxLength
+        );
+
+
+    if(
+      candidate.length>=minLength&&
+      !usedCodes.has(candidate)
+    ){
+      return candidate;
+    }
+
+  }
+
+
+  return"";
+}
+
+
+function adminCreateSpecificationCode(specifications){
+
+  const text=
+    String(specifications||"")
+      .trim()
+      .toUpperCase();
+
+
+  if(!text){
+    return"";
+  }
+
+
+  /*
+   * First/main numeric specification only.
+   *
+   * 1/4IN  -> 1F4
+   * 2.5HP  -> 2P5
+   * 25HP   -> 25
+   * 220V   -> 220
+   */
+  const match=
+    text.match(
+      /\d+(?:[./]\d+)?/
+    );
+
+
+  if(!match){
+    return"";
+  }
+
+
+  return match[0]
+    .replace(/\//g,"F")
+    .replace(/\./g,"P")
+    .replace(/[^A-Z0-9]/g,"");
+}
+
+
+function sanitizeAdminCreateCode(
+  element,
+  maxLength
+){
+
+  if(!element){
+    return;
+  }
+
+
+  element.value=
+    adminCreateCleanCode(
+      element.value
+    )
+      .slice(
+        0,
+        maxLength
+      );
+}
+
+function updateAdminCreateDerivedFields(){
+
+  /*
+   * ========================================
+   * FINAL PRODUCT NAME
+   * ========================================
+   */
+  const productNameField=
+    document.getElementById(
+      "unlistedCreateProductName"
+    );
+
+
+  if(productNameField){
+
+    productNameField.value=
+      buildAdminCreateProductName();
+
+  }
+
+
+  /*
+   * ========================================
+   * BRAND
+   * ========================================
+   */
+  const brand=
+    val(
+      "unlistedCreateBrand"
+    ).trim();
+
+
+  const existingBrand=
+    adminCreateFindLegend(
+      "brands",
+      brand
+    );
+
+
+  const brandCodeWrap=
+    document.getElementById(
+      "unlistedCreateBrandCodeWrap"
+    );
+
+
+  const brandCodeField=
+    document.getElementById(
+      "unlistedCreateBrandCode"
+    );
+
+
+  const needsBrandCode=
+    Boolean(
+      brand&&
+      (
+        !existingBrand||
+        !existingBrand.code
+      )
+    );
+
+
+  if(brandCodeWrap){
+
+    brandCodeWrap.classList.toggle(
+      "hidden",
+      !needsBrandCode
+    );
+
+  }
+
+
+  if(brandCodeField){
+
+    const brandKey=
+      adminCreateLegendKey(
+        brand
+      );
+
+
+    /*
+     * Existing Brand:
+     * silently use existing code.
+     */
+    if(
+      existingBrand&&
+      existingBrand.code
+    ){
+
+      brandCodeField.value=
+        adminCreateCleanCode(
+          existingBrand.code
+        );
+
+
+      brandCodeField.dataset.forName=
+        brandKey;
+
+    }
+
+
+    /*
+     * New Brand:
+     * suggest a code.
+     */
+    else if(
+      brand&&
+      brandCodeField.dataset.forName!==
+      brandKey
+    ){
+
+      brandCodeField.value=
+        adminCreateSuggestCode(
+          brand,
+          1,
+          2,
+          "brands"
+        );
+
+
+      brandCodeField.dataset.forName=
+        brandKey;
+
+    }
+
+  }
+
+
+  /*
+   * ========================================
+   * ITEM TYPE
+   * ========================================
+   */
+  const itemType=
+    val(
+      "unlistedCreateItemType"
+    ).trim();
+
+
+  const existingItemType=
+    adminCreateFindLegend(
+      "itemTypes",
+      itemType
+    );
+
+
+  const itemTypeCodeWrap=
+    document.getElementById(
+      "unlistedCreateItemTypeCodeWrap"
+    );
+
+
+  const itemTypeCodeField=
+    document.getElementById(
+      "unlistedCreateItemTypeCode"
+    );
+
+
+  const needsItemTypeCode=
+    Boolean(
+      itemType&&
+      (
+        !existingItemType||
+        !existingItemType.code
+      )
+    );
+
+
+  if(itemTypeCodeWrap){
+
+    itemTypeCodeWrap.classList.toggle(
+      "hidden",
+      !needsItemTypeCode
+    );
+
+  }
+
+
+  if(itemTypeCodeField){
+
+    const itemTypeKey=
+      adminCreateLegendKey(
+        itemType
+      );
+
+
+    /*
+     * Existing Item Type:
+     * silently use P:Q code.
+     */
+    if(
+      existingItemType&&
+      existingItemType.code
+    ){
+
+      itemTypeCodeField.value=
+        adminCreateCleanCode(
+          existingItemType.code
+        );
+
+
+      itemTypeCodeField.dataset.forName=
+        itemTypeKey;
+
+    }
+
+
+    /*
+     * New Item Type:
+     * show and suggest code.
+     */
+    else if(
+      itemType&&
+      itemTypeCodeField.dataset.forName!==
+      itemTypeKey
+    ){
+
+      itemTypeCodeField.value=
+        adminCreateSuggestCode(
+          itemType,
+          3,
+          4,
+          "itemTypes"
+        );
+
+
+      itemTypeCodeField.dataset.forName=
+        itemTypeKey;
+
+    }
+
+  }
+
+
+  /*
+   * ========================================
+   * DESCRIPTION
+   *
+   * NO visible code field.
+   *
+   * Existing Description:
+   * use SETTINGS AB:AC.
+   *
+   * New Description:
+   * create code silently.
+   * ========================================
+   */
+  const description=
+    val(
+      "unlistedCreateDescription"
+    ).trim();
+
+
+  const existingDescription=
+    adminCreateFindLegend(
+      "descriptions",
+      description
+    );
+
+
+  const descriptionCode=
+    description
+      ?(
+          existingDescription&&
+          existingDescription.code
+
+            ?adminCreateCleanCode(
+                existingDescription.code
+              )
+
+            :adminCreateSuggestCode(
+                description,
+                2,
+                4,
+                "descriptions"
+              )
+        )
+      :"";
+
+
+  /*
+   * ========================================
+   * SPECIFICATION
+   *
+   * Hidden completely.
+   * ========================================
+   */
+  const specificationCode=
+    adminCreateSpecificationCode(
+      val(
+        "unlistedCreateSpecifications"
+      )
+    );
+
+
+  /*
+   * ========================================
+   * MODEL
+   * ========================================
+   */
+  const model=
+    adminCreateModelCode(
+      val(
+        "unlistedCreateModel"
+      )
+    );
+
+
+  /*
+   * ========================================
+   * RESOLVE BRAND CODE
+   * ========================================
+   */
+  const brandCode=
+    existingBrand&&
+    existingBrand.code
+
+      ?adminCreateCleanCode(
+          existingBrand.code
+        )
+
+      :adminCreateCleanCode(
+          brandCodeField
+            ?brandCodeField.value
+            :""
+        );
+
+
+  /*
+   * ========================================
+   * RESOLVE ITEM TYPE CODE
+   * ========================================
+   */
+  const itemTypeCode=
+    existingItemType&&
+    existingItemType.code
+
+      ?adminCreateCleanCode(
+          existingItemType.code
+        )
+
+      :adminCreateCleanCode(
+          itemTypeCodeField
+            ?itemTypeCodeField.value
+            :""
+        );
+
+
+  /*
+   * ========================================
+   * GENERATE FINAL SKU
+   * ========================================
+   */
+  let sku="";
+
+
+  /*
+   * WITH MODEL
+   *
+   * MODEL-BRAND
+   */
+  if(model){
+
+    sku=[
+      model,
+      brandCode
+    ]
+      .filter(Boolean)
+      .join("-");
+
+  }
+
+
+  /*
+   * NO MODEL
+   *
+   * DESCRIPTION-ITEMTYPE-SPEC-BRAND
+   */
+  else{
+
+    sku=[
+      descriptionCode,
+      itemTypeCode,
+      specificationCode,
+      brandCode
+    ]
+      .filter(Boolean)
+      .join("-");
+
+  }
+
+
+  const skuField=
+    document.getElementById(
+      "unlistedCreateSku"
+    );
+
+
+  if(skuField){
+
+    skuField.value=
+      sku;
+
+  }
+}
 
 function updateAdminCreateProductName(){
 
