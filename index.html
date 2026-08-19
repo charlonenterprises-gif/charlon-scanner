@@ -6,135 +6,429 @@
   <title>Charlon Enterprises Inventory System</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
-    body { font-family: Arial, sans-serif; background:#f5f6f7; margin:0; padding:16px; color:#111; }
-    .container { max-width:760px; margin:0 auto; }
-    .card { background:#fff; border-radius:14px; padding:18px; margin-bottom:14px; box-shadow:0 2px 10px rgba(0,0,0,.08); }
-    h1,h2,h3 { margin-top:0; }
-    label { display:block; font-weight:700; margin-top:10px; font-size:13px; }
-    input, select, textarea, button { width:100%; box-sizing:border-box; padding:12px; margin-top:6px; margin-bottom:10px; border-radius:9px; border:1px solid #ccc; font-size:16px; }
-    button { background:#111; color:#fff; border:none; font-weight:700; cursor:pointer; }
-    button:disabled { opacity:.6; cursor:not-allowed; }
-    button.secondary { background:#666; }
-    button.success { background:#198754; }
-    button.danger { background:#b42318; }
-    button.choice { text-align:left; padding:16px; font-size:17px; }
-    .button-grid { display:grid; grid-template-columns:1fr; gap:10px; }
-    .menu-title-row{display:flex;align-items:center;justify-content:space-between;gap:10px;}
-    .notification-badge{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 7px;border-radius:999px;background:#b42318;color:#fff;font-size:12px;font-weight:700;line-height:1;}
-    .coming-soon { opacity:.7; }
-    .hidden { display:none !important; }
-    .muted { color:#666; font-size:13px; }
-    .success-text { color:#198754; font-weight:700; }
-    .error { color:#b42318; font-weight:700; }
-    .info { color:#1f4e79; font-weight:700; }
-    #status { white-space:normal; line-height:1.4; }
+    :root{
+      --brand:#123b5d;
+      --brand-dark:#0c2d48;
+      --brand-soft:#eaf2f8;
+      --accent:#1e6fb9;
+      --surface:#ffffff;
+      --surface-alt:#f8fafc;
+      --page:#eef3f8;
+      --text:#17212b;
+      --muted:#667085;
+      --border:#d9e2ec;
+      --success:#16865c;
+      --success-soft:#e8f7f0;
+      --danger:#b42318;
+      --danger-soft:#fff0ee;
+      --warning:#a86614;
+      --warning-soft:#fff7e8;
+      --shadow:0 8px 28px rgba(16,42,67,.08);
+      --shadow-sm:0 2px 10px rgba(16,42,67,.07);
+      --radius:16px;
+    }
+
+    *{box-sizing:border-box;}
+
+    html{scroll-behavior:smooth;}
+
+    body{
+      font-family:Arial,Helvetica,sans-serif;
+      background:
+        radial-gradient(circle at top left,rgba(30,111,185,.07),transparent 30%),
+        var(--page);
+      margin:0;
+      padding:20px 16px 42px;
+      color:var(--text);
+      line-height:1.45;
+    }
+
+    .container{max-width:980px;margin:0 auto;}
+
+    .app-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      background:rgba(255,255,255,.96);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:14px 16px;
+      margin-bottom:16px;
+      box-shadow:var(--shadow-sm);
+      backdrop-filter:blur(10px);
+    }
+
+    .brand-lockup{display:flex;align-items:center;gap:12px;min-width:0;}
+    .brand-mark{
+      flex:0 0 auto;
+      width:44px;
+      height:44px;
+      border-radius:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(145deg,var(--brand),var(--accent));
+      color:#fff;
+      font-weight:800;
+      letter-spacing:.5px;
+      box-shadow:0 5px 14px rgba(18,59,93,.22);
+    }
+    .brand-name{font-weight:800;font-size:15px;line-height:1.15;letter-spacing:.15px;}
+    .brand-subtitle{color:var(--muted);font-size:12px;margin-top:3px;}
+    .app-header-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;min-width:0;}
+    .user-chip{
+      max-width:260px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      padding:8px 11px;
+      border-radius:999px;
+      background:var(--brand-soft);
+      color:var(--brand-dark);
+      font-size:12px;
+      font-weight:700;
+    }
+    .header-logout{
+      width:auto!important;
+      margin:0!important;
+      padding:9px 12px!important;
+      min-height:auto!important;
+      background:#fff!important;
+      color:var(--brand)!important;
+      border:1px solid var(--border)!important;
+      box-shadow:none!important;
+    }
+
+    .card{
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:22px;
+      margin-bottom:16px;
+      box-shadow:var(--shadow);
+    }
+
+    #loginCard,#changePinCard{max-width:540px;margin:42px auto 16px;}
+    #loginCard{padding:28px;}
+    .auth-brand{margin-bottom:18px;}
+    .auth-brand .brand-mark{width:52px;height:52px;border-radius:15px;font-size:18px;}
+    .auth-brand .brand-name{font-size:19px;}
+    .auth-brand .brand-subtitle{font-size:13px;}
+    .auth-copy{margin:0 0 16px;color:var(--muted);font-size:13px;}
+    .version-chip{
+      display:inline-block;
+      background:var(--surface-alt);
+      border:1px solid var(--border);
+      color:var(--muted);
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:700;
+      margin-bottom:8px;
+    }
+
+    h1,h2,h3{margin-top:0;color:#101828;line-height:1.25;}
+    h1{font-size:27px;letter-spacing:-.4px;}
+    h2{font-size:22px;letter-spacing:-.2px;}
+    h3{font-size:17px;margin-bottom:10px;}
+
+    hr{border:0;border-top:1px solid var(--border);margin:20px 0;}
+
+    label{
+      display:block;
+      font-weight:700;
+      margin-top:12px;
+      margin-bottom:5px;
+      font-size:12px;
+      color:#344054;
+      letter-spacing:.1px;
+    }
+
+    input,select,textarea,button{
+      width:100%;
+      box-sizing:border-box;
+      padding:11px 12px;
+      margin-top:0;
+      margin-bottom:11px;
+      border-radius:10px;
+      font-size:15px;
+      font-family:inherit;
+    }
+
+    input,select,textarea{
+      border:1px solid #cfd8e3;
+      background:#fff;
+      color:var(--text);
+      outline:none;
+      transition:border-color .15s ease,box-shadow .15s ease,background .15s ease;
+    }
+
+    input:focus,select:focus,textarea:focus{
+      border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(30,111,185,.12);
+    }
+
+    input[readonly],input:disabled,select:disabled,textarea:disabled{
+      background:#f2f5f8;
+      color:#475467;
+    }
+
+    textarea{resize:vertical;min-height:86px;}
+
+    button{
+      min-height:44px;
+      background:var(--brand);
+      color:#fff;
+      border:1px solid var(--brand);
+      font-weight:700;
+      cursor:pointer;
+      box-shadow:0 2px 6px rgba(18,59,93,.12);
+      transition:transform .12s ease,box-shadow .12s ease,background .12s ease,border-color .12s ease;
+    }
+
+    button:hover:not(:disabled){
+      background:var(--brand-dark);
+      border-color:var(--brand-dark);
+      box-shadow:0 4px 12px rgba(18,59,93,.18);
+    }
+
+    button:active:not(:disabled){transform:translateY(1px);}
+    button:disabled{opacity:.55;cursor:not-allowed;box-shadow:none;}
+    button.secondary{background:#64748b;border-color:#64748b;}
+    button.secondary:hover:not(:disabled){background:#536175;border-color:#536175;}
+    button.success{background:var(--success);border-color:var(--success);}
+    button.success:hover:not(:disabled){background:#11714d;border-color:#11714d;}
+    button.danger{background:var(--danger);border-color:var(--danger);}
+    button.danger:hover:not(:disabled){background:#8f1c14;border-color:#8f1c14;}
+
+    .button-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+
+    button.choice{
+      position:relative;
+      min-height:92px;
+      text-align:left;
+      padding:16px 18px;
+      font-size:15px;
+      background:#fff;
+      color:var(--text);
+      border:1px solid var(--border);
+      box-shadow:var(--shadow-sm);
+    }
+    button.choice:hover:not(:disabled){
+      background:#fbfdff;
+      color:var(--brand-dark);
+      border-color:#9fc3df;
+      transform:translateY(-1px);
+      box-shadow:0 7px 18px rgba(16,42,67,.10);
+    }
+    button.choice.secondary{background:#f8fafc;color:#344054;border-color:var(--border);}
+    .menu-title-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:15px;}
+    button.choice .muted{font-weight:400;line-height:1.4;color:#667085!important;}
+
+    .notification-badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:24px;
+      height:24px;
+      padding:0 7px;
+      border-radius:999px;
+      background:var(--danger);
+      color:#fff;
+      font-size:11px;
+      font-weight:800;
+      line-height:1;
+    }
+
+    .coming-soon{opacity:.65;}
+    .hidden{display:none!important;}
+    .muted{color:var(--muted);font-size:13px;}
+    .success-text{color:var(--success);font-weight:700;}
+    .error{color:var(--danger);font-weight:700;}
+    .info{color:var(--brand);font-weight:700;}
+    #status{white-space:normal;line-height:1.4;}
+
     #statusToast{
       position:fixed;
-      top:10px;
+      top:12px;
       left:50%;
-      transform:translateX(-50%);
-    
-      width:fit-content;
+      transform:translateX(-50%) translateY(-8px);
+      width:max-content;
       min-width:260px;
-      max-width:calc(100% - 32px);
-    
+      max-width:min(720px,calc(100% - 28px));
       box-sizing:border-box;
-      padding:10px 14px;
-    
-      border-radius:10px;
+      padding:11px 14px;
+      border-radius:11px;
       background:#fff;
-    
-      box-shadow:0 3px 12px rgba(0,0,0,.16);
-    
+      box-shadow:0 9px 24px rgba(16,42,67,.18);
       z-index:99998;
-    
       line-height:1.35;
       font-size:13px;
-      font-weight:600;
-    
+      font-weight:700;
       display:none;
+      pointer-events:none;
+      opacity:0;
     }
-    
-    #statusToast.visible{
+    #statusToast.visible{display:block;opacity:1;transform:translateX(-50%) translateY(0);}
+    #statusToast.info{color:var(--brand);border:1px solid #bfd5e6;border-left:4px solid var(--accent);}
+    #statusToast.success-text{color:#11613f;border:1px solid #b9dfcc;border-left:4px solid var(--success);}
+    #statusToast.error{color:#921c14;border:1px solid #efc1bd;border-left:4px solid var(--danger);}
+    #statusToast.muted{color:#555;border:1px solid #ddd;border-left:4px solid #777;}
+
+    #reader{width:100%;margin-top:10px;border-radius:12px;overflow:hidden;}
+    .product-box{line-height:1.6;font-size:14px;}
+    .badge{
+      display:inline-block;
+      padding:4px 8px;
+      border-radius:999px;
+      background:var(--brand-soft);
+      color:var(--brand-dark);
+      border:1px solid #d5e5f2;
+      font-size:11px;
+      font-weight:800;
+    }
+
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+    .cart-line{
+      border:1px solid var(--border);
+      border-radius:13px;
+      padding:14px;
+      margin:12px 0;
+      background:#fff;
+      box-shadow:0 1px 3px rgba(16,42,67,.04);
+    }
+    .cart-line>strong:first-child{display:block;margin-bottom:5px;color:#101828;}
+
+    .notice-panel{
+      border:1px solid #c8dced;
+      background:#f4f9fd;
+      color:#244b68;
+      border-radius:12px;
+      padding:12px 14px;
+      margin:10px 0 16px;
+      font-size:13px;
+    }
+    .warning-panel{border-color:#efd39f;background:var(--warning-soft);color:#765013;}
+    .danger-panel{border-color:#efc1bd;background:var(--danger-soft);color:#831b14;}
+    .success-panel{border-color:#b9dfcc;background:var(--success-soft);color:#11613f;}
+
+    .search-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:end;}
+    .search-row button{width:auto;min-width:120px;}
+
+    .stock-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+      margin:10px 0;
+    }
+    .stock-cell{
+      border:1px solid var(--border);
+      border-radius:10px;
+      background:var(--surface-alt);
+      padding:9px 10px;
+      font-size:12px;
+      color:#475467;
+    }
+    .stock-cell strong{display:block;color:#101828;font-size:15px;margin-top:2px;}
+
+    .autocomplete-field{position:relative;}
+    .suggestion-list{
+      position:absolute;
+      z-index:3000;
+      top:calc(100% - 8px);
+      left:0;
+      right:0;
+      max-height:260px;
+      overflow:auto;
+      background:#fff;
+      border:1px solid #cbd7e4;
+      border-radius:11px;
+      box-shadow:0 12px 28px rgba(16,42,67,.16);
+      padding:5px;
+    }
+    .suggestion-item{
       display:block;
+      width:100%;
+      min-height:auto;
+      margin:0;
+      padding:10px 11px;
+      text-align:left;
+      background:#fff!important;
+      color:#1f2937!important;
+      border:0!important;
+      border-radius:8px;
+      box-shadow:none!important;
+      font-weight:600;
+      font-size:14px;
     }
-    
-    #statusToast.info{
-      color:#1f4e79;
-      border:1px solid #cbdcec;
+    .suggestion-item:hover,.suggestion-item:focus{background:#edf5fb!important;color:var(--brand-dark)!important;}
+    .suggestion-empty{padding:10px 11px;color:var(--muted);font-size:12px;}
+
+    #unlistedCreateCard,#unlistedMatchCard{
+      border:1px solid #cbd9e6;
+      border-radius:14px;
+      padding:18px;
+      background:#fbfdff;
+      margin-bottom:18px;
     }
-    
-    #statusToast.success-text{
-      color:#176b42;
-      border:1px solid #b9dfcc;
-    }
-    
-    #statusToast.error{
-      color:#a61b12;
+
+    .section-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px;}
+    .section-heading p{margin:4px 0 0;}
+
+    .delete-zone{
+      margin-top:18px;
+      padding:16px;
       border:1px solid #efc1bd;
+      border-radius:13px;
+      background:#fff8f7;
     }
-    
-    #statusToast.muted{
-      color:#555;
-      border:1px solid #ddd;
-    }
-    
-    #statusToast.visible{
-      display:block;
-    }
-    
-    #statusToast.info{
-      border-left:5px solid #1f4e79;
-    }
-    
-    #statusToast.success-text{
-      border-left:5px solid #198754;
-    }
-    
-    #statusToast.error{
-      border-left:5px solid #b42318;
-    }
-    
-    #statusToast.muted{
-      border-left:5px solid #777;
-    }
-    #reader { width:100%; margin-top:10px; }
-    .product-box { line-height:1.6; font-size:15px; }
-    .badge { display:inline-block; padding:4px 8px; border-radius:999px; background:#eee; font-size:12px; font-weight:700; }
-    .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    @media(max-width:600px){ .row{ grid-template-columns:1fr; } }
-    .cart-line {
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 10px;
-      background: #fafafa;
-    }
-    .cart-line strong {
-      display: block;
-      margin-bottom: 4px;
-    }
+    .delete-zone h3{color:#8f1c14;}
+    .inline-result{margin-top:14px;}
 
-    #goTopBtn {
-      position: fixed !important;
-      right: 14px !important;
-      bottom: 14px !important;
-      left: auto !important;
-      top: auto !important;
-      width: auto !important;
-      min-width: 105px !important;
-      margin: 0 !important;
-      padding: 11px 14px !important;
-      border-radius: 999px !important;
-      z-index: 99999 !important;
-      box-shadow: 0 4px 14px rgba(0,0,0,.28) !important;
-      background: #111 !important;
-      color: #fff !important;
-      display: none !important;
+    #goTopBtn{
+      position:fixed!important;
+      right:16px!important;
+      bottom:16px!important;
+      left:auto!important;
+      top:auto!important;
+      width:auto!important;
+      min-width:108px!important;
+      min-height:42px!important;
+      margin:0!important;
+      padding:10px 14px!important;
+      border-radius:999px!important;
+      z-index:99990!important;
+      box-shadow:0 8px 22px rgba(16,42,67,.22)!important;
+      background:var(--brand)!important;
+      color:#fff!important;
+      display:none!important;
     }
+    #goTopBtn.visible{display:block!important;}
 
-    #goTopBtn.visible {
-      display: block !important;
+    @media(max-width:720px){
+      body{padding:10px 10px 34px;}
+      .container{max-width:100%;}
+      .card{padding:17px;border-radius:14px;margin-bottom:12px;}
+      #loginCard,#changePinCard{margin:18px auto 12px;padding:20px;}
+      .button-grid{grid-template-columns:1fr;}
+      .row{grid-template-columns:1fr;gap:0;}
+      .stock-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+      .search-row{grid-template-columns:1fr;gap:0;}
+      .search-row button{width:100%;}
+      .app-header{padding:11px 12px;align-items:flex-start;}
+      .app-header .brand-mark{width:38px;height:38px;border-radius:10px;font-size:13px;}
+      .brand-name{font-size:14px;}
+      .brand-subtitle{font-size:11px;}
+      .app-header-actions{flex-direction:column;align-items:flex-end;gap:6px;}
+      .user-chip{max-width:150px;padding:6px 8px;font-size:10px;}
+      .header-logout{padding:6px 9px!important;font-size:11px!important;}
+      #statusToast{top:8px;min-width:0;width:calc(100% - 20px);max-width:calc(100% - 20px);}
+      h1{font-size:23px;}
+      h2{font-size:20px;}
+      input,select,textarea,button{font-size:16px;}
+      .suggestion-list{max-height:220px;}
     }
   </style>
 </head>
@@ -154,9 +448,30 @@
 </button>
 
 <div class="container">
+  <div id="appHeader" class="app-header hidden">
+    <div class="brand-lockup">
+      <div class="brand-mark">CE</div>
+      <div>
+        <div class="brand-name">Charlon Enterprises</div>
+        <div class="brand-subtitle">Inventory System 2026</div>
+      </div>
+    </div>
+    <div class="app-header-actions">
+      <span id="appHeaderUser" class="user-chip"></span>
+      <button class="header-logout" type="button" onclick="logout()">Sign Out</button>
+    </div>
+  </div>
+
   <div class="card" id="loginCard">
-    <h1>Charlon Enterprises Inventory System 2026</h1>
-    <p class="muted">Login · v2026.3.89</p>
+    <div class="brand-lockup auth-brand">
+      <div class="brand-mark">CE</div>
+      <div>
+        <div class="brand-name">Charlon Enterprises</div>
+        <div class="brand-subtitle">Inventory System 2026</div>
+      </div>
+    </div>
+    <p class="auth-copy">Internal inventory, sales, releasing, transfer, return, and stock-management workspace.</p>
+    <span class="version-chip">v2026.3.90</span>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -230,12 +545,17 @@
     <div class="row">
       <div>
         <label>Brand *</label>
-        <input
-          type="text"
-          id="unlistedBrand"
-          placeholder="Example: Makita"
-          oninput="updateUnlistedProductNamePreview()"
-        >
+        <div class="autocomplete-field">
+          <input
+            type="text"
+            id="unlistedBrand"
+            placeholder='Search Brand or enter "No Brand"'
+            autocomplete="off"
+            oninput="handleCatalogInput(this,'unlistedBrandSuggestions','brands',updateUnlistedProductNamePreview)"
+            onfocus="handleCatalogInput(this,'unlistedBrandSuggestions','brands',updateUnlistedProductNamePreview)"
+          >
+          <div id="unlistedBrandSuggestions" class="suggestion-list hidden"></div>
+        </div>
       </div>
   
       <div>
@@ -269,14 +589,17 @@
       <div>
         <label>Item Type *</label>
     
-        <input
-          type="text"
-          id="unlistedItemType"
-          list="unlistedItemTypeList"
-          placeholder="Select or type Item Type"
-          autocomplete="off"
-          oninput="updateUnlistedProductNamePreview()"
-        >
+        <div class="autocomplete-field">
+          <input
+            type="text"
+            id="unlistedItemType"
+            placeholder="Search or type Item Type"
+            autocomplete="off"
+            oninput="handleCatalogInput(this,'unlistedItemTypeSuggestions','itemTypes',updateUnlistedProductNamePreview)"
+            onfocus="handleCatalogInput(this,'unlistedItemTypeSuggestions','itemTypes',updateUnlistedProductNamePreview)"
+          >
+          <div id="unlistedItemTypeSuggestions" class="suggestion-list hidden"></div>
+        </div>
     
         <datalist id="unlistedItemTypeList"></datalist>
     
@@ -414,6 +737,7 @@
       <option value="RETURN_REJECTED">RETURN_REJECTED</option>
       <option value="UNLISTED_MATCH_EXISTING">UNLISTED_MATCH_EXISTING</option>
       <option value="UNLISTED_NEW_PRODUCT_CREATED">UNLISTED_NEW_PRODUCT_CREATED</option>
+      <option value="PRODUCT_DELETED">PRODUCT_DELETED</option>
       <option value="INVENTORY_ADJUSTMENT">INVENTORY_ADJUSTMENT</option>
       <option value="LOCATION_NOTE">LOCATION_NOTE</option>
     </select>
@@ -427,6 +751,36 @@
     <div id="historyResults" class="product-box"></div>
   </div>  
   
+  <div class="card hidden" id="productManagementCard">
+    <div class="section-heading">
+      <div>
+        <h3>Product Management</h3>
+        <p class="muted">Search active products and safely remove zero-stock product records.</p>
+      </div>
+    </div>
+
+    <div class="notice-panel warning-panel">
+      Delete Product is restricted to Manager, Admin, and Web Developer roles. A product can only be removed when its Dashboard and Location quantities are both zero and it has no pending release, transfer, or return transaction.
+    </div>
+
+    <label>Search Product</label>
+    <div class="search-row">
+      <input
+        type="text"
+        id="productManagementSearch"
+        placeholder="SKU, brand, model, or product name"
+        autocomplete="off"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();searchProductManagement();}"
+      >
+      <button id="productManagementSearchBtn" type="button" onclick="searchProductManagement()">Search</button>
+    </div>
+
+    <div id="productManagementResults" class="product-box"></div>
+    <div id="productDeletePanel" class="product-box hidden"></div>
+
+    <button class="secondary" type="button" onclick="backHome()">Back</button>
+  </div>
+
   <div class="card hidden" id="ticketCard">
     <h3>Transaction Follow-up</h3>
     <p class="muted">
@@ -519,12 +873,17 @@
   
   
     <label>Brand *</label>
-    <input
-      type="text"
-      id="unlistedCreateBrand"
-      autocomplete="off"
-      oninput="updateAdminCreateDerivedFields()"
-    >
+    <div class="autocomplete-field">
+      <input
+        type="text"
+        id="unlistedCreateBrand"
+        autocomplete="off"
+        placeholder='Search Brand or enter "No Brand"'
+        oninput="handleCatalogInput(this,'unlistedCreateBrandSuggestions','brands',updateAdminCreateDerivedFields)"
+        onfocus="handleCatalogInput(this,'unlistedCreateBrandSuggestions','brands',updateAdminCreateDerivedFields)"
+      >
+      <div id="unlistedCreateBrandSuggestions" class="suggestion-list hidden"></div>
+    </div>
   
   
     <!-- ONLY APPEARS IF BRAND IS NEW -->
@@ -576,13 +935,17 @@
   
   
     <label>Item Type *</label>
-    <input
-      type="text"
-      id="unlistedCreateItemType"
-      list="unlistedItemTypeList"
-      autocomplete="off"
-      oninput="updateAdminCreateDerivedFields()"
-    >
+    <div class="autocomplete-field">
+      <input
+        type="text"
+        id="unlistedCreateItemType"
+        autocomplete="off"
+        placeholder="Search or type Item Type"
+        oninput="handleCatalogInput(this,'unlistedCreateItemTypeSuggestions','itemTypes',updateAdminCreateDerivedFields)"
+        onfocus="handleCatalogInput(this,'unlistedCreateItemTypeSuggestions','itemTypes',updateAdminCreateDerivedFields)"
+      >
+      <div id="unlistedCreateItemTypeSuggestions" class="suggestion-list hidden"></div>
+    </div>
   
   
     <!-- ONLY APPEARS IF ITEM TYPE IS NEW -->
@@ -782,6 +1145,8 @@ let pendingUnlistedReviewCount = 0;
 let selectedUnlistedReviewIndex = -1;
 let unlistedMatchSearchResults = [];
 let selectedUnlistedCreateIndex = -1;
+let productManagementResults=[];
+let selectedProductManagementIndex=-1;
 let pendingApprovalCount=0;
 let pendingReleaseCount=0;
 let notificationRefreshTimer=null;
@@ -1039,6 +1404,108 @@ function getValidSaleTicketNo(){
 
 function escapeHtml(value){
   return String(value === undefined || value === null ? "": value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+
+function updateAppHeader_(){
+  const header=document.getElementById("appHeader");
+  const userChip=document.getElementById("appHeaderUser");
+
+  if(!header){
+    return;
+  }
+
+  if(!currentUser){
+    header.classList.add("hidden");
+    if(userChip)userChip.textContent="";
+    return;
+  }
+
+  if(userChip){
+    userChip.textContent=(currentUser.name||currentUser.staffId||"")+" · "+(currentUser.role||"");
+  }
+
+  header.classList.remove("hidden");
+}
+
+function getCatalogSuggestionValues(type){
+  const legends=settings&&settings.skuLegends?settings.skuLegends:{};
+  let values=[];
+
+  if(type==="brands"){
+    values=Array.isArray(legends.brands)
+      ?legends.brands.map(item=>String(item&&item.name||"").trim())
+      :[];
+  }else if(type==="itemTypes"){
+    values=Array.isArray(legends.itemTypes)
+      ?legends.itemTypes.map(item=>String(item&&item.name||"").trim())
+      :[];
+
+    if(!values.length&&Array.isArray(settings.itemTypes)){
+      values=settings.itemTypes.map(value=>String(value||"").trim());
+    }
+  }
+
+  return[...new Set(values.filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+}
+
+function closeCatalogSuggestions(exceptId=""){
+  document.querySelectorAll(".suggestion-list").forEach(list=>{
+    if(exceptId&&list.id===exceptId)return;
+    list.classList.add("hidden");
+  });
+}
+
+function handleCatalogInput(input,listId,type,onSelected){
+  if(typeof onSelected==="function"){
+    onSelected();
+  }
+
+  const list=document.getElementById(listId);
+  if(!input||!list)return;
+
+  const values=getCatalogSuggestionValues(type);
+  const query=String(input.value||"").trim().toUpperCase();
+
+  const ranked=values
+    .map(value=>{
+      const key=value.toUpperCase();
+      let score=0;
+      if(!query)score=1;
+      else if(key===query)score=100;
+      else if(key.startsWith(query))score=80;
+      else if(key.includes(query))score=50;
+      return{value,score};
+    })
+    .filter(item=>item.score>0)
+    .sort((a,b)=>b.score-a.score||a.value.localeCompare(b.value))
+    .slice(0,10);
+
+  list.innerHTML="";
+
+  if(!ranked.length){
+    list.classList.add("hidden");
+    return;
+  }
+
+  ranked.forEach(item=>{
+    const button=document.createElement("button");
+    button.type="button";
+    button.className="suggestion-item";
+    button.textContent=item.value;
+    button.addEventListener("pointerdown",event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      input.value=item.value;
+      list.classList.add("hidden");
+      if(typeof onSelected==="function")onSelected();
+      input.focus();
+    });
+    list.appendChild(button);
+  });
+
+  closeCatalogSuggestions(listId);
+  list.classList.remove("hidden");
 }
 
 function formatDateTime(value){
@@ -1532,6 +1999,8 @@ function logout(){
   hide("approvalCard");
   hide("releaseRequestsCard");
   hide("unlistedReviewCard");
+  hide("productManagementCard");
+  hide("appHeader");
   show("loginCard");
   document.getElementById("staffId").value = "";
   document.getElementById("pin").value = "";
@@ -4394,6 +4863,7 @@ async function confirmSelectedUnlistedMatch(){
 }
 
 function openHome(){
+  updateAppHeader_();
   show("homeCard");
 
   document.getElementById(
@@ -4473,6 +4943,16 @@ function renderHomeButtons(){
     );
   }
   
+  if(canReviewUnlistedProducts()){
+    container.appendChild(
+      makeMenuButton(
+        "Product Management",
+        "Search active products and safely remove zero-stock product records.",
+        openProductManagement
+      )
+    );
+  }
+
   if(canAccess("REPORTSHISTORY")){
     container.appendChild(makeMenuButton("Reports / History", "For manager/admin checking only.", openReportsView));
   }
@@ -4807,6 +5287,7 @@ function chooseType(type){
   hide("formCard");
   hide("revampReturnCard");
   hide("approvalCard");
+  hide("productManagementCard");
   document.getElementById("searchValue").value = "";
   const titles = {SALE: "Sold Immediately", PURCHASE: "Stock In / New Arrival", COUNT_CHECK: "Count Actual Stock", INVENTORY_ADJUSTMENT: "Manager Inventory Adjustment", CHECK_STOCK: "Check Stock",
   RELEASING: "Customer Order / Release Item", RETURN_CANCEL_RELEASE: "Return / Refund / Cancel Item", TRANSFER: "Move Item Location", LOCATION_NOTE: "Location Note / Move Note", };
@@ -4828,6 +5309,7 @@ function backHome(){
   hide("approvalCard");
   hide("releaseRequestsCard");
   hide("unlistedReviewCard");
+  hide("productManagementCard");
 
   /*
    * Return to Home.
@@ -8435,6 +8917,336 @@ async function submitRevampApproval(row,decision){
     isSubmitting=false;
   }
 }
+
+function openProductManagement(){
+  if(!canReviewUnlistedProducts()){
+    setStatus("You are not allowed to use Product Management.","error");
+    return;
+  }
+
+  currentType="PRODUCT_MANAGEMENT";
+  productManagementResults=[];
+  selectedProductManagementIndex=-1;
+
+  hide("homeCard");
+  hide("scanCard");
+  hide("productCard");
+  hide("cartCard");
+  hide("ticketCard");
+  hide("reportsCard");
+  hide("formCard");
+  hide("revampReturnCard");
+  hide("approvalCard");
+  hide("releaseRequestsCard");
+  hide("unlistedReviewCard");
+  show("productManagementCard");
+
+  document.getElementById("productManagementSearch").value="";
+  document.getElementById("productManagementResults").innerHTML=`
+    <p class="muted">Search by SKU, brand, model, or product name.</p>
+  `;
+  document.getElementById("productDeletePanel").innerHTML="";
+  hide("productDeletePanel");
+
+  setTimeout(()=>document.getElementById("productManagementSearch").focus(),150);
+}
+
+async function searchProductManagement(){
+  const searchValue=val("productManagementSearch").trim();
+  const button=document.getElementById("productManagementSearchBtn");
+  const container=document.getElementById("productManagementResults");
+
+  if(!searchValue){
+    setStatus("Please enter a product to search.","error");
+    return;
+  }
+
+  selectedProductManagementIndex=-1;
+  hide("productDeletePanel");
+  document.getElementById("productDeletePanel").innerHTML="";
+
+  if(button){
+    button.disabled=true;
+    button.textContent="Searching...";
+  }
+
+  if(container){
+    container.innerHTML=`<p class="muted">Searching active inventory...</p>`;
+  }
+
+  setStatus("Searching product management records...","info");
+
+  try{
+    const res=await apiCall({
+      action:"searchProducts",
+      staffId:currentUser.staffId,
+      pin:currentPin,
+      searchValue
+    });
+
+    if(!res||!res.success){
+      throw new Error(res&&res.message?res.message:"Product search failed.");
+    }
+
+    productManagementResults=Array.isArray(res.results)?res.results:[];
+    renderProductManagementResults(res.count||0);
+
+    if(!productManagementResults.length){
+      setStatus("No active products matched your search.","muted");
+      return;
+    }
+
+    setStatus("Product search completed.","success-text");
+  }catch(err){
+    if(container){
+      container.innerHTML=`<div class="notice-panel danger-panel">${escapeHtml(err.message||err)}</div>`;
+    }
+    setStatus("Product Management search error: "+escapeHtml(err.message||err),"error");
+  }finally{
+    if(button){
+      button.disabled=false;
+      button.textContent="Search";
+    }
+  }
+}
+
+function renderProductManagementResults(totalCount){
+  const container=document.getElementById("productManagementResults");
+  if(!container)return;
+
+  if(!productManagementResults.length){
+    container.innerHTML=`<div class="notice-panel">No matching active products found.</div>`;
+    return;
+  }
+
+  let html=`
+    <hr>
+    <div class="section-heading">
+      <div>
+        <h3>Search Results</h3>
+        <p class="muted">${Number(totalCount||0).toLocaleString()} matching product(s). Select the exact SKU you want to review.</p>
+      </div>
+    </div>
+  `;
+
+  productManagementResults.forEach((product,index)=>{
+    const total=Number(product.availableQty!==undefined?product.availableQty:product.posTotalQty||0);
+    html+=`
+      <div class="cart-line">
+        <strong>${escapeHtml(product.productName||"")}</strong>
+        <span class="badge">${total===0?"ZERO STOCK":"STOCK: "+total.toLocaleString()}</span><br><br>
+        SKU: <strong>${escapeHtml(product.sku||"")}</strong><br>
+        ${product.brand?`Brand: ${escapeHtml(product.brand)}<br>`:""}
+        ${product.model?`Model: ${escapeHtml(product.model)}<br>`:""}
+        ${product.itemType?`Item Type: ${escapeHtml(product.itemType)}<br>`:""}
+        Total Stock: <strong>${total.toLocaleString()}</strong>
+        <button type="button" onclick="selectProductManagementResult(${index})">Review Product</button>
+      </div>
+    `;
+  });
+
+  container.innerHTML=html;
+}
+
+function selectProductManagementResult(index){
+  const product=productManagementResults[index];
+  if(!product){
+    setStatus("Selected product could not be found.","error");
+    return;
+  }
+
+  selectedProductManagementIndex=index;
+
+  const panel=document.getElementById("productDeletePanel");
+  if(!panel)return;
+
+  const total=Number(product.availableQty!==undefined?product.availableQty:product.posTotalQty||0);
+  const canDelete=Math.abs(total)<0.000001;
+
+  panel.innerHTML=`
+    <hr>
+    <div class="section-heading">
+      <div>
+        <h3>Selected Product</h3>
+        <p class="muted">Review the product and its location quantities before deleting.</p>
+      </div>
+      <span class="badge">${canDelete?"ZERO STOCK":"HAS STOCK"}</span>
+    </div>
+
+    <div class="cart-line">
+      <strong>${escapeHtml(product.productName||"")}</strong>
+      SKU: <strong>${escapeHtml(product.sku||"")}</strong><br>
+      ${product.brand?`Brand: ${escapeHtml(product.brand)}<br>`:""}
+      ${product.model?`Model: ${escapeHtml(product.model)}<br>`:""}
+      Total Stock: <strong>${total.toLocaleString()}</strong>
+
+      <div class="stock-grid">
+        ${renderManagementStockCell_("CE1",product.ce1Qty)}
+        ${renderManagementStockCell_("CE2",product.ce2Qty)}
+        ${renderManagementStockCell_("CE3",product.ce3Qty)}
+        ${renderManagementStockCell_("SOLER",product.solerQty)}
+        ${renderManagementStockCell_("VACANT",product.vacantQty)}
+        ${renderManagementStockCell_("UNKNOWN",product.unknownQty)}
+      </div>
+    </div>
+
+    ${canDelete?`
+      <div class="delete-zone">
+        <h3>Delete Product</h3>
+        <p class="muted">
+          This removes the SKU from active Inventory Dashboard, Product Location Log, and QR Maker records. Historical purchases, sales, returns, transfers, and transaction history are preserved.
+        </p>
+
+        <label>Reason for Deletion *</label>
+        <select id="productDeleteReason" onchange="updateProductDeleteReasonOther();updateDeleteProductButtonState();">
+          <option value="">Select reason</option>
+          <option value="Duplicate product listing">Duplicate product listing</option>
+          <option value="Incorrect product record">Incorrect product record</option>
+          <option value="Test or accidental entry">Test or accidental entry</option>
+          <option value="Discontinued / no longer carried">Discontinued / no longer carried</option>
+          <option value="Other">Other</option>
+        </select>
+
+        <div id="productDeleteReasonOtherWrap" class="hidden">
+          <label>Other Reason *</label>
+          <textarea id="productDeleteReasonOther" rows="2" placeholder="Explain why this product should be removed" oninput="updateDeleteProductButtonState()"></textarea>
+        </div>
+
+        <label>Type the Exact SKU to Confirm *</label>
+        <input
+          type="text"
+          id="productDeleteConfirmSku"
+          placeholder="${escapeHtml(product.sku||"")}"
+          autocomplete="off"
+          oninput="updateDeleteProductButtonState()"
+        >
+
+        <button id="confirmDeleteProductBtn" class="danger" type="button" onclick="deleteSelectedInventoryProduct()" disabled>
+          Delete Product
+        </button>
+      </div>
+    `:`
+      <div class="notice-panel danger-panel">
+        This product cannot be deleted because its current total stock is <strong>${total.toLocaleString()}</strong>. Verify and adjust the inventory to zero first.
+      </div>
+    `}
+  `;
+
+  show("productDeletePanel");
+  panel.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function renderManagementStockCell_(label,value){
+  return`<div class="stock-cell">${escapeHtml(label)}<strong>${Number(value||0).toLocaleString()}</strong></div>`;
+}
+
+function updateProductDeleteReasonOther(){
+  const wrap=document.getElementById("productDeleteReasonOtherWrap");
+  if(!wrap)return;
+  wrap.classList.toggle("hidden",val("productDeleteReason")!=="Other");
+}
+
+function getProductDeleteReason(){
+  const selected=val("productDeleteReason").trim();
+  if(selected!=="Other")return selected;
+  return val("productDeleteReasonOther").trim();
+}
+
+function updateDeleteProductButtonState(){
+  const product=productManagementResults[selectedProductManagementIndex];
+  const button=document.getElementById("confirmDeleteProductBtn");
+  if(!product||!button)return;
+
+  const reason=getProductDeleteReason();
+  const confirmSku=val("productDeleteConfirmSku").trim().toUpperCase();
+  const exactSku=String(product.sku||"").trim().toUpperCase();
+  const total=Number(product.availableQty!==undefined?product.availableQty:product.posTotalQty||0);
+
+  button.disabled=!(reason&&confirmSku===exactSku&&Math.abs(total)<0.000001);
+}
+
+async function deleteSelectedInventoryProduct(){
+  if(isSubmitting)return;
+
+  const product=productManagementResults[selectedProductManagementIndex];
+  if(!product){
+    setStatus("Please select the product again.","error");
+    return;
+  }
+
+  const sku=String(product.sku||"").trim();
+  const confirmSku=val("productDeleteConfirmSku").trim();
+  const reason=getProductDeleteReason();
+  const button=document.getElementById("confirmDeleteProductBtn");
+
+  if(!reason){
+    setStatus("Please enter the reason for deletion.","error");
+    return;
+  }
+
+  if(confirmSku.toUpperCase()!==sku.toUpperCase()){
+    setStatus("Type the exact SKU to confirm deletion.","error");
+    return;
+  }
+
+  const confirmed=confirm(
+    "Delete this product from ACTIVE inventory?\n\n"+
+    "Product: "+(product.productName||"")+"\n"+
+    "SKU: "+sku+"\n"+
+    "Reason: "+reason+"\n\n"+
+    "Historical transactions will remain. This action requires zero stock and no pending workflow."
+  );
+
+  if(!confirmed)return;
+
+  isSubmitting=true;
+  if(button){
+    button.disabled=true;
+    button.textContent="Deleting Product...";
+  }
+  setStatus("Deleting product from active inventory...","info");
+
+  try{
+    const res=await apiCall({
+      action:"deleteInventoryProduct",
+      staffId:currentUser.staffId,
+      pin:currentPin,
+      sku,
+      confirmSku,
+      reason
+    });
+
+    if(!res||!res.success){
+      throw new Error(res&&res.message?res.message:"Product deletion failed.");
+    }
+
+    productManagementResults=productManagementResults.filter(item=>String(item.sku||"").toUpperCase()!==sku.toUpperCase());
+    selectedProductManagementIndex=-1;
+    renderProductManagementResults(productManagementResults.length);
+
+    const panel=document.getElementById("productDeletePanel");
+    panel.innerHTML=`
+      <div class="notice-panel success-panel inline-result">
+        <strong>Product removed from active inventory.</strong><br>
+        ${escapeHtml(res.productName||product.productName||"")}<br>
+        SKU: <strong>${escapeHtml(res.sku||sku)}</strong><br>
+        Audit ID: <strong>${escapeHtml(res.transactionId||"")}</strong>
+      </div>
+    `;
+    show("productDeletePanel");
+
+    setStatus("Product deleted successfully.","success-text");
+  }catch(err){
+    setStatus("Delete Product failed: "+escapeHtml(err.message||err),"error");
+  }finally{
+    isSubmitting=false;
+    if(button){
+      button.disabled=false;
+      button.textContent="Delete Product";
+    }
+  }
+}
+
 function openReportsView(){
   currentType = "REPORTS_HISTORY";
   currentProduct = null;
@@ -8449,6 +9261,7 @@ function openReportsView(){
   hide("formCard");
   hide("revampReturnCard");
   hide("approvalCard");
+  hide("productManagementCard");
   show("reportsCard");
   document.getElementById("historySearch").value = "";
   document.getElementById("historyDateFrom").value = "";
@@ -8616,6 +9429,12 @@ window.addEventListener("DOMContentLoaded", function(){
     updateGoTopButton_,
     {passive:true}
   );
+
+  document.addEventListener("pointerdown",function(event){
+    if(!event.target.closest(".autocomplete-field")){
+      closeCatalogSuggestions();
+    }
+  });
 
   updateGoTopButton_();
   setupInactivityTracking();
