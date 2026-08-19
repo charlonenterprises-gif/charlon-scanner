@@ -79,7 +79,7 @@
 <div class="container">
   <div class="card" id="loginCard">
     <h1>Charlon Enterprises Inventory System 2026</h1>
-    <p class="muted">Login · v2026.3.83</p>
+    <p class="muted">Login · v2026.3.84</p>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -1929,10 +1929,15 @@ function startUnlistedCreate(index){
 }
 function buildAdminCreateProductName(){
 
-  const brand=
+  const brandInput=
     properUnlistedText(
       val("unlistedCreateBrand")
     );
+  
+  const brand=
+    brandInput.toUpperCase()==="NO BRAND"
+      ?""
+      :brandInput;
 
   const model=
     val("unlistedCreateModel")
@@ -2854,7 +2859,7 @@ async function confirmCreateNewUnlistedProduct(){
   if(!brand){
 
     setStatus(
-      "Please enter the Brand.",
+      'Please enter the Brand. If the product has no brand, enter "No Brand".',
       "error"
     );
 
@@ -5041,10 +5046,15 @@ function formatUnlistedForWith(value){
 
 
 function buildUnlistedProductName(){
-  const brand=
+  const brandInput=
     properUnlistedText(
       val("unlistedBrand")
     );
+  
+  const brand=
+    brandInput.toUpperCase()==="NO BRAND"
+      ?""
+      :brandInput;
 
   const model=
     val("unlistedModel")
@@ -5249,7 +5259,7 @@ function addUnlistedProductToCart(){
    */
   if(!brand){
     setStatus(
-      "Please enter the Brand.",
+      'Please enter the Brand. If the product has no brand, enter "No Brand".',
       "error"
     );
     return;
