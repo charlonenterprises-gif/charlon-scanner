@@ -546,7 +546,7 @@
 
 
     /* ======================================================
-       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.3.94
+       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.3.95
        Inspired by a classic inventory admin dashboard while
        keeping the current workflows and mobile usability.
        ====================================================== */
@@ -907,6 +907,114 @@
       #homeButtons.button-grid{grid-template-columns:1fr;}
     }
 
+
+    /* =========================================================
+       CHARLON UI REFINEMENT v2026.3.95
+       ========================================================= */
+    html,body,button,input,select,textarea{
+      font-family:"Google Sans","Google Sans Text",Roboto,Arial,sans-serif!important;
+    }
+
+    .app-header{
+      position:relative!important;
+      top:auto!important;
+      z-index:40!important;
+      backdrop-filter:none!important;
+    }
+
+    #homeButtons button.choice{position:relative;}
+    #homeButtons button.choice .notification-badge{
+      position:absolute;
+      top:10px;
+      right:10px;
+      z-index:4;
+      min-width:25px;
+      height:25px;
+      padding:0 7px;
+      border:2px solid #fff;
+      box-shadow:0 2px 7px rgba(139,31,24,.18);
+    }
+
+    .product-result-list{display:grid;gap:12px;margin-top:14px;}
+    .product-result-card{
+      border:1px solid #dce6ed;
+      border-radius:12px;
+      background:#fff;
+      padding:15px;
+      box-shadow:0 2px 8px rgba(20,57,82,.045);
+    }
+    .product-result-header{
+      display:flex;align-items:flex-start;justify-content:space-between;
+      gap:12px;padding-bottom:11px;border-bottom:1px solid #edf2f5;
+    }
+    .product-result-name{color:#1f3443;font-size:15px;font-weight:800;line-height:1.3;min-width:0;}
+    .sku-pill{
+      flex:0 0 auto;display:inline-flex;align-items:center;border-radius:7px;
+      padding:5px 8px;background:#eef6fa;border:1px solid #d4e7f1;
+      color:var(--charlon-blue);font-size:11px;font-weight:800;white-space:nowrap;
+    }
+    .product-meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:11px;}
+    .product-meta-cell{min-width:0;padding:8px 9px;border-radius:8px;background:#f8fafb;border:1px solid #eef2f5;}
+    .product-meta-label{display:block;color:#8493a0;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.55px;margin-bottom:2px;}
+    .product-meta-value{display:block;color:#263b4a;font-size:12px;font-weight:700;overflow-wrap:anywhere;}
+    .product-qty-summary{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      margin-top:11px;padding:9px 11px;border-radius:9px;
+      background:linear-gradient(90deg,#f4f9fc,#fff9e9);border:1px solid #e2ebf0;
+    }
+    .product-qty-summary span{color:#667887;font-size:11px;font-weight:700;}
+    .product-qty-summary strong{color:#17384c;font-size:19px;}
+    .location-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-top:10px;}
+    .location-cell{text-align:center;padding:7px 4px;border-radius:7px;border:1px solid #e4ebf0;background:#fff;}
+    .location-cell span{display:block;color:#8897a3;font-size:8px;font-weight:800;}
+    .location-cell strong{display:block;margin-top:2px;color:#253c4b;font-size:12px;}
+    .product-result-card .select-product-btn{margin-top:11px;min-height:40px;}
+
+    .selected-product-panel{border:0;padding:0;background:transparent;}
+    .selected-product-panel .product-result-card{margin:0;}
+    .selected-stock-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px;}
+    .selected-stock-box{border-radius:9px;border:1px solid #e2e9ee;background:#f8fafb;padding:9px;text-align:center;}
+    .selected-stock-box span{display:block;color:#81909c;font-size:9px;font-weight:800;text-transform:uppercase;}
+    .selected-stock-box strong{display:block;color:#213b4b;font-size:18px;margin-top:2px;}
+
+    .mobile-menu-fab,.sidebar-overlay{display:none;}
+
+    @media(max-width:900px){
+      body.app-authenticated{padding-left:10px!important;}
+      body.app-authenticated .container{max-width:100%!important;}
+      .app-sidebar{
+        display:flex!important;width:min(82vw,300px)!important;
+        transform:translateX(-105%);transition:transform .2s ease;
+        z-index:5005!important;box-shadow:10px 0 35px rgba(13,42,61,.18);
+      }
+      .app-sidebar.mobile-open{transform:translateX(0);}
+      .sidebar-overlay{position:fixed;inset:0;z-index:5000;background:rgba(16,36,50,.40);}
+      .sidebar-overlay:not(.hidden){display:block;}
+      body.app-authenticated .mobile-menu-fab{
+        position:fixed;left:14px;bottom:16px;z-index:4900;width:auto!important;
+        min-height:44px;margin:0!important;padding:9px 14px!important;display:flex;
+        align-items:center;gap:7px;border-radius:999px;background:var(--charlon-yellow)!important;
+        color:#493600!important;border:1px solid #e0a20b!important;
+        box-shadow:0 5px 16px rgba(55,45,0,.18)!important;font-size:12px!important;font-weight:800;
+      }
+      .mobile-menu-bars{font-size:16px;line-height:1;}
+      #goTopBtn{right:14px!important;bottom:16px!important;font-size:11px!important;padding:9px 12px!important;}
+      .product-meta-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+      .location-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+      .product-result-header{flex-direction:column;gap:7px;}
+      .sku-pill{align-self:flex-start;}
+    }
+
+    @media(max-width:600px){
+      .app-header{margin-bottom:12px!important;}
+      .app-header .brand-name{font-size:13px!important;}
+      .app-header .brand-subtitle{font-size:9px!important;}
+      .product-result-card{padding:12px;}
+      .product-result-name{font-size:14px;}
+      .selected-stock-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+      .selected-stock-box strong{font-size:16px;}
+    }
+
   </style>
 </head>
 <body>
@@ -923,6 +1031,24 @@
 >
   ↑ Go to Top
 </button>
+
+<button
+  id="mobileMenuBtn"
+  class="mobile-menu-fab"
+  type="button"
+  onclick="openMobileSidebar_()"
+  aria-label="Open navigation menu"
+>
+  <span class="mobile-menu-bars" aria-hidden="true">☰</span>
+  <span>Menu</span>
+</button>
+
+<div
+  id="sidebarOverlay"
+  class="sidebar-overlay hidden"
+  onclick="closeMobileSidebar_()"
+  aria-hidden="true"
+></div>
 
 <aside id="appSidebar" class="app-sidebar hidden" aria-label="Main navigation">
   <div class="sidebar-brand">
@@ -947,10 +1073,7 @@
   <nav id="sidebarNav" class="sidebar-nav"></nav>
 
   <div class="sidebar-footer">
-    <button type="button" class="sidebar-signout" onclick="logout()">
-      <span aria-hidden="true">↪</span> Sign Out
-    </button>
-    <small>v2026.3.94</small>
+    <small>v2026.3.95</small>
   </div>
 </aside>
 
@@ -990,7 +1113,7 @@
       </div>
     </div>
     <p class="auth-copy">Internal inventory, sales, releasing, transfer, return, and stock-management workspace.</p>
-    <span class="version-chip">v2026.3.94</span>
+    <span class="version-chip">v2026.3.95</span>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -1979,6 +2102,7 @@ function makeSidebarNavButton_(key,label,onClick){
   `;
   button.onclick=function(){
     setSidebarActive_(key);
+    closeMobileSidebar_();
     onClick();
   };
   return button;
@@ -1990,43 +2114,40 @@ function renderSidebarNav_(){
 
   nav.innerHTML="";
   nav.appendChild(makeSidebarNavButton_("home","Home",backHome));
-
-  if(canAccess("CHECKSTOCK")){
-    nav.appendChild(makeSidebarNavButton_("stock","Check Stock",()=>chooseType("CHECK_STOCK")));
-  }
-
-  if(canAccessAny(["RELEASING","SALES","PURCHASES","COUNTCHECK","INVENTORYADJUSTMENT","TRANSFER"])){
-    nav.appendChild(makeSidebarNavButton_("new","New Transaction",()=>{backHome();showNewTransactionOptions();}));
-  }
-
-  if(canAccessAny(["RETURNCANCELRELEASE","SALES"])){
-    nav.appendChild(makeSidebarNavButton_("followup","Transaction Follow-up",openTicketLookup));
-  }
-
-  if(canAccess("RETURNCANCELRELEASE")){
-    nav.appendChild(makeSidebarNavButton_("return","Return Stock-In",openRevampReturnLookup));
-  }
-
-  if(canViewMyReleaseRequests()){
-    nav.appendChild(makeSidebarNavButton_("releases","My Release Requests",openMyReleaseRequests));
-  }
+  if(canAccess("CHECKSTOCK"))nav.appendChild(makeSidebarNavButton_("stock","Check Stock",()=>chooseType("CHECK_STOCK")));
+  if(canAccess("SALES"))nav.appendChild(makeSidebarNavButton_("sold","Sold Immediately",()=>chooseType("SALE")));
+  if(canAccess("INVENTORYADJUSTMENT"))nav.appendChild(makeSidebarNavButton_("adjust","Manager Inventory Adjustment",()=>chooseType("INVENTORY_ADJUSTMENT")));
+  if(canAccess("TRANSFER"))nav.appendChild(makeSidebarNavButton_("transfer","Transfer Stock Location",()=>chooseType("TRANSFER")));
+  if(canAccessAny(["RELEASING","PURCHASES","COUNTCHECK"]))nav.appendChild(makeSidebarNavButton_("other","Other Transactions",()=>{backHome();showNewTransactionOptions();}));
+  if(canAccessAny(["RETURNCANCELRELEASE","SALES"]))nav.appendChild(makeSidebarNavButton_("followup","Transaction Follow-up",openTicketLookup));
+  if(canAccess("RETURNCANCELRELEASE"))nav.appendChild(makeSidebarNavButton_("return","Return Stock-In",openRevampReturnLookup));
+  if(canViewMyReleaseRequests())nav.appendChild(makeSidebarNavButton_("releases","My Release Requests",openMyReleaseRequests));
 
   const currentNameKey=String(currentUser.name||"").trim().toUpperCase();
   const approvalUserKeys=(settings.approvalUsers||[]).map(name=>String(name||"").trim().toUpperCase());
-  if(approvalUserKeys.includes(currentNameKey)){
-    nav.appendChild(makeSidebarNavButton_("approvals","My Approvals",openMyApprovals));
-  }
+  if(approvalUserKeys.includes(currentNameKey))nav.appendChild(makeSidebarNavButton_("approvals","My Approvals",openMyApprovals));
 
   if(canReviewUnlistedProducts()){
     nav.appendChild(makeSidebarNavButton_("unlisted","Unlisted Product Review",openUnlistedProductReview));
     nav.appendChild(makeSidebarNavButton_("products","Product Management",openProductManagement));
   }
-
-  if(canAccess("REPORTSHISTORY")){
-    nav.appendChild(makeSidebarNavButton_("reports","Reports / History",openReportsView));
-  }
-
+  if(canAccess("REPORTSHISTORY"))nav.appendChild(makeSidebarNavButton_("reports","Reports / History",openReportsView));
   setSidebarActive_("home");
+}
+
+function openMobileSidebar_(){
+  if(!currentUser)return;
+  const sidebar=document.getElementById("appSidebar");
+  const overlay=document.getElementById("sidebarOverlay");
+  if(sidebar)sidebar.classList.add("mobile-open");
+  if(overlay)overlay.classList.remove("hidden");
+}
+
+function closeMobileSidebar_(){
+  const sidebar=document.getElementById("appSidebar");
+  const overlay=document.getElementById("sidebarOverlay");
+  if(sidebar)sidebar.classList.remove("mobile-open");
+  if(overlay)overlay.classList.add("hidden");
 }
 
 function updateAppHeader_(){
@@ -2041,6 +2162,7 @@ function updateAppHeader_(){
     document.body.classList.remove("app-authenticated");
     if(header)header.classList.add("hidden");
     if(sidebar)sidebar.classList.add("hidden");
+    closeMobileSidebar_();
     if(userChip)userChip.textContent="";
     return;
   }
@@ -5540,66 +5662,31 @@ function openHome(){
 
 function renderHomeButtons(){
   const homeButtonContainer=document.getElementById("homeButtons");
-  if(homeButtonContainer){homeButtonContainer.classList.remove("transaction-menu");}
+  if(homeButtonContainer)homeButtonContainer.classList.remove("transaction-menu");
 
-  const container = document.getElementById("homeButtons");
-  container.innerHTML = "";
-  if(canAccess("CHECKSTOCK")){
-    container.appendChild(makeMenuButton("Check Stock", "Tingnan ang product, total stock, reserved qty, at notes.", function(){
-      chooseType("CHECK_STOCK");
-    }));
-  }
-  if(canAccessAny(["RELEASING", "SALES", "PURCHASES", "COUNTCHECK", "INVENTORYADJUSTMENT", "TRANSFER"])){
-    container.appendChild(makeMenuButton("New Transaction", "Gamitin kapag may bagong order, sale, purchase, stock count, inventory adjustment, or stock transfer.", showNewTransactionOptions));
-  }
-  if(canAccessAny(["RETURNCANCELRELEASE","SALES"])){
-    container.appendChild(makeMenuButton(
-      "Transaction Follow-up",
-      "Search transaction details.",
-      openTicketLookup
-    ));
-  }
-  if(canAccess("RETURNCANCELRELEASE")){
-    container.appendChild(makeMenuButton("Return Stock-In", "Search receipt no., submit returned items, and wait for location approval.", openRevampReturnLookup));
-  }
-  if(canViewMyReleaseRequests()){
-    container.appendChild(makeMenuButton("My Release Requests", "View pending released items requested for you.", openMyReleaseRequests, true, pendingReleaseCount, "RELEASES"));
-  }
-  const currentNameKey = String(currentUser.name || "").trim().toUpperCase();
-  const approvalUserKeys = (settings.approvalUsers || []).map(name => {
-    return String(name || "").trim().toUpperCase();
-  });
-  if(approvalUserKeys.includes(currentNameKey)){
-    container.appendChild(makeMenuButton("My Approvals", "Approve or reject pending return requests assigned to you.", openMyApprovals, true, pendingApprovalCount, "APPROVALS"));
-  }
-  if(
-    canReviewUnlistedProducts()
-  ){
-    container.appendChild(
-      makeMenuButton(
-        "Unlisted Product Review",
-        "Review products that were sold before being added to inventory.",
-        openUnlistedProductReview,
-        true,
-        pendingUnlistedReviewCount,
-        "UNLISTED"
-      )
-    );
-  }
-  
+  const container=document.getElementById("homeButtons");
+  container.innerHTML="";
+
+  if(canAccess("CHECKSTOCK"))container.appendChild(makeMenuButton("Check Stock","Tingnan ang product, total stock, reserved qty, at location.",()=>chooseType("CHECK_STOCK")));
+  if(canAccess("SALES"))container.appendChild(makeMenuButton("Sold Immediately","Gamitin kapag sold o paid na agad ang item.",()=>chooseType("SALE")));
+  if(canAccess("INVENTORYADJUSTMENT"))container.appendChild(makeMenuButton("Manager Inventory Adjustment","Itama ang verified physical stock count.",()=>chooseType("INVENTORY_ADJUSTMENT")));
+  if(canAccess("TRANSFER"))container.appendChild(makeMenuButton("Transfer Stock Location","Ilipat ang stock mula sa isang inventory location papunta sa iba.",()=>chooseType("TRANSFER")));
+
+  if(canAccessAny(["RELEASING","PURCHASES","COUNTCHECK"]))container.appendChild(makeMenuButton("Other Transactions","Customer Order / Release, Stock In / New Arrival, at Count Actual Stock.",showNewTransactionOptions));
+
+  if(canAccessAny(["RETURNCANCELRELEASE","SALES"]))container.appendChild(makeMenuButton("Transaction Follow-up","Search transaction details.",openTicketLookup));
+  if(canAccess("RETURNCANCELRELEASE"))container.appendChild(makeMenuButton("Return Stock-In","Search receipt no. at i-process ang returned items.",openRevampReturnLookup));
+  if(canViewMyReleaseRequests())container.appendChild(makeMenuButton("My Release Requests","View pending released items requested for you.",openMyReleaseRequests,true,pendingReleaseCount,"RELEASES"));
+
+  const currentNameKey=String(currentUser.name||"").trim().toUpperCase();
+  const approvalUserKeys=(settings.approvalUsers||[]).map(name=>String(name||"").trim().toUpperCase());
+  if(approvalUserKeys.includes(currentNameKey))container.appendChild(makeMenuButton("My Approvals","Approve or reject pending requests assigned to you.",openMyApprovals,true,pendingApprovalCount,"APPROVALS"));
+
   if(canReviewUnlistedProducts()){
-    container.appendChild(
-      makeMenuButton(
-        "Product Management",
-        "Search active products and safely remove zero-stock product records.",
-        openProductManagement
-      )
-    );
+    container.appendChild(makeMenuButton("Unlisted Product Review","Review products sold before they were added to inventory.",openUnlistedProductReview,true,pendingUnlistedReviewCount,"UNLISTED"));
+    container.appendChild(makeMenuButton("Product Management","Search active products and safely remove zero-stock records.",openProductManagement));
   }
-
-  if(canAccess("REPORTSHISTORY")){
-    container.appendChild(makeMenuButton("Reports / History", "For manager/admin checking only.", openReportsView));
-  }
+  if(canAccess("REPORTSHISTORY"))container.appendChild(makeMenuButton("Reports / History","Manager/Admin transaction checking.",openReportsView));
 }
 
 function updateHomeNotificationBadge(
@@ -5845,10 +5932,10 @@ function getMenuIconSvg_(label){
 
   if(text.includes("back"))return wrap('<path d="M15 18l-6-6 6-6"/><path d="M9 12h10"/>');
   if(text.includes("check stock"))return wrap('<circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/><path d="M8.5 11h5"/>');
-  if(text.includes("new transaction"))return wrap('<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/>');
+  if(text.includes("new transaction")||text.includes("other transactions"))return wrap('<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/>');
   if(text.includes("sold immediately"))return wrap('<path d="M4 7h16v10H4z"/><path d="M7 10h4M7 14h7"/>');
   if(text.includes("transfer"))return wrap('<path d="M7 7h12l-3-3M19 7l-3 3"/><path d="M17 17H5l3 3M5 17l3-3"/>');
-  if(text.includes("return"))return wrap('<path d="M9 7H5v4"/><path d="M5 11c1.5-4 6-6 10-4 3 1.5 4.5 5 3.5 8"/><path d="M15 17h4v-4"/>');
+  if(text.includes("return"))return wrap('<path d="M4 8l8-4 8 4-8 4-8-4z"/><path d="M4 8v8l8 4 8-4V8"/><path d="M9 16H5v-4"/><path d="M5 12c1.2-2.2 3-3.4 5.5-3.7"/>');
   if(text.includes("approval"))return wrap('<path d="M7 3h10v18H7z"/><path d="M9.5 12l1.8 1.8 3.5-4"/>');
   if(text.includes("release"))return wrap('<path d="M4 8l8-4 8 4-8 4-8-4z"/><path d="M4 8v8l8 4 8-4V8"/>');
   if(text.includes("unlisted"))return wrap('<path d="M12 3l9 16H3L12 3z"/><path d="M12 9v4M12 16h.01"/>');
@@ -5904,13 +5991,14 @@ function showNewTransactionOptions(){
   intro.className="menu-intro";
   intro.innerHTML=`
     <div>
-      <strong>New Transaction</strong><br>
-      <span>Select the transaction you want to process.</span>
+      <strong>Other Transactions</strong><br>
+      <span>Additional inventory workflows.</span>
     </div>
   `;
   container.appendChild(intro);
 
   NEW_TRANSACTION_OPTIONS.forEach(option=>{
+    if(["SALE","INVENTORY_ADJUSTMENT","TRANSFER"].includes(option.type))return;
     if(!canAccess(option.key))return;
     if(option.type==="RELEASING"&&!canUseReleaseItem())return;
 
@@ -6336,114 +6424,46 @@ async function searchProductsByKeyword(){
 }
 
 function renderKeywordResults(totalCount, limited){
-  const container = document.getElementById("keywordResults");
+  const container=document.getElementById("keywordResults");
   if(!keywordSearchResults.length){
-    container.innerHTML = `
-      <hr>
-      <p class="muted">
-        No matching products found.
-      </p>
-    `;
+    container.innerHTML=`<hr><p class="muted">No matching products found.</p>`;
     show("keywordResults");
     return;
   }
-  let html = `
+
+  let html=`
     <hr>
     <h3>Product Search Results</h3>
-    <p class="muted">
-      Found ${Number(
-        totalCount || 0
-      ).toLocaleString()} product(s).
-      ${
-        limited
-          ? "Showing the first 50 results."
-          : ""
-      }
-    </p>
+    <p class="muted">Found ${Number(totalCount||0).toLocaleString()} product(s). ${limited?"Showing the first 50 results.":""}</p>
+    <div class="product-result-list">
   `;
-  keywordSearchResults.forEach((product, index) => {
-    const availableQty = Number(product.availableQty !== undefined && product.availableQty !== null && product.availableQty !== "" ? product.availableQty: 0); html += `
-        <div class="cart-line">
-          <strong>
-            ${escapeHtml(
-              product.productName || ""
-            )}
-          </strong>
 
-          SKU:
-          ${escapeHtml(
-            product.sku || ""
-          )}<br>
+  keywordSearchResults.forEach((product,index)=>{
+    const availableQty=Number(product.availableQty!==undefined&&product.availableQty!==null&&product.availableQty!==""?product.availableQty:0);
+    const locations=[["CE1",product.ce1Qty],["CE2",product.ce2Qty],["CE3",product.ce3Qty],["SOLER",product.solerQty],["VACANT",product.vacantQty],["UNKNOWN",product.unknownQty]];
 
-          ${
-            product.brand
-              ? `Brand: ${escapeHtml(
-                  product.brand
-                )}<br>`
-              : ""
-          }
-
-          ${
-            product.model
-              ? `Model: ${escapeHtml(
-                  product.model
-                )}<br>`
-              : ""
-          }
-
-          ${
-            product.mainCategory
-              ? `Category: ${escapeHtml(
-                  product.mainCategory
-                )}<br>`
-              : ""
-          }
-
-          Available Qty:
-          <strong>
-            ${availableQty.toLocaleString()}
-          </strong><br>
-
-          CE1:
-          ${Number(
-            product.ce1Qty || 0
-          ).toLocaleString()} |
-
-          CE2:
-          ${Number(
-            product.ce2Qty || 0
-          ).toLocaleString()} |
-
-          CE3:
-          ${Number(
-            product.ce3Qty || 0
-          ).toLocaleString()}<br>
-
-          SOLER:
-          ${Number(
-            product.solerQty || 0
-          ).toLocaleString()} |
-
-          VACANT:
-          ${Number(
-            product.vacantQty || 0
-          ).toLocaleString()} |
-
-          UNKNOWN:
-          ${Number(
-            product.unknownQty || 0
-          ).toLocaleString()}
-
-          <button
-            type="button"
-            onclick="selectKeywordProduct(${index})"
-          >
-            Select Product
-          </button>
+    html+=`
+      <div class="product-result-card">
+        <div class="product-result-header">
+          <div class="product-result-name">${escapeHtml(product.productName||"")}</div>
+          <span class="sku-pill">SKU: ${escapeHtml(product.sku||"")}</span>
         </div>
-      `;
+        <div class="product-meta-grid">
+          <div class="product-meta-cell"><span class="product-meta-label">Brand</span><span class="product-meta-value">${escapeHtml(product.brand||"—")}</span></div>
+          <div class="product-meta-cell"><span class="product-meta-label">Model</span><span class="product-meta-value">${escapeHtml(product.model||"—")}</span></div>
+          <div class="product-meta-cell"><span class="product-meta-label">Category</span><span class="product-meta-value">${escapeHtml(product.mainCategory||"—")}</span></div>
+        </div>
+        <div class="product-qty-summary"><span>Available Qty</span><strong>${availableQty.toLocaleString()}</strong></div>
+        <div class="location-grid">
+          ${locations.map(([name,qty])=>`<div class="location-cell"><span>${name}</span><strong>${Number(qty||0).toLocaleString()}</strong></div>`).join("")}
+        </div>
+        <button class="select-product-btn" type="button" onclick="selectKeywordProduct(${index})">Select Product</button>
+      </div>
+    `;
   });
-  container.innerHTML = html;
+
+  html+=`</div>`;
+  container.innerHTML=html;
   show("keywordResults");
 }
 
@@ -6484,45 +6504,38 @@ function backToKeywordResults(){
 }
 
 function renderProduct(){
-  const p = currentProduct || {};
-  const totalQty = Number(p.posTotalQty || 0);
-  const reservedQty = Number(p.reservedQty || 0);
-  const availableQty = Number(p.availableQty !== undefined ? p.availableQty: p.currentQty || 0);
-  document.getElementById("productInfo").innerHTML = `
-    <strong>${escapeHtml(p.productName || "")}</strong><br>
-    SKU: ${escapeHtml(p.sku || "")}<br>
-    Barcode: ${escapeHtml(p.barcodeValue || "")}<br>
-    Stock Type: <span class="badge">${escapeHtml(p.stockType || "")}</span><br><br>
+  const p=currentProduct||{};
+  const totalQty=Number(p.posTotalQty||0);
+  const reservedQty=Number(p.reservedQty||0);
+  const availableQty=Number(p.availableQty!==undefined?p.availableQty:p.currentQty||0);
+  const locations=[["CE1",p.ce1Qty],["CE2",p.ce2Qty],["CE3",p.ce3Qty],["SOLER",p.solerQty],["VACANT",p.vacantQty],["UNKNOWN",p.unknownQty]];
 
-    Total Stock: <strong>${totalQty}</strong><br>
-    Reserved / Released Qty: <strong>${reservedQty}</strong><br>
-    Available Qty: <strong>${availableQty}</strong><br><br>
-
-    <strong>Location:</strong><br>
-    <div style="margin-left:14px;">
-      CE1: <strong>${Number(p.ce1Qty || 0).toLocaleString()}</strong><br>
-      CE2: <strong>${Number(p.ce2Qty || 0).toLocaleString()}</strong><br>
-      CE3: <strong>${Number(p.ce3Qty || 0).toLocaleString()}</strong><br>
-      SOLER: <strong>${Number(p.solerQty || 0).toLocaleString()}</strong><br>
-      VACANT: <strong>${Number(p.vacantQty || 0).toLocaleString()}</strong><br>
-      UNKNOWN: <strong>${Number(p.unknownQty || 0).toLocaleString()}</strong>
+  document.getElementById("productInfo").innerHTML=`
+    <div class="selected-product-panel">
+      <div class="product-result-card">
+        <div class="product-result-header">
+          <div class="product-result-name">${escapeHtml(p.productName||"")}</div>
+          <span class="sku-pill">SKU: ${escapeHtml(p.sku||"")}</span>
+        </div>
+        <div class="product-meta-grid">
+          <div class="product-meta-cell"><span class="product-meta-label">Barcode</span><span class="product-meta-value">${escapeHtml(p.barcodeValue||"—")}</span></div>
+          <div class="product-meta-cell"><span class="product-meta-label">Stock Type</span><span class="product-meta-value">${escapeHtml(p.stockType||"—")}</span></div>
+          <div class="product-meta-cell"><span class="product-meta-label">Status</span><span class="product-meta-value">${escapeHtml(p.inventoryStatus||"—")}</span></div>
+        </div>
+        <div class="selected-stock-grid">
+          <div class="selected-stock-box"><span>Total Stock</span><strong>${totalQty.toLocaleString()}</strong></div>
+          <div class="selected-stock-box"><span>Reserved</span><strong>${reservedQty.toLocaleString()}</strong></div>
+          <div class="selected-stock-box"><span>Available</span><strong>${availableQty.toLocaleString()}</strong></div>
+        </div>
+        <div class="location-grid">
+          ${locations.map(([name,qty])=>`<div class="location-cell"><span>${name}</span><strong>${Number(qty||0).toLocaleString()}</strong></div>`).join("")}
+        </div>
+        <div class="product-meta-grid" style="grid-template-columns:minmax(0,1fr);">
+          <div class="product-meta-cell"><span class="product-meta-label">Cost Per Unit</span><span class="product-meta-value">₱${Number(p.averageCost||0).toLocaleString()}</span></div>
+        </div>
+        ${keywordSearchResults.length?`<button type="button" class="secondary" onclick="backToKeywordResults()">Back to Search Results</button>`:""}
+      </div>
     </div>
-    <br>
-    Cost Per Unit: ₱${Number(p.averageCost || 0).toLocaleString()}<br>
-    Status: ${escapeHtml(p.inventoryStatus || "")}
-    ${
-      keywordSearchResults.length
-        ? `
-          <button
-            type="button"
-            class="secondary"
-            onclick="backToKeywordResults()"
-          >
-            Back to Search Results
-          </button>
-        `
-        : ""
-    }
   `;
   show("productCard");
 }
