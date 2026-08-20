@@ -546,7 +546,7 @@
 
 
     /* ======================================================
-       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.3.95
+       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.3.98
        Inspired by a classic inventory admin dashboard while
        keeping the current workflows and mobile usability.
        ====================================================== */
@@ -910,7 +910,7 @@
   
 
     /* ======================================================
-       CHARLON UI REFINEMENT — v2026.3.95
+       CHARLON UI REFINEMENT — v2026.3.98
        Cleaner lists, compact desktop actions, pagination,
        and a true mobile header navigation drawer.
        ====================================================== */
@@ -1371,6 +1371,101 @@
       #homeButtons.main-home-grid{grid-template-columns:1fr;}
     }
 
+  
+
+    /* =========================================================
+       v3.98 HOME + NAVIGATION CLEANUP
+       ========================================================= */
+
+    /* The top application header already identifies the user, so the
+       duplicate Home/Workspace headings are intentionally hidden. */
+    #homeCard .home-hero,
+    #homeCard .home-workspace-heading{
+      display:none!important;
+    }
+
+    #homeCard .home-workspace{
+      padding:18px 20px 22px;
+    }
+
+    /* Keep the Home actions in natural reading order. This removes the
+       forced empty tile beside Return Stock-In. */
+    #homeButtons.main-home-grid [data-home-slot]{
+      grid-column:auto!important;
+      grid-row:auto!important;
+    }
+
+    /* Home notification badge sits in the card corner instead of beside
+       the title text. */
+    #homeButtons button.choice{
+      position:relative;
+    }
+
+    #homeButtons button.choice .notification-badge{
+      position:absolute;
+      top:10px;
+      right:10px;
+      z-index:2;
+      min-width:21px;
+      height:21px;
+      padding:0 6px;
+      font-size:10px;
+      box-shadow:0 2px 6px rgba(145,31,24,.18);
+    }
+
+    /* Sidebar notification stays aligned beside its navigation label. */
+    .sidebar-nav-button .sidebar-notification-badge{
+      position:static!important;
+      margin-left:auto;
+      min-width:20px;
+      height:20px;
+      padding:0 6px;
+      font-size:10px;
+      flex:0 0 auto;
+      box-shadow:none;
+    }
+
+    /* Sidebar footer is now only a discreet version marker. */
+    .sidebar-footer{
+      padding:8px 12px 10px;
+    }
+
+    /* Mobile navigation is a plain hamburger beside the Charlon logo,
+       not a floating "Menu" button. */
+    @media(max-width:900px){
+      .mobile-nav-toggle{
+        width:34px!important;
+        min-width:34px!important;
+        height:40px!important;
+        margin:0 8px 0 0!important;
+        padding:0!important;
+        border:0!important;
+        border-radius:0!important;
+        background:transparent!important;
+        box-shadow:none!important;
+      }
+
+      .mobile-nav-toggle:hover:not(:disabled),
+      .mobile-nav-toggle:active{
+        background:transparent!important;
+        border:0!important;
+        box-shadow:none!important;
+        transform:none!important;
+      }
+
+      .mobile-nav-toggle span,
+      .mobile-nav-toggle::before,
+      .mobile-nav-toggle::after{
+        width:22px;
+        height:2px;
+        background:#fff;
+      }
+
+      #homeCard .home-workspace{
+        padding:14px;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -1411,10 +1506,7 @@
   <nav id="sidebarNav" class="sidebar-nav"></nav>
 
   <div class="sidebar-footer">
-    <button type="button" class="sidebar-signout" onclick="logout()">
-      <span aria-hidden="true">↪</span> Sign Out
-    </button>
-    <small>v2026.3.95</small>
+    <small>v2026.3.98</small>
   </div>
 </aside>
 
@@ -1464,7 +1556,7 @@
       </div>
     </div>
     <p class="auth-copy">Internal inventory, sales, releasing, transfer, return, and stock-management workspace.</p>
-    <span class="version-chip">v2026.3.95</span>
+    <span class="version-chip">v2026.3.98</span>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -2500,14 +2592,21 @@ function setSidebarActive_(key){
   });
 }
 
-function makeSidebarNavButton_(key,label,onClick){
+function makeSidebarNavButton_(key,label,onClick,notificationCount=0,notificationKey=""){
   const button=document.createElement("button");
   button.type="button";
   button.className="sidebar-nav-button";
   button.dataset.sidebarKey=key;
+
+  const count=Math.max(0,Number(notificationCount||0));
+  const badgeHtml=notificationKey
+    ?`<span class="notification-badge sidebar-notification-badge ${count>0?"":"hidden"}" data-notification="${escapeHtml(notificationKey)}">${count>99?"99+":count}</span>`
+    :"";
+
   button.innerHTML=`
     <span class="sidebar-nav-icon">${getMenuIconSvg_(label)}</span>
     <span class="sidebar-nav-text">${escapeHtml(label)}</span>
+    ${badgeHtml}
   `;
   button.onclick=function(){
     setSidebarActive_(key);
@@ -2549,7 +2648,7 @@ function renderSidebarNav_(){
   }
 
   if(canReviewUnlistedProducts()){
-    nav.appendChild(makeSidebarNavButton_("unlisted","Unlisted Product Review",openUnlistedProductReview));
+    nav.appendChild(makeSidebarNavButton_("unlisted","Unlisted Product Review",openUnlistedProductReview,pendingUnlistedReviewCount,"UNLISTED"));
     nav.appendChild(makeSidebarNavButton_("products","Product Management",openProductManagement));
   }
 
@@ -6184,11 +6283,11 @@ function updateHomeNotificationBadge(
   notificationKey,
   count
 ){
-  const badge=document.querySelector(
+  const badges=document.querySelectorAll(
     `[data-notification="${notificationKey}"]`
   );
 
-  if(!badge){
+  if(!badges.length){
     return;
   }
 
@@ -6197,15 +6296,17 @@ function updateHomeNotificationBadge(
     Number(count||0)
   );
 
-  badge.textContent=
-    number>99
-      ?"99+"
-      :String(number);
+  badges.forEach(badge=>{
+    badge.textContent=
+      number>99
+        ?"99+"
+        :String(number);
 
-  badge.classList.toggle(
-    "hidden",
-    number<=0
-  );
+    badge.classList.toggle(
+      "hidden",
+      number<=0
+    );
+  });
 }
 
 function updateNotificationTitle(){
@@ -6426,7 +6527,7 @@ function getMenuIconSvg_(label){
   if(text.includes("new transaction"))return wrap('<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/>');
   if(text.includes("sold immediately"))return wrap('<path d="M4 7h16v10H4z"/><path d="M7 10h4M7 14h7"/>');
   if(text.includes("transfer"))return wrap('<path d="M7 7h12l-3-3M19 7l-3 3"/><path d="M17 17H5l3 3M5 17l3-3"/>');
-  if(text.includes("return"))return wrap('<path d="M9 7H5v4"/><path d="M5 11c1.5-4 6-6 10-4 3 1.5 4.5 5 3.5 8"/><path d="M15 17h4v-4"/>');
+  if(text.includes("return"))return wrap('<rect x="5" y="6" width="14" height="12" rx="2"/><path d="M10 10H7l2-2M7 10l2 2"/><path d="M7 10h5a4 4 0 0 1 4 4"/>');
   if(text.includes("approval"))return wrap('<path d="M7 3h10v18H7z"/><path d="M9.5 12l1.8 1.8 3.5-4"/>');
   if(text.includes("release"))return wrap('<path d="M4 8l8-4 8 4-8 4-8-4z"/><path d="M4 8v8l8 4 8-4V8"/>');
   if(text.includes("unlisted"))return wrap('<path d="M12 3l9 16H3L12 3z"/><path d="M12 9v4M12 16h.01"/>');
