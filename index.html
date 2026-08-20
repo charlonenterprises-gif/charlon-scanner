@@ -907,112 +907,468 @@
       #homeButtons.button-grid{grid-template-columns:1fr;}
     }
 
+  
 
-    /* =========================================================
-       CHARLON UI REFINEMENT v2026.3.95
-       ========================================================= */
-    html,body,button,input,select,textarea{
-      font-family:"Google Sans","Google Sans Text",Roboto,Arial,sans-serif!important;
-    }
+    /* ======================================================
+       CHARLON UI REFINEMENT — v2026.3.95
+       Cleaner lists, compact desktop actions, pagination,
+       and a true mobile header navigation drawer.
+       ====================================================== */
 
-    .app-header{
-      position:relative!important;
-      top:auto!important;
-      z-index:40!important;
-      backdrop-filter:none!important;
-    }
-
-    #homeButtons button.choice{position:relative;}
-    #homeButtons button.choice .notification-badge{
-      position:absolute;
-      top:10px;
-      right:10px;
-      z-index:4;
-      min-width:25px;
-      height:25px;
-      padding:0 7px;
-      border:2px solid #fff;
-      box-shadow:0 2px 7px rgba(139,31,24,.18);
-    }
-
-    .product-result-list{display:grid;gap:12px;margin-top:14px;}
-    .product-result-card{
-      border:1px solid #dce6ed;
-      border-radius:12px;
+    /* Compact, readable transaction/result records. */
+    .product-box > .cart-line,
+    .record-card{
+      position:relative;
+      margin:12px 0;
+      padding:16px;
+      border:1px solid #d9e5ec;
+      border-left:4px solid var(--charlon-blue);
+      border-radius:10px;
       background:#fff;
-      padding:15px;
-      box-shadow:0 2px 8px rgba(20,57,82,.045);
+      box-shadow:0 2px 8px rgba(18,61,88,.045);
+      line-height:1.65;
+      color:#385064;
     }
-    .product-result-header{
-      display:flex;align-items:flex-start;justify-content:space-between;
-      gap:12px;padding-bottom:11px;border-bottom:1px solid #edf2f5;
-    }
-    .product-result-name{color:#1f3443;font-size:15px;font-weight:800;line-height:1.3;min-width:0;}
-    .sku-pill{
-      flex:0 0 auto;display:inline-flex;align-items:center;border-radius:7px;
-      padding:5px 8px;background:#eef6fa;border:1px solid #d4e7f1;
-      color:var(--charlon-blue);font-size:11px;font-weight:800;white-space:nowrap;
-    }
-    .product-meta-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:11px;}
-    .product-meta-cell{min-width:0;padding:8px 9px;border-radius:8px;background:#f8fafb;border:1px solid #eef2f5;}
-    .product-meta-label{display:block;color:#8493a0;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.55px;margin-bottom:2px;}
-    .product-meta-value{display:block;color:#263b4a;font-size:12px;font-weight:700;overflow-wrap:anywhere;}
-    .product-qty-summary{
-      display:flex;align-items:center;justify-content:space-between;gap:12px;
-      margin-top:11px;padding:9px 11px;border-radius:9px;
-      background:linear-gradient(90deg,#f4f9fc,#fff9e9);border:1px solid #e2ebf0;
-    }
-    .product-qty-summary span{color:#667887;font-size:11px;font-weight:700;}
-    .product-qty-summary strong{color:#17384c;font-size:19px;}
-    .location-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-top:10px;}
-    .location-cell{text-align:center;padding:7px 4px;border-radius:7px;border:1px solid #e4ebf0;background:#fff;}
-    .location-cell span{display:block;color:#8897a3;font-size:8px;font-weight:800;}
-    .location-cell strong{display:block;margin-top:2px;color:#253c4b;font-size:12px;}
-    .product-result-card .select-product-btn{margin-top:11px;min-height:40px;}
 
-    .selected-product-panel{border:0;padding:0;background:transparent;}
-    .selected-product-panel .product-result-card{margin:0;}
-    .selected-stock-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px;}
-    .selected-stock-box{border-radius:9px;border:1px solid #e2e9ee;background:#f8fafb;padding:9px;text-align:center;}
-    .selected-stock-box span{display:block;color:#81909c;font-size:9px;font-weight:800;text-transform:uppercase;}
-    .selected-stock-box strong{display:block;color:#213b4b;font-size:18px;margin-top:2px;}
+    .product-box > .cart-line > strong:first-child,
+    .record-card-title{
+      display:block;
+      margin:0 0 7px;
+      color:#1f3b4d;
+      font-size:15px;
+      line-height:1.35;
+    }
 
-    .mobile-menu-fab,.sidebar-overlay{display:none;}
+    .product-box > .cart-line .cart-line{
+      margin:10px 0;
+      padding:12px;
+      border-left-width:2px;
+      background:#f7fafc;
+      box-shadow:none;
+    }
+
+    .product-box > .cart-line hr{
+      margin:14px 0;
+      border:0;
+      border-top:1px solid #e5edf2;
+    }
+
+    /* Product Found — only useful inventory information. */
+    .product-found-shell{
+      border:1px solid #d7e4ec;
+      border-radius:12px;
+      padding:16px;
+      background:#fff;
+    }
+    .product-found-title-row{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+      padding-bottom:13px;
+      border-bottom:1px solid #e4edf2;
+    }
+    .product-found-name{
+      margin:0;
+      color:#203d50;
+      font-size:18px;
+      font-weight:800;
+      line-height:1.35;
+    }
+    .sku-chip{
+      display:inline-flex;
+      align-items:center;
+      flex:0 0 auto;
+      padding:7px 10px;
+      border:1px solid #cce2ee;
+      border-radius:8px;
+      background:#edf7fb;
+      color:#006299;
+      font-size:12px;
+      font-weight:800;
+      white-space:nowrap;
+    }
+    .stock-summary-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+      margin:14px 0 10px;
+    }
+    .stock-summary-card{
+      min-width:0;
+      padding:12px 8px;
+      border:1px solid #dce7ed;
+      border-radius:9px;
+      background:#f8fafb;
+      text-align:center;
+    }
+    .stock-summary-card span{
+      display:block;
+      color:#81909c;
+      font-size:10px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.45px;
+    }
+    .stock-summary-card strong{
+      display:block;
+      margin-top:4px;
+      color:#203d50;
+      font-size:20px;
+    }
+    .stock-summary-card.reserved{
+      background:#fff9e8;
+      border-color:#f1dda3;
+    }
+    .stock-summary-card.reserved strong{color:#8a6500;}
+    .stock-help{
+      margin:-2px 0 14px;
+      color:#768795;
+      font-size:11px;
+      text-align:center;
+    }
+    .location-grid{
+      display:grid;
+      grid-template-columns:repeat(6,minmax(0,1fr));
+      gap:8px;
+      margin:10px 0 14px;
+    }
+    .location-cell{
+      padding:10px 6px;
+      border:1px solid #dce7ed;
+      border-radius:8px;
+      text-align:center;
+      background:#fff;
+    }
+    .location-cell span{
+      display:block;
+      color:#8493a0;
+      font-size:9px;
+      font-weight:800;
+    }
+    .location-cell strong{
+      display:block;
+      margin-top:3px;
+      color:#203d50;
+      font-size:14px;
+    }
+    .product-cost-line{
+      padding:11px 12px;
+      border-radius:8px;
+      background:#f6f8fa;
+      color:#5a6c7a;
+      font-size:12px;
+    }
+    .product-cost-line strong{color:#203d50;font-size:15px;}
+
+    /* Search results: cards are not full-page-width on desktop. */
+    .search-result-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+      margin-top:12px;
+    }
+    .search-result-card{
+      display:flex;
+      flex-direction:column;
+      min-width:0;
+      padding:14px;
+      border:1px solid #d9e5ec;
+      border-radius:10px;
+      background:#fff;
+      box-shadow:0 2px 8px rgba(18,61,88,.04);
+    }
+    .search-result-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:9px;
+      padding-bottom:10px;
+      border-bottom:1px solid #e7eef2;
+    }
+    .search-result-name{
+      color:#1f3b4d;
+      font-size:14px;
+      font-weight:800;
+      line-height:1.35;
+    }
+    .search-result-meta{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:7px;
+      margin:10px 0;
+    }
+    .search-result-meta div{
+      min-width:0;
+      padding:8px;
+      border-radius:7px;
+      background:#f7f9fa;
+      color:#6f7f8c;
+      font-size:10px;
+    }
+    .search-result-meta strong{
+      display:block;
+      margin-top:2px;
+      overflow:hidden;
+      color:#28465a;
+      font-size:12px;
+      text-overflow:ellipsis;
+    }
+    .search-stock-row{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:7px;
+      margin-bottom:8px;
+    }
+    .search-stock-row div{
+      padding:8px 5px;
+      border:1px solid #dce7ed;
+      border-radius:7px;
+      text-align:center;
+      background:#fff;
+      color:#7b8a96;
+      font-size:9px;
+      font-weight:800;
+      text-transform:uppercase;
+    }
+    .search-stock-row strong{
+      display:block;
+      margin-top:2px;
+      color:#203d50;
+      font-size:14px;
+    }
+    .search-result-locations{
+      display:grid;
+      grid-template-columns:repeat(6,minmax(0,1fr));
+      gap:4px;
+      margin:2px 0 11px;
+    }
+    .search-result-locations div{
+      padding:6px 3px;
+      border-radius:6px;
+      background:#f5f8fa;
+      text-align:center;
+      color:#81909b;
+      font-size:8px;
+      font-weight:800;
+    }
+    .search-result-locations strong{
+      display:block;
+      margin-top:2px;
+      color:#28465a;
+      font-size:11px;
+    }
+    .search-result-card .select-result-btn{
+      width:auto;
+      min-width:138px;
+      align-self:flex-end;
+      margin:4px 0 0;
+      padding:9px 14px;
+      font-size:12px;
+    }
+
+    /* Numbered pages below product search. */
+    .pagination-bar{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-wrap:wrap;
+      gap:5px;
+      margin:16px 0 4px;
+    }
+    .pagination-bar button{
+      width:auto!important;
+      min-width:36px!important;
+      height:36px;
+      margin:0!important;
+      padding:0 9px!important;
+      border-radius:7px!important;
+      box-shadow:none!important;
+      font-size:12px!important;
+    }
+    .pagination-bar button.page-active{
+      background:var(--charlon-yellow)!important;
+      border-color:var(--charlon-yellow)!important;
+      color:#493700!important;
+    }
+    .pagination-label{
+      width:100%;
+      margin-top:5px;
+      color:#7a8995;
+      font-size:10px;
+      text-align:center;
+    }
+
+    /* Product Management landing/sub-menu. */
+    .management-menu-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:12px;
+      margin:14px 0;
+    }
+    .management-menu-button{
+      min-height:112px;
+      padding:16px!important;
+      border:1px solid #dce7ed!important;
+      background:#f8fafb!important;
+      color:#2d4a5d!important;
+      text-align:left!important;
+      box-shadow:none!important;
+    }
+    .management-menu-button:hover:not(:disabled){
+      border-color:#9fc7da!important;
+      background:#fff!important;
+      color:var(--charlon-blue)!important;
+    }
+    .management-menu-button strong{
+      display:block;
+      margin-bottom:5px;
+      font-size:14px;
+    }
+    .management-menu-button span{
+      display:block;
+      color:#788895;
+      font-size:11px;
+      line-height:1.4;
+    }
+    .management-workspace{
+      margin-top:14px;
+      padding-top:14px;
+      border-top:1px solid #e5edf2;
+    }
+    .edit-product-form{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:0 12px;
+    }
+    .edit-product-form .grid-span-full{grid-column:1/-1;}
+
+    /* Exact requested Home positions on desktop. */
+    #homeButtons.main-home-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:12px;
+    }
+    #homeButtons.main-home-grid [data-home-slot="check"]{grid-column:1;grid-row:1;}
+    #homeButtons.main-home-grid [data-home-slot="sale"]{grid-column:2;grid-row:1;}
+    #homeButtons.main-home-grid [data-home-slot="transfer"]{grid-column:3;grid-row:1;}
+    #homeButtons.main-home-grid [data-home-slot="releases"]{grid-column:1;grid-row:2;}
+    #homeButtons.main-home-grid [data-home-slot="return"]{grid-column:2;grid-row:2;}
+    #homeButtons.main-home-grid [data-home-slot="followup"]{grid-column:1;grid-row:3;}
+    #homeButtons.main-home-grid [data-home-slot="unlisted"]{grid-column:2;grid-row:3;}
+    #homeButtons.main-home-grid [data-home-slot="products"]{grid-column:3;grid-row:3;}
+
+    /* Mobile header menu: hamburger beside the logo, no floating Menu pill. */
+    .mobile-nav-toggle{
+      display:none;
+      width:40px!important;
+      min-width:40px!important;
+      height:40px;
+      margin:0 7px 0 0!important;
+      padding:0!important;
+      place-items:center;
+      flex:0 0 40px;
+      border:1px solid rgba(255,255,255,.28)!important;
+      border-radius:8px!important;
+      background:rgba(255,255,255,.13)!important;
+      box-shadow:none!important;
+    }
+    .mobile-nav-toggle span,
+    .mobile-nav-toggle::before,
+    .mobile-nav-toggle::after{
+      content:"";
+      display:block;
+      width:19px;
+      height:2px;
+      border-radius:99px;
+      background:#fff;
+    }
+    .mobile-nav-toggle span{margin:4px 0;}
+    .mobile-nav-backdrop{
+      position:fixed;
+      inset:0;
+      z-index:4490;
+      display:none;
+      background:rgba(9,34,49,.38);
+      backdrop-filter:blur(1px);
+    }
+    .mobile-nav-backdrop.visible{display:block;}
+
+    @media(min-width:901px){
+      /* Buttons remain actions, not giant banners, on desktop. */
+      body.app-authenticated .card > button:not(.choice):not(.header-logout),
+      body.app-authenticated .cart-line > button,
+      body.app-authenticated .notice-panel + button{
+        width:auto;
+        min-width:150px;
+        margin-right:7px;
+        padding-left:18px;
+        padding-right:18px;
+      }
+      #scanCard > button{width:auto;display:inline-flex;min-width:170px;justify-content:center;}
+      #scanCard #reader{clear:both;}
+    }
 
     @media(max-width:900px){
-      body.app-authenticated{padding-left:10px!important;}
-      body.app-authenticated .container{max-width:100%!important;}
+      .mobile-nav-toggle{display:grid;}
+      .app-header .header-logout{display:none!important;}
+      .app-header .brand-lockup{flex:1;min-width:0;}
+      .app-header{z-index:4400;}
+
       .app-sidebar{
-        display:flex!important;width:min(82vw,300px)!important;
-        transform:translateX(-105%);transition:transform .2s ease;
-        z-index:5005!important;box-shadow:10px 0 35px rgba(13,42,61,.18);
+        display:flex!important;
+        width:min(82vw,290px)!important;
+        transform:translateX(-104%);
+        transition:transform .2s ease;
+        z-index:4500;
+        box-shadow:12px 0 34px rgba(10,40,58,.22);
       }
       .app-sidebar.mobile-open{transform:translateX(0);}
-      .sidebar-overlay{position:fixed;inset:0;z-index:5000;background:rgba(16,36,50,.40);}
-      .sidebar-overlay:not(.hidden){display:block;}
-      body.app-authenticated .mobile-menu-fab{
-        position:fixed;left:14px;bottom:16px;z-index:4900;width:auto!important;
-        min-height:44px;margin:0!important;padding:9px 14px!important;display:flex;
-        align-items:center;gap:7px;border-radius:999px;background:var(--charlon-yellow)!important;
-        color:#493600!important;border:1px solid #e0a20b!important;
-        box-shadow:0 5px 16px rgba(55,45,0,.18)!important;font-size:12px!important;font-weight:800;
+
+      #homeButtons.main-home-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
       }
-      .mobile-menu-bars{font-size:16px;line-height:1;}
-      #goTopBtn{right:14px!important;bottom:16px!important;font-size:11px!important;padding:9px 12px!important;}
-      .product-meta-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+      #homeButtons.main-home-grid > *{
+        grid-column:auto!important;
+        grid-row:auto!important;
+      }
+      .management-menu-grid{grid-template-columns:1fr;}
+      .search-result-grid{grid-template-columns:1fr;}
       .location-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
-      .product-result-header{flex-direction:column;gap:7px;}
-      .sku-pill{align-self:flex-start;}
+      .edit-product-form{grid-template-columns:1fr;}
+      .edit-product-form .grid-span-full{grid-column:auto;}
     }
 
     @media(max-width:600px){
-      .app-header{margin-bottom:12px!important;}
-      .app-header .brand-name{font-size:13px!important;}
-      .app-header .brand-subtitle{font-size:9px!important;}
-      .product-result-card{padding:12px;}
-      .product-result-name{font-size:14px;}
-      .selected-stock-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
-      .selected-stock-box strong{font-size:16px;}
+      #homeButtons.main-home-grid{grid-template-columns:1fr 1fr;gap:9px;}
+      .product-found-title-row{display:block;}
+      .sku-chip{margin-top:9px;}
+      .stock-summary-card{padding:10px 5px;}
+      .stock-summary-card strong{font-size:18px;}
+      .search-result-locations{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;}
+      .search-result-meta{grid-template-columns:1fr 1fr;}
+      .search-result-card .select-result-btn{width:100%;align-self:stretch;}
+
+      /* Small non-overlapping Go-to-top control on phones. */
+      #goTopBtn{
+        width:46px!important;
+        min-width:46px!important;
+        height:46px!important;
+        padding:0!important;
+        border-radius:50%!important;
+        font-size:0!important;
+        right:12px!important;
+        bottom:14px!important;
+      }
+      #goTopBtn::before{
+        content:"↑";
+        font-size:22px;
+        line-height:1;
+      }
+    }
+
+    @media(max-width:390px){
+      #homeButtons.main-home-grid{grid-template-columns:1fr;}
     }
 
   </style>
@@ -1031,24 +1387,6 @@
 >
   ↑ Go to Top
 </button>
-
-<button
-  id="mobileMenuBtn"
-  class="mobile-menu-fab"
-  type="button"
-  onclick="openMobileSidebar_()"
-  aria-label="Open navigation menu"
->
-  <span class="mobile-menu-bars" aria-hidden="true">☰</span>
-  <span>Menu</span>
-</button>
-
-<div
-  id="sidebarOverlay"
-  class="sidebar-overlay hidden"
-  onclick="closeMobileSidebar_()"
-  aria-hidden="true"
-></div>
 
 <aside id="appSidebar" class="app-sidebar hidden" aria-label="Main navigation">
   <div class="sidebar-brand">
@@ -1073,12 +1411,25 @@
   <nav id="sidebarNav" class="sidebar-nav"></nav>
 
   <div class="sidebar-footer">
+    <button type="button" class="sidebar-signout" onclick="logout()">
+      <span aria-hidden="true">↪</span> Sign Out
+    </button>
     <small>v2026.3.95</small>
   </div>
 </aside>
 
+<div id="mobileNavBackdrop" class="mobile-nav-backdrop" onclick="closeMobileNav()" aria-hidden="true"></div>
+
 <div class="container">
   <div id="appHeader" class="app-header hidden">
+    <button
+      id="mobileNavToggle"
+      class="mobile-nav-toggle"
+      type="button"
+      aria-label="Open navigation"
+      aria-expanded="false"
+      onclick="toggleMobileNav()"
+    ><span></span></button>
     <div class="brand-lockup">
       <div class="brand-mark">
         <img
@@ -1392,6 +1743,7 @@
       <option value="UNLISTED_MATCH_EXISTING">UNLISTED_MATCH_EXISTING</option>
       <option value="UNLISTED_NEW_PRODUCT_CREATED">UNLISTED_NEW_PRODUCT_CREATED</option>
       <option value="PRODUCT_DELETED">PRODUCT_DELETED</option>
+      <option value="PRODUCT_DETAILS_UPDATED">PRODUCT_DETAILS_UPDATED</option>
       <option value="INVENTORY_ADJUSTMENT">INVENTORY_ADJUSTMENT</option>
       <option value="LOCATION_NOTE">LOCATION_NOTE</option>
     </select>
@@ -1409,30 +1761,54 @@
     <div class="section-heading">
       <div>
         <h3>Product Management</h3>
-        <p class="muted">Search active products and safely remove zero-stock product records.</p>
+        <p class="muted">Manager tools for correcting stock and maintaining active product records.</p>
       </div>
     </div>
 
-    <div class="notice-panel warning-panel">
-      Delete Product is restricted to Manager, Admin, and Web Developer roles. A product can only be removed when its Dashboard and Location quantities are both zero and it has no pending release, transfer, or return transaction.
+    <div id="productManagementMenu" class="management-menu-grid">
+      <button class="management-menu-button" type="button" onclick="openProductManagementAdjustment()">
+        <strong>Manager Inventory Adjustment</strong>
+        <span>Correct the verified quantity of an existing product by inventory location.</span>
+      </button>
+
+      <button class="management-menu-button" type="button" onclick="openProductManagementMode('DELETE')">
+        <strong>Delete Product</strong>
+        <span>Remove a zero-stock active product while preserving its transaction history.</span>
+      </button>
+
+      <button class="management-menu-button" type="button" onclick="openProductManagementMode('EDIT')">
+        <strong>Add / Change Product Details</strong>
+        <span>Correct the name, brand, model, category, item type, description, specifications, or For/With details.</span>
+      </button>
     </div>
 
-    <label>Search Product</label>
-    <div class="search-row">
-      <input
-        type="text"
-        id="productManagementSearch"
-        placeholder="SKU, brand, model, or product name"
-        autocomplete="off"
-        onkeydown="if(event.key==='Enter'){event.preventDefault();searchProductManagement();}"
-      >
-      <button id="productManagementSearchBtn" type="button" onclick="searchProductManagement()">Search</button>
+    <div id="productManagementWorkspace" class="management-workspace hidden">
+      <div class="section-heading">
+        <div>
+          <h3 id="productManagementModeTitle">Product Tool</h3>
+          <p id="productManagementModeHelp" class="muted"></p>
+        </div>
+      </div>
+
+      <label>Search Product</label>
+      <div class="search-row">
+        <input
+          type="text"
+          id="productManagementSearch"
+          placeholder="SKU, brand, model, or product name"
+          autocomplete="off"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();searchProductManagement();}"
+        >
+        <button id="productManagementSearchBtn" type="button" onclick="searchProductManagement()">Search</button>
+      </div>
+
+      <div id="productManagementResults" class="product-box"></div>
+      <div id="productDeletePanel" class="product-box hidden"></div>
+
+      <button class="secondary" type="button" onclick="closeProductManagementWorkspace()">Back to Product Management</button>
     </div>
 
-    <div id="productManagementResults" class="product-box"></div>
-    <div id="productDeletePanel" class="product-box hidden"></div>
-
-    <button class="secondary" type="button" onclick="backHome()">Back</button>
+    <button class="secondary" type="button" onclick="backHome()">Back to Home</button>
   </div>
 
   <div class="card hidden" id="ticketCard">
@@ -1801,6 +2177,15 @@ let unlistedMatchSearchResults = [];
 let selectedUnlistedCreateIndex = -1;
 let productManagementResults=[];
 let selectedProductManagementIndex=-1;
+let productManagementMode="";
+let productManagementPage=1;
+let productManagementTotalPages=0;
+let productManagementTotalCount=0;
+let productSearchPage=1;
+let productSearchTotalPages=0;
+let productSearchTotalCount=0;
+const PRODUCT_SEARCH_PAGE_SIZE=12;
+const PRODUCT_MANAGEMENT_PAGE_SIZE=10;
 let pendingApprovalCount=0;
 let pendingReleaseCount=0;
 let notificationRefreshTimer=null;
@@ -2085,6 +2470,30 @@ function getSidebarInitials_(name){
   return parts.slice(0,2).map(part=>part.charAt(0).toUpperCase()).join("");
 }
 
+function toggleMobileNav(){
+  const sidebar=document.getElementById("appSidebar");
+  const backdrop=document.getElementById("mobileNavBackdrop");
+  const toggle=document.getElementById("mobileNavToggle");
+  if(!sidebar)return;
+
+  const willOpen=!sidebar.classList.contains("mobile-open");
+  sidebar.classList.toggle("mobile-open",willOpen);
+  if(backdrop)backdrop.classList.toggle("visible",willOpen);
+  if(toggle)toggle.setAttribute("aria-expanded",willOpen?"true":"false");
+  document.body.style.overflow=willOpen?"hidden":"";
+}
+
+function closeMobileNav(){
+  const sidebar=document.getElementById("appSidebar");
+  const backdrop=document.getElementById("mobileNavBackdrop");
+  const toggle=document.getElementById("mobileNavToggle");
+  if(sidebar)sidebar.classList.remove("mobile-open");
+  if(backdrop)backdrop.classList.remove("visible");
+  if(toggle)toggle.setAttribute("aria-expanded","false");
+  document.body.style.overflow="";
+}
+
+
 function setSidebarActive_(key){
   document.querySelectorAll(".sidebar-nav-button").forEach(button=>{
     button.classList.toggle("active",button.dataset.sidebarKey===key);
@@ -2102,7 +2511,7 @@ function makeSidebarNavButton_(key,label,onClick){
   `;
   button.onclick=function(){
     setSidebarActive_(key);
-    closeMobileSidebar_();
+    closeMobileNav();
     onClick();
   };
   return button;
@@ -2114,40 +2523,56 @@ function renderSidebarNav_(){
 
   nav.innerHTML="";
   nav.appendChild(makeSidebarNavButton_("home","Home",backHome));
-  if(canAccess("CHECKSTOCK"))nav.appendChild(makeSidebarNavButton_("stock","Check Stock",()=>chooseType("CHECK_STOCK")));
-  if(canAccess("SALES"))nav.appendChild(makeSidebarNavButton_("sold","Sold Immediately",()=>chooseType("SALE")));
-  if(canAccess("INVENTORYADJUSTMENT"))nav.appendChild(makeSidebarNavButton_("adjust","Manager Inventory Adjustment",()=>chooseType("INVENTORY_ADJUSTMENT")));
-  if(canAccess("TRANSFER"))nav.appendChild(makeSidebarNavButton_("transfer","Transfer Stock Location",()=>chooseType("TRANSFER")));
-  if(canAccessAny(["RELEASING","PURCHASES","COUNTCHECK"]))nav.appendChild(makeSidebarNavButton_("other","Other Transactions",()=>{backHome();showNewTransactionOptions();}));
-  if(canAccessAny(["RETURNCANCELRELEASE","SALES"]))nav.appendChild(makeSidebarNavButton_("followup","Transaction Follow-up",openTicketLookup));
-  if(canAccess("RETURNCANCELRELEASE"))nav.appendChild(makeSidebarNavButton_("return","Return Stock-In",openRevampReturnLookup));
-  if(canViewMyReleaseRequests())nav.appendChild(makeSidebarNavButton_("releases","My Release Requests",openMyReleaseRequests));
 
-  const currentNameKey=String(currentUser.name||"").trim().toUpperCase();
-  const approvalUserKeys=(settings.approvalUsers||[]).map(name=>String(name||"").trim().toUpperCase());
-  if(approvalUserKeys.includes(currentNameKey))nav.appendChild(makeSidebarNavButton_("approvals","My Approvals",openMyApprovals));
+  if(canAccess("CHECKSTOCK")){
+    nav.appendChild(makeSidebarNavButton_("stock","Check Stock",()=>chooseType("CHECK_STOCK")));
+  }
+
+  if(canAccess("SALES")){
+    nav.appendChild(makeSidebarNavButton_("sale","Sold Immediately",()=>chooseType("SALE")));
+  }
+
+  if(canAccess("TRANSFER")){
+    nav.appendChild(makeSidebarNavButton_("transfer","Transfer Stock Location",()=>chooseType("TRANSFER")));
+  }
+
+  if(canViewMyReleaseRequests()){
+    nav.appendChild(makeSidebarNavButton_("releases","My Release Requests",openMyReleaseRequests));
+  }
+
+  if(canAccess("RETURNCANCELRELEASE")){
+    nav.appendChild(makeSidebarNavButton_("return","Return Stock-In",openRevampReturnLookup));
+  }
+
+  if(canAccessAny(["RETURNCANCELRELEASE","SALES"])){
+    nav.appendChild(makeSidebarNavButton_("followup","Transaction Follow-up",openTicketLookup));
+  }
 
   if(canReviewUnlistedProducts()){
     nav.appendChild(makeSidebarNavButton_("unlisted","Unlisted Product Review",openUnlistedProductReview));
     nav.appendChild(makeSidebarNavButton_("products","Product Management",openProductManagement));
   }
-  if(canAccess("REPORTSHISTORY"))nav.appendChild(makeSidebarNavButton_("reports","Reports / History",openReportsView));
+
+  /* Keep operational tools accessible without an empty generic transaction menu. */
+  if(canUseReleaseItem()){
+    nav.appendChild(makeSidebarNavButton_("releaseitem","Customer Order / Release Item",()=>chooseType("RELEASING")));
+  }
+
+  if(canAccess("COUNTCHECK")){
+    nav.appendChild(makeSidebarNavButton_("count","Count Actual Stock",()=>chooseType("COUNT_CHECK")));
+  }
+
+  const currentNameKey=String(currentUser.name||"").trim().toUpperCase();
+  const approvalUserKeys=(settings.approvalUsers||[]).map(name=>String(name||"").trim().toUpperCase());
+  if(approvalUserKeys.includes(currentNameKey)){
+    nav.appendChild(makeSidebarNavButton_("approvals","My Approvals",openMyApprovals));
+  }
+
+  if(canAccess("REPORTSHISTORY")){
+    nav.appendChild(makeSidebarNavButton_("reports","Reports / History",openReportsView));
+  }
+
   setSidebarActive_("home");
-}
-
-function openMobileSidebar_(){
-  if(!currentUser)return;
-  const sidebar=document.getElementById("appSidebar");
-  const overlay=document.getElementById("sidebarOverlay");
-  if(sidebar)sidebar.classList.add("mobile-open");
-  if(overlay)overlay.classList.remove("hidden");
-}
-
-function closeMobileSidebar_(){
-  const sidebar=document.getElementById("appSidebar");
-  const overlay=document.getElementById("sidebarOverlay");
-  if(sidebar)sidebar.classList.remove("mobile-open");
-  if(overlay)overlay.classList.add("hidden");
 }
 
 function updateAppHeader_(){
@@ -2162,7 +2587,6 @@ function updateAppHeader_(){
     document.body.classList.remove("app-authenticated");
     if(header)header.classList.add("hidden");
     if(sidebar)sidebar.classList.add("hidden");
-    closeMobileSidebar_();
     if(userChip)userChip.textContent="";
     return;
   }
@@ -2731,6 +3155,7 @@ async function restoreSavedLoginSession(){
 }
 
 function logout(){
+  closeMobileNav();
   clearLoginSession();
   stopInactivityTimer();
   stopNotificationRefresh()
@@ -5661,32 +6086,98 @@ function openHome(){
 }
 
 function renderHomeButtons(){
-  const homeButtonContainer=document.getElementById("homeButtons");
-  if(homeButtonContainer)homeButtonContainer.classList.remove("transaction-menu");
-
   const container=document.getElementById("homeButtons");
+  if(!container)return;
+
   container.innerHTML="";
+  container.className="button-grid main-home-grid";
 
-  if(canAccess("CHECKSTOCK"))container.appendChild(makeMenuButton("Check Stock","Tingnan ang product, total stock, reserved qty, at location.",()=>chooseType("CHECK_STOCK")));
-  if(canAccess("SALES"))container.appendChild(makeMenuButton("Sold Immediately","Gamitin kapag sold o paid na agad ang item.",()=>chooseType("SALE")));
-  if(canAccess("INVENTORYADJUSTMENT"))container.appendChild(makeMenuButton("Manager Inventory Adjustment","Itama ang verified physical stock count.",()=>chooseType("INVENTORY_ADJUSTMENT")));
-  if(canAccess("TRANSFER"))container.appendChild(makeMenuButton("Transfer Stock Location","Ilipat ang stock mula sa isang inventory location papunta sa iba.",()=>chooseType("TRANSFER")));
+  const addHomeButton=(slot,label,helper,onClick,notificationCount=0,notificationKey="")=>{
+    const button=makeMenuButton(
+      label,
+      helper,
+      onClick,
+      true,
+      notificationCount,
+      notificationKey
+    );
+    button.dataset.homeSlot=slot;
+    container.appendChild(button);
+  };
 
-  if(canAccessAny(["RELEASING","PURCHASES","COUNTCHECK"]))container.appendChild(makeMenuButton("Other Transactions","Customer Order / Release, Stock In / New Arrival, at Count Actual Stock.",showNewTransactionOptions));
+  if(canAccess("CHECKSTOCK")){
+    addHomeButton(
+      "check",
+      "Check Stock",
+      "Search products and view physical stock, pending releases, and available quantity.",
+      ()=>chooseType("CHECK_STOCK")
+    );
+  }
 
-  if(canAccessAny(["RETURNCANCELRELEASE","SALES"]))container.appendChild(makeMenuButton("Transaction Follow-up","Search transaction details.",openTicketLookup));
-  if(canAccess("RETURNCANCELRELEASE"))container.appendChild(makeMenuButton("Return Stock-In","Search receipt no. at i-process ang returned items.",openRevampReturnLookup));
-  if(canViewMyReleaseRequests())container.appendChild(makeMenuButton("My Release Requests","View pending released items requested for you.",openMyReleaseRequests,true,pendingReleaseCount,"RELEASES"));
+  if(canAccess("SALES")){
+    addHomeButton(
+      "sale",
+      "Sold Immediately",
+      "Record a completed sale and deduct stock from the selected source.",
+      ()=>chooseType("SALE")
+    );
+  }
 
-  const currentNameKey=String(currentUser.name||"").trim().toUpperCase();
-  const approvalUserKeys=(settings.approvalUsers||[]).map(name=>String(name||"").trim().toUpperCase());
-  if(approvalUserKeys.includes(currentNameKey))container.appendChild(makeMenuButton("My Approvals","Approve or reject pending requests assigned to you.",openMyApprovals,true,pendingApprovalCount,"APPROVALS"));
+  if(canAccess("TRANSFER")){
+    addHomeButton(
+      "transfer",
+      "Transfer Stock Location",
+      "Move stock from one inventory location to another through approval.",
+      ()=>chooseType("TRANSFER")
+    );
+  }
+
+  if(canViewMyReleaseRequests()){
+    addHomeButton(
+      "releases",
+      "My Release Requests",
+      "Review released items assigned to you and continue them to sale.",
+      openMyReleaseRequests,
+      pendingReleaseCount,
+      "RELEASES"
+    );
+  }
+
+  if(canAccess("RETURNCANCELRELEASE")){
+    addHomeButton(
+      "return",
+      "Return Stock-In",
+      "Search a receipt and submit returned stock for approval.",
+      openRevampReturnLookup
+    );
+  }
+
+  if(canAccessAny(["RETURNCANCELRELEASE","SALES"])){
+    addHomeButton(
+      "followup",
+      "Transaction Follow-up",
+      "Search a ticket, sale, order, or receipt and review its details.",
+      openTicketLookup
+    );
+  }
 
   if(canReviewUnlistedProducts()){
-    container.appendChild(makeMenuButton("Unlisted Product Review","Review products sold before they were added to inventory.",openUnlistedProductReview,true,pendingUnlistedReviewCount,"UNLISTED"));
-    container.appendChild(makeMenuButton("Product Management","Search active products and safely remove zero-stock records.",openProductManagement));
+    addHomeButton(
+      "unlisted",
+      "Unlisted Product Review",
+      "Review sold products that are not yet part of the inventory master.",
+      openUnlistedProductReview,
+      pendingUnlistedReviewCount,
+      "UNLISTED"
+    );
+
+    addHomeButton(
+      "products",
+      "Product Management",
+      "Inventory adjustment, delete product, or correct active product details.",
+      openProductManagement
+    );
   }
-  if(canAccess("REPORTSHISTORY"))container.appendChild(makeMenuButton("Reports / History","Manager/Admin transaction checking.",openReportsView));
 }
 
 function updateHomeNotificationBadge(
@@ -5932,10 +6423,10 @@ function getMenuIconSvg_(label){
 
   if(text.includes("back"))return wrap('<path d="M15 18l-6-6 6-6"/><path d="M9 12h10"/>');
   if(text.includes("check stock"))return wrap('<circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/><path d="M8.5 11h5"/>');
-  if(text.includes("new transaction")||text.includes("other transactions"))return wrap('<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/>');
+  if(text.includes("new transaction"))return wrap('<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/>');
   if(text.includes("sold immediately"))return wrap('<path d="M4 7h16v10H4z"/><path d="M7 10h4M7 14h7"/>');
   if(text.includes("transfer"))return wrap('<path d="M7 7h12l-3-3M19 7l-3 3"/><path d="M17 17H5l3 3M5 17l3-3"/>');
-  if(text.includes("return"))return wrap('<path d="M4 8l8-4 8 4-8 4-8-4z"/><path d="M4 8v8l8 4 8-4V8"/><path d="M9 16H5v-4"/><path d="M5 12c1.2-2.2 3-3.4 5.5-3.7"/>');
+  if(text.includes("return"))return wrap('<path d="M9 7H5v4"/><path d="M5 11c1.5-4 6-6 10-4 3 1.5 4.5 5 3.5 8"/><path d="M15 17h4v-4"/>');
   if(text.includes("approval"))return wrap('<path d="M7 3h10v18H7z"/><path d="M9.5 12l1.8 1.8 3.5-4"/>');
   if(text.includes("release"))return wrap('<path d="M4 8l8-4 8 4-8 4-8-4z"/><path d="M4 8v8l8 4 8-4V8"/>');
   if(text.includes("unlisted"))return wrap('<path d="M12 3l9 16H3L12 3z"/><path d="M12 9v4M12 16h.01"/>');
@@ -5991,14 +6482,13 @@ function showNewTransactionOptions(){
   intro.className="menu-intro";
   intro.innerHTML=`
     <div>
-      <strong>Other Transactions</strong><br>
-      <span>Additional inventory workflows.</span>
+      <strong>New Transaction</strong><br>
+      <span>Select the transaction you want to process.</span>
     </div>
   `;
   container.appendChild(intro);
 
   NEW_TRANSACTION_OPTIONS.forEach(option=>{
-    if(["SALE","INVENTORY_ADJUSTMENT","TRANSFER"].includes(option.type))return;
     if(!canAccess(option.key))return;
     if(option.type==="RELEASING"&&!canUseReleaseItem())return;
 
@@ -6077,6 +6567,7 @@ function chooseType(type){
 }
 
 function backHome(){
+  closeMobileNav();
   stopCamera();
   setSidebarActive_("home");
 
@@ -6260,7 +6751,9 @@ async function findProduct(){
       action:"searchProducts",
       staffId:currentUser.staffId,
       pin:currentPin,
-      searchValue
+      searchValue,
+      page:1,
+      pageSize:PRODUCT_SEARCH_PAGE_SIZE
     });
 
     if(
@@ -6278,6 +6771,10 @@ async function findProduct(){
       Array.isArray(res.results)
         ?res.results
         :[];
+
+    productSearchPage=Number(res.page||1);
+    productSearchTotalPages=Number(res.totalPages||0);
+    productSearchTotalCount=Number(res.count||0);
 
     /*
      * If the user typed an exact SKU that
@@ -6404,13 +6901,16 @@ async function searchProductsByKeyword(){
   }
   setStatus("Searching products...", "info");
   try{
-    const res = await apiCall({action: "searchProducts", staffId: currentUser.staffId, pin: currentPin, searchValue});
+    const res = await apiCall({action: "searchProducts", staffId: currentUser.staffId, pin: currentPin, searchValue, page: 1, pageSize: PRODUCT_SEARCH_PAGE_SIZE});
     console.log("Keyword search response:", res);
     if(!res || !res.success){
       setStatus(res && res.message ? res.message: "Product search failed.", "error");
       return;
     }
     keywordSearchResults = Array.isArray(res.results) ? res.results: [];
+    productSearchPage=Number(res.page||1);
+    productSearchTotalPages=Number(res.totalPages||0);
+    productSearchTotalCount=Number(res.count||0);
     renderKeywordResults(res.count || 0, res.limited === true);
     if(!keywordSearchResults.length){
       setStatus("No products matched: " + escapeHtml(searchValue), "muted");
@@ -6423,46 +6923,147 @@ async function searchProductsByKeyword(){
   }
 }
 
+function paginationHtml_(currentPage,totalPages,handlerName){
+  currentPage=Math.max(1,Number(currentPage||1));
+  totalPages=Math.max(0,Number(totalPages||0));
+
+  if(totalPages<=1){
+    return"";
+  }
+
+  const pages=[];
+  const add=value=>{
+    if(value>=1&&value<=totalPages&&!pages.includes(value))pages.push(value);
+  };
+
+  add(1);
+  for(let p=currentPage-2;p<=currentPage+2;p++)add(p);
+  add(totalPages);
+  pages.sort((a,b)=>a-b);
+
+  let html='<div class="pagination-bar">';
+
+  html+=`<button type="button" class="secondary" ${currentPage<=1?"disabled":""} onclick="${handlerName}(${currentPage-1})">‹</button>`;
+
+  let previous=0;
+  pages.forEach(page=>{
+    if(previous&&page-previous>1){
+      html+='<span class="muted">…</span>';
+    }
+    html+=`<button type="button" class="${page===currentPage?"page-active":"secondary"}" onclick="${handlerName}(${page})">${page}</button>`;
+    previous=page;
+  });
+
+  html+=`<button type="button" class="secondary" ${currentPage>=totalPages?"disabled":""} onclick="${handlerName}(${currentPage+1})">›</button>`;
+  html+=`<div class="pagination-label">Page ${currentPage.toLocaleString()} of ${totalPages.toLocaleString()}</div>`;
+  html+='</div>';
+  return html;
+}
+
+
+async function loadProductSearchPage(page){
+  const searchValue=val("searchValue").trim();
+  if(!searchValue||page<1||page>productSearchTotalPages)return;
+
+  setStatus("Loading product search page...","info");
+
+  try{
+    const res=await apiCall({
+      action:"searchProducts",
+      staffId:currentUser.staffId,
+      pin:currentPin,
+      searchValue,
+      page,
+      pageSize:PRODUCT_SEARCH_PAGE_SIZE
+    });
+
+    if(!res||!res.success){
+      throw new Error(res&&res.message?res.message:"Product search failed.");
+    }
+
+    keywordSearchResults=Array.isArray(res.results)?res.results:[];
+    productSearchPage=Number(res.page||page);
+    productSearchTotalPages=Number(res.totalPages||0);
+    productSearchTotalCount=Number(res.count||0);
+
+    renderKeywordResults(res.count||0,res.limited===true);
+    document.getElementById("keywordResults")?.scrollIntoView({behavior:"smooth",block:"start"});
+    setStatus("Product search page loaded.","success-text");
+  }catch(err){
+    setStatus("Product search error: "+escapeHtml(err.message||err),"error");
+  }
+}
+
+
 function renderKeywordResults(totalCount, limited){
   const container=document.getElementById("keywordResults");
+  if(!container)return;
+
   if(!keywordSearchResults.length){
-    container.innerHTML=`<hr><p class="muted">No matching products found.</p>`;
+    container.innerHTML=`
+      <hr>
+      <p class="muted">No matching products found.</p>
+    `;
     show("keywordResults");
     return;
   }
 
   let html=`
     <hr>
-    <h3>Product Search Results</h3>
-    <p class="muted">Found ${Number(totalCount||0).toLocaleString()} product(s). ${limited?"Showing the first 50 results.":""}</p>
-    <div class="product-result-list">
+    <div class="section-heading">
+      <div>
+        <h3>Product Search Results</h3>
+        <p class="muted">
+          ${Number(totalCount||0).toLocaleString()} matching product(s).
+          ${productSearchTotalPages>1?`Page ${productSearchPage} of ${productSearchTotalPages}.`:""}
+        </p>
+      </div>
+    </div>
+    <div class="search-result-grid">
   `;
 
   keywordSearchResults.forEach((product,index)=>{
-    const availableQty=Number(product.availableQty!==undefined&&product.availableQty!==null&&product.availableQty!==""?product.availableQty:0);
-    const locations=[["CE1",product.ce1Qty],["CE2",product.ce2Qty],["CE3",product.ce3Qty],["SOLER",product.solerQty],["VACANT",product.vacantQty],["UNKNOWN",product.unknownQty]];
+    const totalQty=Number(product.posTotalQty||0);
+    const reservedQty=Number(product.reservedQty||0);
+    const availableQty=Number(product.availableQty!==undefined?product.availableQty:totalQty-reservedQty);
 
     html+=`
-      <div class="product-result-card">
-        <div class="product-result-header">
-          <div class="product-result-name">${escapeHtml(product.productName||"")}</div>
-          <span class="sku-pill">SKU: ${escapeHtml(product.sku||"")}</span>
+      <div class="search-result-card">
+        <div class="search-result-head">
+          <div class="search-result-name">${escapeHtml(product.productName||"")}</div>
+          <span class="sku-chip">${escapeHtml(product.sku||"")}</span>
         </div>
-        <div class="product-meta-grid">
-          <div class="product-meta-cell"><span class="product-meta-label">Brand</span><span class="product-meta-value">${escapeHtml(product.brand||"—")}</span></div>
-          <div class="product-meta-cell"><span class="product-meta-label">Model</span><span class="product-meta-value">${escapeHtml(product.model||"—")}</span></div>
-          <div class="product-meta-cell"><span class="product-meta-label">Category</span><span class="product-meta-value">${escapeHtml(product.mainCategory||"—")}</span></div>
+
+        <div class="search-result-meta">
+          <div>BRAND<strong>${escapeHtml(product.brand||"-")}</strong></div>
+          <div>MODEL<strong>${escapeHtml(product.model||"-")}</strong></div>
+          ${product.mainCategory?`<div>CATEGORY<strong>${escapeHtml(product.mainCategory)}</strong></div>`:""}
+          ${product.itemType?`<div>ITEM TYPE<strong>${escapeHtml(product.itemType)}</strong></div>`:""}
         </div>
-        <div class="product-qty-summary"><span>Available Qty</span><strong>${availableQty.toLocaleString()}</strong></div>
-        <div class="location-grid">
-          ${locations.map(([name,qty])=>`<div class="location-cell"><span>${name}</span><strong>${Number(qty||0).toLocaleString()}</strong></div>`).join("")}
+
+        <div class="search-stock-row">
+          <div>Total<strong>${totalQty.toLocaleString()}</strong></div>
+          <div>Pending Release<strong>${reservedQty.toLocaleString()}</strong></div>
+          <div>Available<strong>${availableQty.toLocaleString()}</strong></div>
         </div>
-        <button class="select-product-btn" type="button" onclick="selectKeywordProduct(${index})">Select Product</button>
+
+        <div class="search-result-locations">
+          <div>CE1<strong>${Number(product.ce1Qty||0).toLocaleString()}</strong></div>
+          <div>CE2<strong>${Number(product.ce2Qty||0).toLocaleString()}</strong></div>
+          <div>CE3<strong>${Number(product.ce3Qty||0).toLocaleString()}</strong></div>
+          <div>SOLER<strong>${Number(product.solerQty||0).toLocaleString()}</strong></div>
+          <div>VACANT<strong>${Number(product.vacantQty||0).toLocaleString()}</strong></div>
+          <div>UNKNOWN<strong>${Number(product.unknownQty||0).toLocaleString()}</strong></div>
+        </div>
+
+        <button class="select-result-btn" type="button" onclick="selectKeywordProduct(${index})">Select Product</button>
       </div>
     `;
   });
 
-  html+=`</div>`;
+  html+='</div>';
+  html+=paginationHtml_(productSearchPage,productSearchTotalPages,"loadProductSearchPage");
+
   container.innerHTML=html;
   show("keywordResults");
 }
@@ -6507,36 +7108,55 @@ function renderProduct(){
   const p=currentProduct||{};
   const totalQty=Number(p.posTotalQty||0);
   const reservedQty=Number(p.reservedQty||0);
-  const availableQty=Number(p.availableQty!==undefined?p.availableQty:p.currentQty||0);
-  const locations=[["CE1",p.ce1Qty],["CE2",p.ce2Qty],["CE3",p.ce3Qty],["SOLER",p.solerQty],["VACANT",p.vacantQty],["UNKNOWN",p.unknownQty]];
+  const availableQty=Number(
+    p.availableQty!==undefined
+      ?p.availableQty
+      :totalQty-reservedQty
+  );
 
   document.getElementById("productInfo").innerHTML=`
-    <div class="selected-product-panel">
-      <div class="product-result-card">
-        <div class="product-result-header">
-          <div class="product-result-name">${escapeHtml(p.productName||"")}</div>
-          <span class="sku-pill">SKU: ${escapeHtml(p.sku||"")}</span>
-        </div>
-        <div class="product-meta-grid">
-          <div class="product-meta-cell"><span class="product-meta-label">Barcode</span><span class="product-meta-value">${escapeHtml(p.barcodeValue||"—")}</span></div>
-          <div class="product-meta-cell"><span class="product-meta-label">Stock Type</span><span class="product-meta-value">${escapeHtml(p.stockType||"—")}</span></div>
-          <div class="product-meta-cell"><span class="product-meta-label">Status</span><span class="product-meta-value">${escapeHtml(p.inventoryStatus||"—")}</span></div>
-        </div>
-        <div class="selected-stock-grid">
-          <div class="selected-stock-box"><span>Total Stock</span><strong>${totalQty.toLocaleString()}</strong></div>
-          <div class="selected-stock-box"><span>Reserved</span><strong>${reservedQty.toLocaleString()}</strong></div>
-          <div class="selected-stock-box"><span>Available</span><strong>${availableQty.toLocaleString()}</strong></div>
-        </div>
-        <div class="location-grid">
-          ${locations.map(([name,qty])=>`<div class="location-cell"><span>${name}</span><strong>${Number(qty||0).toLocaleString()}</strong></div>`).join("")}
-        </div>
-        <div class="product-meta-grid" style="grid-template-columns:minmax(0,1fr);">
-          <div class="product-meta-cell"><span class="product-meta-label">Cost Per Unit</span><span class="product-meta-value">₱${Number(p.averageCost||0).toLocaleString()}</span></div>
-        </div>
-        ${keywordSearchResults.length?`<button type="button" class="secondary" onclick="backToKeywordResults()">Back to Search Results</button>`:""}
+    <div class="product-found-shell">
+      <div class="product-found-title-row">
+        <div class="product-found-name">${escapeHtml(p.productName||"")}</div>
+        <span class="sku-chip">SKU: ${escapeHtml(p.sku||"")}</span>
       </div>
+
+      <div class="stock-summary-grid">
+        <div class="stock-summary-card">
+          <span>Total Stock</span>
+          <strong>${totalQty.toLocaleString()}</strong>
+        </div>
+        <div class="stock-summary-card reserved">
+          <span>Pending Release</span>
+          <strong>${reservedQty.toLocaleString()}</strong>
+        </div>
+        <div class="stock-summary-card">
+          <span>Available</span>
+          <strong>${availableQty.toLocaleString()}</strong>
+        </div>
+      </div>
+
+      <p class="stock-help">Pending Release = quantity in open Customer Order / Release requests that has not been completed as a sale yet.</p>
+
+      <div class="location-grid">
+        <div class="location-cell"><span>CE1</span><strong>${Number(p.ce1Qty||0).toLocaleString()}</strong></div>
+        <div class="location-cell"><span>CE2</span><strong>${Number(p.ce2Qty||0).toLocaleString()}</strong></div>
+        <div class="location-cell"><span>CE3</span><strong>${Number(p.ce3Qty||0).toLocaleString()}</strong></div>
+        <div class="location-cell"><span>SOLER</span><strong>${Number(p.solerQty||0).toLocaleString()}</strong></div>
+        <div class="location-cell"><span>VACANT</span><strong>${Number(p.vacantQty||0).toLocaleString()}</strong></div>
+        <div class="location-cell"><span>UNKNOWN</span><strong>${Number(p.unknownQty||0).toLocaleString()}</strong></div>
+      </div>
+
+      <div class="product-cost-line">
+        Cost Per Unit: <strong>₱${Number(p.averageCost||0).toLocaleString()}</strong>
+      </div>
+
+      ${keywordSearchResults.length?`
+        <button type="button" class="secondary" onclick="backToKeywordResults()">Back to Search Results</button>
+      `:""}
     </div>
   `;
+
   show("productCard");
 }
 
@@ -9631,6 +10251,7 @@ function openProductManagement(){
   }
 
   currentType="PRODUCT_MANAGEMENT";
+  productManagementMode="";
   productManagementResults=[];
   selectedProductManagementIndex=-1;
 
@@ -9647,17 +10268,62 @@ function openProductManagement(){
   hide("unlistedReviewCard");
   show("productManagementCard");
 
+  show("productManagementMenu");
+  hide("productManagementWorkspace");
+  document.getElementById("productManagementResults").innerHTML="";
+  document.getElementById("productDeletePanel").innerHTML="";
+  hide("productDeletePanel");
+  setSidebarActive_("products");
+}
+
+function openProductManagementAdjustment(){
+  productManagementMode="ADJUST";
+  hide("productManagementCard");
+  chooseType("INVENTORY_ADJUSTMENT");
+}
+
+function openProductManagementMode(mode){
+  productManagementMode=String(mode||"").toUpperCase();
+  productManagementResults=[];
+  selectedProductManagementIndex=-1;
+  productManagementPage=1;
+  productManagementTotalPages=0;
+  productManagementTotalCount=0;
+
+  hide("productManagementMenu");
+  show("productManagementWorkspace");
+
+  const title=document.getElementById("productManagementModeTitle");
+  const help=document.getElementById("productManagementModeHelp");
+
+  if(productManagementMode==="DELETE"){
+    title.textContent="Delete Product";
+    help.textContent="Search the exact product. Deletion is allowed only at zero stock with no pending workflow.";
+  }else{
+    title.textContent="Add / Change Product Details";
+    help.textContent="Search an active product and correct its descriptive information. SKU, quantities, and cost are not changed here.";
+  }
+
   document.getElementById("productManagementSearch").value="";
-  document.getElementById("productManagementResults").innerHTML=`
-    <p class="muted">Search by SKU, brand, model, or product name.</p>
-  `;
+  document.getElementById("productManagementResults").innerHTML=`<p class="muted">Search by SKU, brand, model, or product name.</p>`;
   document.getElementById("productDeletePanel").innerHTML="";
   hide("productDeletePanel");
 
-  setTimeout(()=>document.getElementById("productManagementSearch").focus(),150);
+  setTimeout(()=>document.getElementById("productManagementSearch")?.focus(),120);
 }
 
-async function searchProductManagement(){
+function closeProductManagementWorkspace(){
+  productManagementMode="";
+  productManagementResults=[];
+  selectedProductManagementIndex=-1;
+  show("productManagementMenu");
+  hide("productManagementWorkspace");
+  document.getElementById("productManagementResults").innerHTML="";
+  document.getElementById("productDeletePanel").innerHTML="";
+  hide("productDeletePanel");
+}
+
+async function searchProductManagement(page=1){
   const searchValue=val("productManagementSearch").trim();
   const button=document.getElementById("productManagementSearchBtn");
   const container=document.getElementById("productManagementResults");
@@ -9687,7 +10353,9 @@ async function searchProductManagement(){
       action:"searchProducts",
       staffId:currentUser.staffId,
       pin:currentPin,
-      searchValue
+      searchValue,
+      page,
+      pageSize:PRODUCT_MANAGEMENT_PAGE_SIZE
     });
 
     if(!res||!res.success){
@@ -9695,6 +10363,10 @@ async function searchProductManagement(){
     }
 
     productManagementResults=Array.isArray(res.results)?res.results:[];
+    productManagementPage=Number(res.page||page||1);
+    productManagementTotalPages=Number(res.totalPages||0);
+    productManagementTotalCount=Number(res.count||0);
+
     renderProductManagementResults(res.count||0);
 
     if(!productManagementResults.length){
@@ -9716,6 +10388,11 @@ async function searchProductManagement(){
   }
 }
 
+function loadProductManagementPage(page){
+  if(page<1||page>productManagementTotalPages)return;
+  searchProductManagement(page);
+}
+
 function renderProductManagementResults(totalCount){
   const container=document.getElementById("productManagementResults");
   if(!container)return;
@@ -9726,31 +10403,45 @@ function renderProductManagementResults(totalCount){
   }
 
   let html=`
-    <hr>
     <div class="section-heading">
       <div>
         <h3>Search Results</h3>
-        <p class="muted">${Number(totalCount||0).toLocaleString()} matching product(s). Select the exact SKU you want to review.</p>
+        <p class="muted">${Number(totalCount||0).toLocaleString()} matching product(s). Page ${productManagementPage} of ${productManagementTotalPages||1}.</p>
       </div>
     </div>
+    <div class="search-result-grid">
   `;
 
   productManagementResults.forEach((product,index)=>{
-    const total=Number(product.availableQty!==undefined?product.availableQty:product.posTotalQty||0);
+    const total=Number(product.posTotalQty||0);
+    const reserved=Number(product.reservedQty||0);
+    const available=Number(product.availableQty!==undefined?product.availableQty:total-reserved);
+    const buttonText=productManagementMode==="DELETE"?"Review for Deletion":"Edit Details";
+
     html+=`
-      <div class="cart-line">
-        <strong>${escapeHtml(product.productName||"")}</strong>
-        <span class="badge">${total===0?"ZERO STOCK":"STOCK: "+total.toLocaleString()}</span><br><br>
-        SKU: <strong>${escapeHtml(product.sku||"")}</strong><br>
-        ${product.brand?`Brand: ${escapeHtml(product.brand)}<br>`:""}
-        ${product.model?`Model: ${escapeHtml(product.model)}<br>`:""}
-        ${product.itemType?`Item Type: ${escapeHtml(product.itemType)}<br>`:""}
-        Total Stock: <strong>${total.toLocaleString()}</strong>
-        <button type="button" onclick="selectProductManagementResult(${index})">Review Product</button>
+      <div class="search-result-card">
+        <div class="search-result-head">
+          <div class="search-result-name">${escapeHtml(product.productName||"")}</div>
+          <span class="sku-chip">${escapeHtml(product.sku||"")}</span>
+        </div>
+        <div class="search-result-meta">
+          <div>BRAND<strong>${escapeHtml(product.brand||"-")}</strong></div>
+          <div>MODEL<strong>${escapeHtml(product.model||"-")}</strong></div>
+          <div>ITEM TYPE<strong>${escapeHtml(product.itemType||"-")}</strong></div>
+          <div>CATEGORY<strong>${escapeHtml(product.mainCategory||"-")}</strong></div>
+        </div>
+        <div class="search-stock-row">
+          <div>Total<strong>${total.toLocaleString()}</strong></div>
+          <div>Pending Release<strong>${reserved.toLocaleString()}</strong></div>
+          <div>Available<strong>${available.toLocaleString()}</strong></div>
+        </div>
+        <button type="button" class="select-result-btn" onclick="selectProductManagementResult(${index})">${buttonText}</button>
       </div>
     `;
   });
 
+  html+='</div>';
+  html+=paginationHtml_(productManagementPage,productManagementTotalPages,"loadProductManagementPage");
   container.innerHTML=html;
 }
 
@@ -9763,30 +10454,42 @@ function selectProductManagementResult(index){
 
   selectedProductManagementIndex=index;
 
+  if(productManagementMode==="EDIT"){
+    renderProductEditPanel_(product);
+    return;
+  }
+
+  renderProductDeletePanel_(product);
+}
+
+function renderProductDeletePanel_(product){
   const panel=document.getElementById("productDeletePanel");
   if(!panel)return;
 
-  const total=Number(product.availableQty!==undefined?product.availableQty:product.posTotalQty||0);
-  const canDelete=Math.abs(total)<0.000001;
+  const total=Number(product.posTotalQty||0);
+  const reserved=Number(product.reservedQty||0);
+  const canDelete=Math.abs(total)<0.000001&&Math.abs(reserved)<0.000001;
 
   panel.innerHTML=`
-    <hr>
     <div class="section-heading">
       <div>
         <h3>Selected Product</h3>
-        <p class="muted">Review the product and its location quantities before deleting.</p>
+        <p class="muted">The product must have zero physical stock and zero pending release quantity.</p>
       </div>
-      <span class="badge">${canDelete?"ZERO STOCK":"HAS STOCK"}</span>
+      <span class="badge">${canDelete?"READY TO DELETE":"CANNOT DELETE"}</span>
     </div>
 
-    <div class="cart-line">
-      <strong>${escapeHtml(product.productName||"")}</strong>
-      SKU: <strong>${escapeHtml(product.sku||"")}</strong><br>
-      ${product.brand?`Brand: ${escapeHtml(product.brand)}<br>`:""}
-      ${product.model?`Model: ${escapeHtml(product.model)}<br>`:""}
-      Total Stock: <strong>${total.toLocaleString()}</strong>
-
-      <div class="stock-grid">
+    <div class="product-found-shell">
+      <div class="product-found-title-row">
+        <div class="product-found-name">${escapeHtml(product.productName||"")}</div>
+        <span class="sku-chip">SKU: ${escapeHtml(product.sku||"")}</span>
+      </div>
+      <div class="stock-summary-grid">
+        <div class="stock-summary-card"><span>Total Stock</span><strong>${total.toLocaleString()}</strong></div>
+        <div class="stock-summary-card reserved"><span>Pending Release</span><strong>${reserved.toLocaleString()}</strong></div>
+        <div class="stock-summary-card"><span>Available</span><strong>${Number(product.availableQty||0).toLocaleString()}</strong></div>
+      </div>
+      <div class="location-grid">
         ${renderManagementStockCell_("CE1",product.ce1Qty)}
         ${renderManagementStockCell_("CE2",product.ce2Qty)}
         ${renderManagementStockCell_("CE3",product.ce3Qty)}
@@ -9799,9 +10502,7 @@ function selectProductManagementResult(index){
     ${canDelete?`
       <div class="delete-zone">
         <h3>Delete Product</h3>
-        <p class="muted">
-          This physically removes the product row(s) from Inventory Dashboard, Product Location Log, and QR Maker, so the remaining rows move upward automatically. Historical purchases, sales, returns, transfers, and transaction history are preserved.
-        </p>
+        <p class="muted">This physically deletes the active rows from Inventory Dashboard, Product Location Log, and QR Maker. Historical transactions stay intact.</p>
 
         <label>Reason for Deletion *</label>
         <select id="productDeleteReason" onchange="updateProductDeleteReasonOther();updateDeleteProductButtonState();">
@@ -9819,21 +10520,13 @@ function selectProductManagementResult(index){
         </div>
 
         <label>Type the Exact SKU to Confirm *</label>
-        <input
-          type="text"
-          id="productDeleteConfirmSku"
-          placeholder="${escapeHtml(product.sku||"")}"
-          autocomplete="off"
-          oninput="updateDeleteProductButtonState()"
-        >
+        <input type="text" id="productDeleteConfirmSku" placeholder="${escapeHtml(product.sku||"")}" autocomplete="off" oninput="updateDeleteProductButtonState()">
 
-        <button id="confirmDeleteProductBtn" class="danger" type="button" onclick="deleteSelectedInventoryProduct()" disabled>
-          Delete Product
-        </button>
+        <button id="confirmDeleteProductBtn" class="danger" type="button" onclick="deleteSelectedInventoryProduct()" disabled>Delete Product</button>
       </div>
     `:`
       <div class="notice-panel danger-panel">
-        This product cannot be deleted because its current total stock is <strong>${total.toLocaleString()}</strong>. Verify and adjust the inventory to zero first.
+        This product cannot be deleted yet. Total Stock: <strong>${total.toLocaleString()}</strong>; Pending Release: <strong>${reserved.toLocaleString()}</strong>.
       </div>
     `}
   `;
@@ -9842,8 +10535,77 @@ function selectProductManagementResult(index){
   panel.scrollIntoView({behavior:"smooth",block:"start"});
 }
 
+function renderProductEditPanel_(product){
+  const panel=document.getElementById("productDeletePanel");
+  if(!panel)return;
+
+  panel.innerHTML=`
+    <div class="section-heading">
+      <div>
+        <h3>Edit Product Details</h3>
+        <p class="muted">SKU is locked. This tool changes descriptive product information only.</p>
+      </div>
+      <span class="sku-chip">${escapeHtml(product.sku||"")}</span>
+    </div>
+
+    <div class="edit-product-form">
+      <div class="grid-span-full">
+        <label>Product Name *</label>
+        <input type="text" id="editProductName" value="${escapeHtml(product.productName||"")}">
+      </div>
+
+      <div class="suggestion-field">
+        <label>Brand *</label>
+        <input type="text" id="editProductBrand" value="${escapeHtml(product.brand||"")}" autocomplete="off" oninput="handleCatalogInput(this,'editProductBrandSuggestions','brands')" onfocus="handleCatalogInput(this,'editProductBrandSuggestions','brands')">
+        <div id="editProductBrandSuggestions" class="suggestion-list hidden"></div>
+      </div>
+
+      <div>
+        <label>Model</label>
+        <input type="text" id="editProductModel" value="${escapeHtml(product.model||"")}">
+      </div>
+
+      <div>
+        <label>Main Category</label>
+        <input type="text" id="editProductMainCategory" value="${escapeHtml(product.mainCategory||"")}">
+      </div>
+
+      <div class="suggestion-field">
+        <label>Item Type *</label>
+        <input type="text" id="editProductItemType" value="${escapeHtml(product.itemType||"")}" autocomplete="off" oninput="handleCatalogInput(this,'editProductItemTypeSuggestions','itemTypes')" onfocus="handleCatalogInput(this,'editProductItemTypeSuggestions','itemTypes')">
+        <div id="editProductItemTypeSuggestions" class="suggestion-list hidden"></div>
+      </div>
+
+      <div>
+        <label>Description</label>
+        <input type="text" id="editProductDescription" value="${escapeHtml(product.description||"")}">
+      </div>
+
+      <div>
+        <label>Specifications</label>
+        <input type="text" id="editProductSpecifications" value="${escapeHtml(product.specifications||"")}">
+      </div>
+
+      <div class="grid-span-full">
+        <label>For / With</label>
+        <input type="text" id="editProductForWith" value="${escapeHtml(product.forWith||"")}" placeholder="Example: for Metal / with Battery">
+      </div>
+
+      <div class="grid-span-full">
+        <label>Reason / Notes</label>
+        <textarea id="editProductReason" rows="2" placeholder="Example: Corrected wrong model and specifications"></textarea>
+      </div>
+    </div>
+
+    <button id="saveProductDetailsBtn" class="success" type="button" onclick="saveSelectedProductDetails()">Save Product Details</button>
+  `;
+
+  show("productDeletePanel");
+  panel.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
 function renderManagementStockCell_(label,value){
-  return`<div class="stock-cell">${escapeHtml(label)}<strong>${Number(value||0).toLocaleString()}</strong></div>`;
+  return`<div class="location-cell"><span>${escapeHtml(label)}</span><strong>${Number(value||0).toLocaleString()}</strong></div>`;
 }
 
 function updateProductDeleteReasonOther(){
@@ -9866,9 +10628,92 @@ function updateDeleteProductButtonState(){
   const reason=getProductDeleteReason();
   const confirmSku=val("productDeleteConfirmSku").trim().toUpperCase();
   const exactSku=String(product.sku||"").trim().toUpperCase();
-  const total=Number(product.availableQty!==undefined?product.availableQty:product.posTotalQty||0);
+  const total=Number(product.posTotalQty||0);
+  const reserved=Number(product.reservedQty||0);
 
-  button.disabled=!(reason&&confirmSku===exactSku&&Math.abs(total)<0.000001);
+  button.disabled=!(reason&&confirmSku===exactSku&&Math.abs(total)<0.000001&&Math.abs(reserved)<0.000001);
+}
+
+async function saveSelectedProductDetails(){
+  if(isSubmitting)return;
+
+  const product=productManagementResults[selectedProductManagementIndex];
+  if(!product){
+    setStatus("Please select the product again.","error");
+    return;
+  }
+
+  const productName=val("editProductName").trim();
+  const brand=val("editProductBrand").trim();
+  const itemType=val("editProductItemType").trim();
+  const button=document.getElementById("saveProductDetailsBtn");
+
+  if(!productName){
+    setStatus("Product Name is required.","error");
+    return;
+  }
+  if(!brand){
+    setStatus('Brand is required. If the product has no brand, enter "No Brand".',"error");
+    return;
+  }
+  if(!itemType){
+    setStatus("Item Type is required.","error");
+    return;
+  }
+
+  if(!confirm("Save these corrected product details?\n\nSKU: "+product.sku+"\nProduct: "+productName))return;
+
+  isSubmitting=true;
+  if(button){button.disabled=true;button.textContent="Saving Details...";}
+  setStatus("Saving product details...","info");
+
+  try{
+    const res=await apiCall({
+      action:"updateInventoryProductDetails",
+      staffId:currentUser.staffId,
+      pin:currentPin,
+      sku:product.sku,
+      productName,
+      brand,
+      model:val("editProductModel"),
+      mainCategory:val("editProductMainCategory"),
+      itemType,
+      description:val("editProductDescription"),
+      specifications:val("editProductSpecifications"),
+      forWith:val("editProductForWith"),
+      reason:val("editProductReason")
+    });
+
+    if(!res||!res.success){
+      throw new Error(res&&res.message?res.message:"Product details update failed.");
+    }
+
+    product.productName=productName;
+    product.brand=brand;
+    product.model=val("editProductModel").trim();
+    product.mainCategory=val("editProductMainCategory").trim();
+    product.itemType=itemType;
+    product.description=val("editProductDescription").trim();
+    product.specifications=val("editProductSpecifications").trim();
+    product.forWith=val("editProductForWith").trim();
+
+    renderProductManagementResults(productManagementTotalCount);
+    document.getElementById("productDeletePanel").innerHTML=`
+      <div class="notice-panel success-panel inline-result">
+        <strong>Product details updated.</strong><br>
+        ${escapeHtml(productName)}<br>
+        SKU: <strong>${escapeHtml(product.sku||"")}</strong><br>
+        Audit ID: <strong>${escapeHtml(res.transactionId||"")}</strong>
+      </div>
+    `;
+    show("productDeletePanel");
+    setStatus("Product details updated successfully.","success-text");
+  }catch(err){
+    setStatus("Update Product Details failed: "+escapeHtml(err.message||err),"error");
+  }finally{
+    isSubmitting=false;
+    if(button){button.disabled=false;button.textContent="Save Product Details";}
+  }
 }
 
 async function deleteSelectedInventoryProduct(){
@@ -9900,16 +10745,13 @@ async function deleteSelectedInventoryProduct(){
     "Product: "+(product.productName||"")+"\n"+
     "SKU: "+sku+"\n"+
     "Reason: "+reason+"\n\n"+
-    "Historical transactions will remain. This action requires zero stock and no pending workflow."
+    "Historical transactions will remain."
   );
 
   if(!confirmed)return;
 
   isSubmitting=true;
-  if(button){
-    button.disabled=true;
-    button.textContent="Deleting Product...";
-  }
+  if(button){button.disabled=true;button.textContent="Deleting Product...";}
   setStatus("Deleting product from active inventory...","info");
 
   try{
@@ -9928,7 +10770,8 @@ async function deleteSelectedInventoryProduct(){
 
     productManagementResults=productManagementResults.filter(item=>String(item.sku||"").toUpperCase()!==sku.toUpperCase());
     selectedProductManagementIndex=-1;
-    renderProductManagementResults(productManagementResults.length);
+    productManagementTotalCount=Math.max(0,productManagementTotalCount-1);
+    renderProductManagementResults(productManagementTotalCount);
 
     const panel=document.getElementById("productDeletePanel");
     panel.innerHTML=`
@@ -9946,10 +10789,7 @@ async function deleteSelectedInventoryProduct(){
     setStatus("Delete Product failed: "+escapeHtml(err.message||err),"error");
   }finally{
     isSubmitting=false;
-    if(button){
-      button.disabled=false;
-      button.textContent="Delete Product";
-    }
+    if(button){button.disabled=false;button.textContent="Delete Product";}
   }
 }
 
