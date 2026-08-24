@@ -546,7 +546,7 @@
 
 
     /* ======================================================
-       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.00
+       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.01
        Inspired by a classic inventory admin dashboard while
        keeping the current workflows and mobile usability.
        ====================================================== */
@@ -910,7 +910,7 @@
   
 
     /* ======================================================
-       CHARLON UI REFINEMENT — v2026.4.00
+       CHARLON UI REFINEMENT — v2026.4.01
        Cleaner lists, compact desktop actions, pagination,
        and a true mobile header navigation drawer.
        ====================================================== */
@@ -1469,7 +1469,7 @@
   
 
     /* ======================================================
-       FUNCTIONAL UI REFINEMENT — v2026.4.00
+       FUNCTIONAL UI REFINEMENT — v2026.4.01
        Keep the existing Charlon UI, improve consistency only.
        ====================================================== */
 
@@ -1664,7 +1664,7 @@
 
   
     /* ======================================================
-       POLISH UPDATE — v2026.4.00
+       POLISH UPDATE — v2026.4.01
        ====================================================== */
 
     .tool-action-button,
@@ -1728,6 +1728,61 @@
       .ticket-badges{justify-content:flex-start;}
     }
 
+  
+
+    /* ======================================================
+       SCREEN / FONT CONSISTENCY — v2026.4.01
+       ====================================================== */
+
+    /* One typography system throughout all clickable controls. */
+    button,
+    button *,
+    .sidebar-nav-button,
+    .sidebar-nav-button *,
+    .menu-title-row,
+    .menu-copy,
+    .tool-action-copy,
+    .management-menu-copy{
+      font-family:Arial,Helvetica,sans-serif!important;
+      font-style:normal!important;
+      letter-spacing:0!important;
+    }
+
+    button,
+    .tool-action-copy strong,
+    .management-menu-copy strong,
+    .compact-action-row button,
+    #unlistedCreateCard > button,
+    #unlistedMatchCard > button{
+      font-weight:700!important;
+    }
+
+    /* Add Unlisted Product exists only in Sold Immediately. */
+    #scanCard:not(.sale-mode) .sale-only-action{
+      display:none!important;
+    }
+
+    /* Fill the available row cleanly whether there are 3 or 4 quick tools. */
+    .tool-action-grid{
+      grid-template-columns:repeat(auto-fit,minmax(190px,1fr))!important;
+    }
+
+    /* Match/Create action labels use the same readable size as normal app buttons. */
+    .compact-action-row button,
+    #unlistedCreateCard > button,
+    #unlistedMatchCard > button,
+    .unlisted-match-result-head .select-result-btn{
+      font-family:Arial,Helvetica,sans-serif!important;
+      font-size:12px!important;
+      font-weight:700!important;
+    }
+
+    @media(max-width:600px){
+      .tool-action-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr))!important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -1768,7 +1823,7 @@
   <nav id="sidebarNav" class="sidebar-nav"></nav>
 
   <div class="sidebar-footer">
-    <small>v2026.4.00</small>
+    <small>v2026.4.01</small>
   </div>
 </aside>
 
@@ -1818,7 +1873,7 @@
       </div>
     </div>
     <p class="auth-copy">Internal inventory, sales, releasing, transfer, return, and stock-management workspace.</p>
-    <span class="version-chip">v2026.4.00</span>
+    <span class="version-chip">v2026.4.01</span>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -1877,7 +1932,7 @@
     <div class="tool-action-grid">
       <button
         id="addUnlistedProductBtn"
-        class="tool-action-button secondary hidden"
+        class="tool-action-button secondary hidden sale-only-action"
         type="button"
         onclick="openUnlistedProductForm()"
       >
@@ -2223,9 +2278,24 @@
     </p>
 
     <label>Receipt No.</label>
-    <input type="text" id="revampReturnReceiptNo" placeholder="Enter receipt number" autocomplete="off">
-
-    <button type="button" onclick="findRevampSaleByReceipt()">Find Receipt</button>
+    <div class="search-row primary-search-row">
+      <input
+        type="text"
+        id="revampReturnReceiptNo"
+        placeholder="Enter receipt number"
+        autocomplete="off"
+        onkeydown="if(event.key==='Enter'){event.preventDefault();findRevampSaleByReceipt();}"
+      >
+      <button
+        id="revampReturnSearchBtn"
+        class="search-action-btn"
+        type="button"
+        onclick="findRevampSaleByReceipt()"
+      >
+        <span class="button-icon" aria-hidden="true">⌕</span>
+        <span>Find Receipt</span>
+      </button>
+    </div>
 
     <div id="revampReturnItems" class="product-box"></div>
 
@@ -2828,7 +2898,28 @@ function show(id){
 }
 
 function hide(id){
-  document.getElementById(id).classList.add("hidden");
+  const el=document.getElementById(id);
+  if(el){
+    el.classList.add("hidden");
+  }
+}
+
+function hideAllWorkspaceCards_(){
+  [
+    "homeCard",
+    "scanCard",
+    "productCard",
+    "unlistedProductCard",
+    "cartCard",
+    "reportsCard",
+    "productManagementCard",
+    "ticketCard",
+    "revampReturnCard",
+    "approvalCard",
+    "releaseRequestsCard",
+    "unlistedReviewCard",
+    "formCard"
+  ].forEach(hide);
 }
 
 function today(){
@@ -3682,51 +3773,20 @@ function canReviewUnlistedProducts(){
 }
 
 async function openUnlistedProductReview(){
-
-  if(
-    !canReviewUnlistedProducts()
-  ){
-    setStatus(
-      "You are not allowed to review unlisted products.",
-      "error"
-    );
+  if(!canReviewUnlistedProducts()){
+    setStatus("You are not allowed to review unlisted products.","error");
     return;
   }
 
-  /*
-   * Hide Home
-   * and open Review screen.
-   */
-  hide("homeCard");
+  currentType="UNLISTED_PRODUCT_REVIEW";
+  hideAllWorkspaceCards_();
+  closeMobileNav();
+  setSidebarActive_("unlisted");
+  show("unlistedReviewCard");
 
-  show(
-    "unlistedReviewCard"
-  );
-
-  /*
-   * Load current pending products.
-   */
   selectedUnlistedCreateIndex=-1;
-
-  if(
-    document.getElementById(
-      "unlistedCreateCard"
-    )
-  ){
-    hide(
-      "unlistedCreateCard"
-    );
-  }
-  
-  if(
-    document.getElementById(
-      "unlistedMatchCard"
-    )
-  ){
-    hide(
-      "unlistedMatchCard"
-    );
-  }
+  hide("unlistedCreateCard");
+  hide("unlistedMatchCard");
   await loadPendingUnlistedProducts();
 }
 
@@ -6201,21 +6261,15 @@ async function confirmSelectedUnlistedMatch(){
 
 function openHome(){
   updateAppHeader_();
+  hideAllWorkspaceCards_();
   show("homeCard");
+  setSidebarActive_("home");
 
-  document.getElementById(
-    "welcomeText"
-  ).innerText=
-    "Home";
-
-  document.getElementById(
-    "userInfo"
-  ).innerText=
+  document.getElementById("welcomeText").innerText="Home";
+  document.getElementById("userInfo").innerText=
     "Welcome, "+currentUser.name+
     " · Staff ID: "+currentUser.staffId+
     " · "+currentUser.role;
-
-  setSidebarActive_("home");
 
   const homeRoleBadge=document.getElementById("homeRoleBadge");
   if(homeRoleBadge){
@@ -6223,22 +6277,8 @@ function openHome(){
   }
 
   renderHomeButtons();
-
-  /*
-   * Check pending Unlisted Products
-   * once when Home opens.
-   */
   refreshPendingUnlistedCount();
-  
-  /*
-   * Check normal notifications.
-   */
   refreshHomeNotifications();
-  
-  /*
-   * Then automatically refresh only
-   * the normal notifications every 5 seconds.
-   */
   startNotificationRefresh();
 }
 
@@ -6691,81 +6731,71 @@ function updateGoTopButton_(){
 }
 
 function chooseType(type){
-  currentType = type;
-  const unlistedButton=
-    document.getElementById(
-      "addUnlistedProductBtn"
-    );
-  
-  if(unlistedButton){
-    unlistedButton.classList.toggle(
-      "hidden",
-      type!=="SALE"
-    );
+  currentType=type;
+
+  hideAllWorkspaceCards_();
+  closeMobileNav();
+
+  const scanCard=document.getElementById("scanCard");
+  const unlistedButton=document.getElementById("addUnlistedProductBtn");
+  const isSale=type==="SALE";
+
+  if(scanCard){
+    scanCard.classList.toggle("sale-mode",isSale);
   }
-  
-  hide("unlistedProductCard");
-  currentProduct = null;
-  cartItems = [];
-  hide("homeCard");
+
+  if(unlistedButton){
+    unlistedButton.classList.toggle("hidden",!isSale);
+    unlistedButton.style.display=isSale?"":"none";
+  }
+
+  const sidebarKeys={
+    CHECK_STOCK:"stock",
+    SALE:"sale",
+    TRANSFER:"transfer",
+    RELEASING:"releaseitem",
+    COUNT_CHECK:"count",
+    INVENTORY_ADJUSTMENT:"products"
+  };
+
+  if(sidebarKeys[type]){
+    setSidebarActive_(sidebarKeys[type]);
+  }
+
+  currentProduct=null;
+  cartItems=[];
   show("scanCard");
-  hide("productCard");
-  hide("cartCard");
-  hide("ticketCard");
-  hide("reportsCard");
-  hide("formCard");
-  hide("revampReturnCard");
-  hide("approvalCard");
-  hide("productManagementCard");
-  document.getElementById("searchValue").value = "";
-  const titles = {SALE: "Sold Immediately", PURCHASE: "Stock In / New Arrival", COUNT_CHECK: "Count Actual Stock", INVENTORY_ADJUSTMENT: "Manager Inventory Adjustment", CHECK_STOCK: "Check Stock",
-  RELEASING: "Customer Order / Release Item", RETURN_CANCEL_RELEASE: "Return / Refund / Cancel Item", TRANSFER: "Move Item Location", LOCATION_NOTE: "Location Note / Move Note", };
-  document.getElementById("transactionTitle").innerText = titles[type] || "Scan Product";
-  setStatus("Scan QR code or type SKU.", "muted");
-  setTimeout(() => document.getElementById("searchValue").focus(), 300);
+
+  document.getElementById("searchValue").value="";
+
+  const titles={
+    SALE:"Sold Immediately",
+    PURCHASE:"Stock In / New Arrival",
+    COUNT_CHECK:"Count Actual Stock",
+    INVENTORY_ADJUSTMENT:"Manager Inventory Adjustment",
+    CHECK_STOCK:"Check Stock",
+    RELEASING:"Customer Order / Release Item",
+    RETURN_CANCEL_RELEASE:"Return / Refund / Cancel Item",
+    TRANSFER:"Move Item Location",
+    LOCATION_NOTE:"Location Note / Move Note"
+  };
+
+  document.getElementById("transactionTitle").innerText=titles[type]||"Scan Product";
+  setStatus("Scan QR code or type SKU.","muted");
+  setTimeout(()=>document.getElementById("searchValue").focus(),300);
 }
 
 function backHome(){
   closeMobileNav();
   stopCamera();
+  hideAllWorkspaceCards_();
   setSidebarActive_("home");
 
-  hide("scanCard");
-  hide("productCard");
-  hide("cartCard");
-  hide("ticketCard");
-  hide("reportsCard");
-  hide("formCard");
-  hide("revampReturnCard");
-  hide("approvalCard");
-  hide("releaseRequestsCard");
-  hide("unlistedReviewCard");
-  hide("productManagementCard");
-
-  /*
-   * Return to Home.
-   */
   show("homeCard");
-
-  /*
-   * Rebuild Home buttons.
-   */
   renderHomeButtons();
-
-  /*
-   * Refresh Unlisted Product count.
-   */
   refreshPendingUnlistedCount();
-
-  /*
-   * Refresh normal notifications.
-   */
   refreshHomeNotifications();
-
-  setStatus(
-    "Choose transaction type.",
-    "muted"
-  );
+  setStatus("Choose transaction type.","muted");
 }
 
 async function findProduct(){
@@ -9385,19 +9415,13 @@ async function submitTransaction(){
 }
 
 function openMyReleaseRequests(){
-  currentType = "MY_RELEASE_REQUESTS";
-  releaseRequestRows = [];
-  hide("homeCard");
-  hide("scanCard");
-  hide("productCard");
-  hide("cartCard");
-  hide("ticketCard");
-  hide("reportsCard");
-  hide("formCard");
-  hide("revampReturnCard");
-  hide("approvalCard");
+  currentType="MY_RELEASE_REQUESTS";
+  releaseRequestRows=[];
+  hideAllWorkspaceCards_();
+  closeMobileNav();
+  setSidebarActive_("releases");
   show("releaseRequestsCard");
-  document.getElementById("releaseRequestsList").innerHTML = "";
+  document.getElementById("releaseRequestsList").innerHTML="";
   loadMyReleaseRequests();
 }
 
@@ -9945,25 +9969,20 @@ async function submitCancelReleaseTransfer(index){
   }
 } 
 function openTicketLookup(){
-  currentType = "TICKET_FOLLOW_UP";
-  currentProduct = null;
-  currentTicket = null;
-  currentTicketLines = [];
-  cartItems = [];
-  hide("homeCard");
-  hide("scanCard");
-  hide("productCard");
-  hide("cartCard");
-  hide("reportsCard");
-  hide("formCard");
-  hide("revampReturnCard");
-  hide("approvalCard");
+  currentType="TICKET_FOLLOW_UP";
+  currentProduct=null;
+  currentTicket=null;
+  currentTicketLines=[];
+  cartItems=[];
+  hideAllWorkspaceCards_();
+  closeMobileNav();
+  setSidebarActive_("followup");
   show("ticketCard");
-  document.getElementById("ticketNo").value = "";
-  document.getElementById("ticketInfo").innerHTML = "";
-  document.getElementById("ticketActions").innerHTML = "";
-  setStatus("Enter Ticket No. / Release No.", "muted");
-  setTimeout(() => document.getElementById("ticketNo").focus(), 200);
+  document.getElementById("ticketNo").value="";
+  document.getElementById("ticketInfo").innerHTML="";
+  document.getElementById("ticketActions").innerHTML="";
+  setStatus("Enter Ticket No. / Release No.","muted");
+  setTimeout(()=>document.getElementById("ticketNo").focus(),200);
 }
 
 async function findTicket(){
@@ -10097,45 +10116,61 @@ function renderTicket(res){
 }
 
 function openRevampReturnLookup(){
-  currentType = "REVAMP_RETURN";
-  revampReturnLines = [];
-  hide("homeCard");
-  hide("scanCard");
-  hide("productCard");
-  hide("cartCard");
-  hide("ticketCard");
-  hide("reportsCard");
-  hide("formCard");
-  hide("approvalCard");
+  currentType="REVAMP_RETURN";
+  revampReturnLines=[];
+  hideAllWorkspaceCards_();
+  closeMobileNav();
+  setSidebarActive_("return");
   show("revampReturnCard");
-  document.getElementById("revampReturnReceiptNo").value = "";
-  document.getElementById("revampReturnItems").innerHTML = "";
-  setStatus("Enter receipt no. for return stock-in.", "muted");
-  setTimeout(() => document.getElementById("revampReturnReceiptNo").focus(), 200);
+  document.getElementById("revampReturnReceiptNo").value="";
+  document.getElementById("revampReturnItems").innerHTML="";
+  setStatus("Enter receipt no. for return stock-in.","muted");
+  setTimeout(()=>document.getElementById("revampReturnReceiptNo").focus(),200);
 }
 
 async function findRevampSaleByReceipt(){
-  const receiptNo = val("revampReturnReceiptNo").trim();
+  const receiptNo=val("revampReturnReceiptNo").trim();
+  const button=document.getElementById("revampReturnSearchBtn");
+
   if(!receiptNo){
-    setStatus("Please enter Receipt No.", "error");
+    setStatus("Please enter Receipt No.","error");
     return;
   }
-  setStatus("Searching receipt...", "info");
+
+  const originalHtml=button?button.innerHTML:"";
+
   try{
-    const res = await apiCall({action: "getRevampSaleByReceipt", staffId: currentUser.staffId, pin: currentPin, receiptNo});
-    console.log("Revamp receipt response:", res);
-    if(!res || !res.success){
-      revampReturnLines = [];
-      document.getElementById("revampReturnItems").innerHTML = "";
-      setStatus((res && res.message) ? res.message: "Receipt not found.", "error");
+    if(button){
+      button.disabled=true;
+      button.innerHTML='<span class="button-icon" aria-hidden="true">⌕</span><span>Searching...</span>';
+    }
+
+    const res=await apiCall({
+      action:"getRevampSaleByReceipt",
+      staffId:currentUser.staffId,
+      pin:currentPin,
+      receiptNo
+    });
+
+    if(!res||!res.success){
+      revampReturnLines=[];
+      document.getElementById("revampReturnItems").innerHTML="";
+      setStatus((res&&res.message)?res.message:"Receipt not found.","error");
       return;
     }
-    revampReturnLines = res.items || [];
+
+    revampReturnLines=res.items||[];
     renderRevampReturnItems(res);
-    setStatus("Receipt found.", "success-text");
-  } catch(err){
-    console.error("Revamp receipt lookup error:", err);
-    setStatus("Receipt lookup error: " + escapeHtml(err.message || err), "error");
+
+  }catch(err){
+    console.error("Revamp receipt lookup error:",err);
+    setStatus("Receipt lookup error: "+escapeHtml(err.message||err),"error");
+
+  }finally{
+    if(button){
+      button.disabled=false;
+      button.innerHTML=originalHtml||'<span class="button-icon" aria-hidden="true">⌕</span><span>Find Receipt</span>';
+    }
   }
 }
 
@@ -10264,18 +10299,13 @@ async function submitRevampReturnRequest(){
 }
 
 function openMyApprovals(){
-  currentType = "MY_APPROVALS";
-  revampApprovalRows = [];
-  hide("homeCard");
-  hide("scanCard");
-  hide("productCard");
-  hide("cartCard");
-  hide("ticketCard");
-  hide("reportsCard");
-  hide("formCard");
-  hide("revampReturnCard");
+  currentType="MY_APPROVALS";
+  revampApprovalRows=[];
+  hideAllWorkspaceCards_();
+  closeMobileNav();
+  setSidebarActive_("approvals");
   show("approvalCard");
-  document.getElementById("approvalList").innerHTML = "";
+  document.getElementById("approvalList").innerHTML="";
   loadMyApprovals();
 }
 
@@ -10489,17 +10519,9 @@ function openProductManagement(){
   productManagementResults=[];
   selectedProductManagementIndex=-1;
 
-  hide("homeCard");
-  hide("scanCard");
-  hide("productCard");
-  hide("cartCard");
-  hide("ticketCard");
-  hide("reportsCard");
-  hide("formCard");
-  hide("revampReturnCard");
-  hide("approvalCard");
-  hide("releaseRequestsCard");
-  hide("unlistedReviewCard");
+  hideAllWorkspaceCards_();
+  closeMobileNav();
+  setSidebarActive_("products");
   show("productManagementCard");
 
   show("productManagementMenu");
@@ -10508,7 +10530,6 @@ function openProductManagement(){
   document.getElementById("productManagementResults").innerHTML="";
   document.getElementById("productDeletePanel").innerHTML="";
   hide("productDeletePanel");
-  setSidebarActive_("products");
 }
 
 function openProductManagementAdjustment(){
@@ -11041,28 +11062,22 @@ async function deleteSelectedInventoryProduct(){
 }
 
 function openReportsView(){
-  currentType = "REPORTS_HISTORY";
-  currentProduct = null;
-  currentTicket = null;
-  currentTicketLines = [];
-  cartItems = [];
-  hide("homeCard");
-  hide("scanCard");
-  hide("productCard");
-  hide("cartCard");
-  hide("ticketCard");
-  hide("formCard");
-  hide("revampReturnCard");
-  hide("approvalCard");
-  hide("productManagementCard");
+  currentType="REPORTS_HISTORY";
+  currentProduct=null;
+  currentTicket=null;
+  currentTicketLines=[];
+  cartItems=[];
+  hideAllWorkspaceCards_();
+  closeMobileNav();
+  setSidebarActive_("reports");
   show("reportsCard");
-  document.getElementById("historySearch").value = "";
-  document.getElementById("historyDateFrom").value = "";
-  document.getElementById("historyDateTo").value = "";
-  document.getElementById("historyAction").value = "";
-  document.getElementById("historyLimit").value = "50";
-  document.getElementById("historyResults").innerHTML = "";
-  setStatus("Loading recent history...", "info");
+  document.getElementById("historySearch").value="";
+  document.getElementById("historyDateFrom").value="";
+  document.getElementById("historyDateTo").value="";
+  document.getElementById("historyAction").value="";
+  document.getElementById("historyLimit").value="50";
+  document.getElementById("historyResults").innerHTML="";
+  setStatus("Loading recent history...","info");
   findHistory();
 }
 
