@@ -546,7 +546,7 @@
 
 
     /* ======================================================
-       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.08
+       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.09
        Inspired by a classic inventory admin dashboard while
        keeping the current workflows and mobile usability.
        ====================================================== */
@@ -910,7 +910,7 @@
   
 
     /* ======================================================
-       CHARLON UI REFINEMENT — v2026.4.08
+       CHARLON UI REFINEMENT — v2026.4.09
        Cleaner lists, compact desktop actions, pagination,
        and a true mobile header navigation drawer.
        ====================================================== */
@@ -1469,7 +1469,7 @@
   
 
     /* ======================================================
-       FUNCTIONAL UI REFINEMENT — v2026.4.08
+       FUNCTIONAL UI REFINEMENT — v2026.4.09
        Keep the existing Charlon UI, improve consistency only.
        ====================================================== */
 
@@ -1664,7 +1664,7 @@
 
   
     /* ======================================================
-       POLISH UPDATE — v2026.4.08
+       POLISH UPDATE — v2026.4.09
        ====================================================== */
 
     .tool-action-button,
@@ -1731,7 +1731,7 @@
   
 
     /* ======================================================
-       SCREEN / FONT CONSISTENCY — v2026.4.08
+       SCREEN / FONT CONSISTENCY — v2026.4.09
        ====================================================== */
 
     /* One typography system throughout all clickable controls. */
@@ -1786,7 +1786,7 @@
   
 
     /* ======================================================
-       NAVIGATION / SEARCH RESET POLISH — v2026.4.08
+       NAVIGATION / SEARCH RESET POLISH — v2026.4.09
        ====================================================== */
 
     /* Quick action buttons use Charlon's dark blue action style. */
@@ -1853,7 +1853,7 @@
   
 
     /* =========================================================
-       NAVIGATION + FORM POLISH — v2026.4.08
+       NAVIGATION + FORM POLISH — v2026.4.09
        ========================================================= */
     .screen-title-row{
       display:flex;
@@ -1939,7 +1939,7 @@
   
 
     /* =========================================================
-       SPACE + TITLE POLISH — v2026.4.08
+       SPACE + TITLE POLISH — v2026.4.09
        ========================================================= */
 
     /* The blue app header belongs to the top of the page and no longer
@@ -2138,7 +2138,7 @@
     }
 
     /* =========================================================
-       CONSISTENCY POLISH — v2026.4.08
+       CONSISTENCY POLISH — v2026.4.09
        ========================================================= */
 
     /* Product Management sub-pages should begin exactly like
@@ -2218,7 +2218,7 @@
 
   
     /* =========================================================
-       FUNCTIONAL POLISH — v2026.4.08
+       FUNCTIONAL POLISH — v2026.4.09
        ========================================================= */
 
     /* Refresh icon is centered vertically and horizontally. */
@@ -2278,7 +2278,7 @@
 
   
     /* =========================================================
-       TRANSACTION / HISTORY POLISH — v2026.4.08
+       TRANSACTION / HISTORY POLISH — v2026.4.09
        ========================================================= */
 
     .transaction-feedback-banner{
@@ -2493,6 +2493,147 @@
       }
     }
 
+  
+    /* =========================================================
+       MOBILE + NOTIFICATION POLISH — v2026.4.09
+       ========================================================= */
+
+    .refresh-action-button{
+      display:inline-flex!important;
+      align-items:center!important;
+      justify-content:center!important;
+      gap:7px!important;
+    }
+
+    .refresh-action-icon{
+      width:17px!important;
+      height:17px!important;
+      display:grid!important;
+      place-items:center!important;
+      flex:0 0 17px!important;
+    }
+
+    .refresh-action-icon svg{
+      width:16px!important;
+      height:16px!important;
+      display:block!important;
+      margin:auto!important;
+    }
+
+    .mobile-sale-search-action{
+      display:none!important;
+    }
+
+    /* Keep successful transaction summaries compact and scannable. */
+    .transaction-feedback-banner{
+      max-width:100%;
+      overflow:hidden;
+    }
+
+    .transaction-feedback-highlight{
+      margin-bottom:8px!important;
+    }
+
+    .transaction-feedback-cell.is-wide{
+      grid-column:1/-1;
+    }
+
+    @media(max-width:900px){
+      /* Sign Out remains available directly from the mobile header. */
+      .app-header .header-logout{
+        display:inline-flex!important;
+        width:auto!important;
+        min-width:0!important;
+        padding:8px 10px!important;
+        margin:0!important;
+        font-size:10px!important;
+        white-space:nowrap;
+        align-items:center;
+        justify-content:center;
+      }
+
+      .app-header .app-header-actions{
+        display:flex!important;
+        flex:0 0 auto!important;
+        margin-left:auto;
+      }
+
+      .app-header .user-chip{
+        display:none!important;
+      }
+
+      /* Sold Immediately only:
+         Search / Add Unlisted
+         Start Scanner / Stop Scanner */
+      #scanCard.sale-mode .primary-search-row #mainProductSearchBtn{
+        display:none!important;
+      }
+
+      #scanCard.sale-mode .primary-search-row input{
+        width:100%!important;
+      }
+
+      #scanCard.sale-mode .mobile-sale-search-action{
+        display:flex!important;
+      }
+
+      #scanCard.sale-mode .tool-action-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr))!important;
+      }
+
+      #scanCard.sale-mode .tool-action-button{
+        min-height:76px!important;
+      }
+    }
+
+    @media(max-width:560px){
+      /* Two columns keeps transaction confirmations much shorter on phones. */
+      .transaction-feedback-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr))!important;
+        gap:7px!important;
+      }
+
+      .transaction-feedback-banner{
+        padding:12px!important;
+      }
+
+      .transaction-feedback-title{
+        font-size:12px!important;
+        margin-bottom:8px!important;
+      }
+
+      .transaction-feedback-cell{
+        padding:8px!important;
+      }
+
+      .transaction-feedback-cell strong{
+        font-size:10px!important;
+      }
+
+      .app-header .brand-lockup{
+        gap:8px!important;
+      }
+
+      .app-header .brand-name{
+        font-size:12px!important;
+      }
+
+      .app-header .brand-subtitle{
+        font-size:9px!important;
+      }
+    }
+
+    @media(max-width:390px){
+      .app-header .brand-subtitle{
+        display:none!important;
+      }
+
+      .app-header .header-logout{
+        padding:7px 8px!important;
+        font-size:9px!important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -2533,7 +2674,7 @@
   <nav id="sidebarNav" class="sidebar-nav"></nav>
 
   <div class="sidebar-footer">
-    <small>v2026.4.08</small>
+    <small>v2026.4.09</small>
   </div>
 </aside>
 
@@ -2583,7 +2724,7 @@
       </div>
     </div>
     <p class="auth-copy">Internal inventory, sales, releasing, transfer, return, and stock-management workspace.</p>
-    <span class="version-chip">v2026.4.08</span>
+    <span class="version-chip">v2026.4.09</span>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -2643,6 +2784,20 @@
     </div>
 
     <div class="tool-action-grid">
+      <button
+        id="mobileSaleSearchBtn"
+        class="tool-action-button secondary mobile-sale-search-action"
+        type="button"
+        onclick="findProduct()"
+      >
+        <span class="tool-action-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="6"/>
+            <path d="M16 16l4 4"/>
+          </svg>
+        </span>
+        <span class="tool-action-copy"><strong>Search Product</strong><small>Search typed product</small></span>
+      </button>
       <button
         id="addUnlistedProductBtn"
         class="tool-action-button secondary hidden sale-only-action"
@@ -2818,7 +2973,6 @@
           <option value="PRODUCT_DELETED">Product Deleted</option>
           <option value="INVENTORY_ADJUSTMENT">Inventory Adjustment</option>
           <option value="PURCHASE_STOCK_IN">Purchase Stock-In</option>
-          <option value="LOCATION_NOTE">Location Note</option>
         </select>
       </div>
 
@@ -2834,7 +2988,15 @@
     </div>
 
     <div class="recent-history-actions">
-      <button id="recentTransactionsRefreshBtn" class="compact-primary-action" type="button" onclick="loadRecentTransactions()">Refresh Transactions</button>
+      <button id="recentTransactionsRefreshBtn" class="compact-primary-action refresh-action-button" type="button" onclick="loadRecentTransactions()">
+      <span class="button-icon refresh-action-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 11a8 8 0 1 0-2.34 5.66"/>
+          <path d="M20 4v7h-7"/>
+        </svg>
+      </span>
+      <span>Refresh Transactions</span>
+    </button>
     </div>
 
     <div id="recentTransactionsMeta" class="muted recent-history-meta"></div>
@@ -2884,7 +3046,6 @@
       <option value="PRODUCT_DELETED">PRODUCT_DELETED</option>
       <option value="PRODUCT_DETAILS_UPDATED">PRODUCT_DETAILS_UPDATED</option>
       <option value="INVENTORY_ADJUSTMENT">INVENTORY_ADJUSTMENT</option>
-      <option value="LOCATION_NOTE">LOCATION_NOTE</option>
     </select>
     
     <label>Limit</label>
@@ -3005,7 +3166,15 @@
       Review pending returns and stock transfers assigned to you. Stock changes only after approval.
     </p>
 
-    <button type="button" onclick="loadMyApprovals()">Refresh Approvals</button>
+    <button id="refreshApprovalsBtn" class="compact-primary-action refresh-action-button" type="button" onclick="loadMyApprovals()">
+      <span class="button-icon refresh-action-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 11a8 8 0 1 0-2.34 5.66"/>
+          <path d="M20 4v7h-7"/>
+        </svg>
+      </span>
+      <span>Refresh Approvals</span>
+    </button>
 
     <div id="approvalList" class="product-box"></div>
 
@@ -3018,8 +3187,14 @@
       Review pending released items assigned to you.
     </p>
   
-    <button type="button" onclick="loadMyReleaseRequests()">
-      Refresh Requests
+    <button id="refreshRequestsBtn" class="compact-primary-action refresh-action-button" type="button" onclick="loadMyReleaseRequests()">
+      <span class="button-icon refresh-action-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 11a8 8 0 1 0-2.34 5.66"/>
+          <path d="M20 4v7h-7"/>
+        </svg>
+      </span>
+      <span>Refresh Requests</span>
     </button>
   
     <div id="releaseRequestsList" class="product-box"></div>
@@ -3039,11 +3214,11 @@
   
     <button
       id="refreshUnlistedBtn"
-      class="compact-primary-action refresh-pending-button"
+      class="compact-primary-action refresh-pending-button refresh-action-button"
       type="button"
       onclick="loadPendingUnlistedProducts()"
     >
-      <span class="button-icon refresh-pending-icon" aria-hidden="true">
+      <span class="button-icon refresh-pending-icon refresh-action-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 11a8 8 0 1 0-2.34 5.66"/>
           <path d="M20 4v7h-7"/>
@@ -3334,12 +3509,12 @@ function buildStructuredTransactionFeedback_(htmlText){
   const holder=document.createElement("div");
   holder.innerHTML=normalized;
 
-  const lines=String(holder.textContent||holder.innerText||"")
+  const sourceLines=String(holder.textContent||holder.innerText||"")
     .split(/\n+/)
     .map(line=>line.replace(/\s+/g," ").trim())
     .filter(Boolean);
 
-  if(!lines.length){
+  if(!sourceLines.length){
     return`
       <div class="transaction-feedback-title">
         <span class="transaction-feedback-check">✓</span>
@@ -3348,32 +3523,71 @@ function buildStructuredTransactionFeedback_(htmlText){
     `;
   }
 
-  const title=lines.shift();
+  const title=sourceLines.shift();
   const rows=[];
   const highlights=[];
   const notes=[];
 
-  lines.forEach(line=>{
+  for(let i=0;i<sourceLines.length;i++){
+    const line=sourceLines[i];
     const colonIndex=line.indexOf(":");
 
     if(colonIndex>0&&colonIndex<=34){
       const label=line.slice(0,colonIndex).trim();
-      const value=line.slice(colonIndex+1).trim();
+      let value=line.slice(colonIndex+1).trim();
+
+      /*
+       * Several older success messages were built with:
+       *   Qty:
+       *   1
+       *   unit
+       * or:
+       *   Location Qty:
+       *   0
+       *   →
+       *   -1
+       *
+       * Combine those fragments into one readable value.
+       */
+      if(!value&&i+1<sourceLines.length){
+        value=sourceLines[++i];
+
+        if(
+          i+2<sourceLines.length&&
+          sourceLines[i+1]==="→"
+        ){
+          value+=
+            " → "+
+            sourceLines[i+2];
+          i+=2;
+
+        }else if(
+          /^(qty|quantity)$/i.test(label)&&
+          i+1<sourceLines.length&&
+          !sourceLines[i+1].includes(":")&&
+          sourceLines[i+1]!=="→"&&
+          sourceLines[i+1].length<=16
+        ){
+          value+=
+            " "+
+            sourceLines[++i];
+        }
+      }
 
       if(label&&value){
         rows.push([label,value]);
-        return;
+        continue;
       }
     }
 
-    if(line.length<=90&&!/[.!?]$/.test(line)){
+    if(line.length<=100&&!/[.!?]$/.test(line)){
       highlights.push(line);
     }else{
       notes.push(line);
     }
-  });
+  }
 
-  let html=`
+  let result=`
     <div class="transaction-feedback-title">
       <span class="transaction-feedback-check">✓</span>
       <strong>${escapeHtml(title)}</strong>
@@ -3381,7 +3595,7 @@ function buildStructuredTransactionFeedback_(htmlText){
   `;
 
   highlights.forEach(text=>{
-    html+=`
+    result+=`
       <div class="transaction-feedback-highlight">
         ${escapeHtml(text)}
       </div>
@@ -3389,29 +3603,33 @@ function buildStructuredTransactionFeedback_(htmlText){
   });
 
   if(rows.length){
-    html+=`<div class="transaction-feedback-grid">`;
+    result+=`<div class="transaction-feedback-grid">`;
 
     rows.forEach(pair=>{
-      html+=`
-        <div class="transaction-feedback-cell">
+      const wide=/^(product|product name|notes)$/i.test(pair[0])
+        ?" is-wide"
+        :"";
+
+      result+=`
+        <div class="transaction-feedback-cell${wide}">
           <span>${escapeHtml(pair[0])}</span>
           <strong>${escapeHtml(pair[1])}</strong>
         </div>
       `;
     });
 
-    html+=`</div>`;
+    result+=`</div>`;
   }
 
   if(notes.length){
-    html+=`
+    result+=`
       <div class="transaction-feedback-notes">
         ${notes.map(note=>`<div>${escapeHtml(note)}</div>`).join("")}
       </div>
     `;
   }
 
-  return html;
+  return result;
 }
 
 
@@ -3871,16 +4089,13 @@ function renderSidebarNav_(){
   }
 
   if(canViewMyReleaseRequests()){
-    nav.appendChild(makeSidebarNavButton_("releases","My Release Requests",openMyReleaseRequests));
+    nav.appendChild(makeSidebarNavButton_("releases","My Release Requests",openMyReleaseRequests,pendingReleaseCount,"RELEASES"));
   }
 
   if(canAccess("RETURNCANCELRELEASE")){
     nav.appendChild(makeSidebarNavButton_("return","Return Stock-In",openRevampReturnLookup));
   }
 
-  if(canAccessAny(["RETURNCANCELRELEASE","SALES"])){
-    nav.appendChild(makeSidebarNavButton_("followup","Transaction Follow-up",openTicketLookup));
-  }
 
   nav.appendChild(
     makeSidebarNavButton_(
@@ -4414,7 +4629,7 @@ function handleInactivityTimeout(){
   const continueSession = confirm("You have been inactive for around 20 minutes.\n\nDo you want to continue using Charlon Mini POS?");
   inactivityPromptOpen = false;
   if(continueSession){
-    setStatus("Session continued.", "success-text");
+    setStatus("","muted");
     resetInactivityTimer();
   } else{
     logout();
@@ -4480,7 +4695,7 @@ async function restoreSavedLoginSession(){
     saveLoginSession();
     openHome();
     startInactivityTimer();
-    setStatus("Login restored.", "success-text");
+    setStatus("","muted");
   } catch(err){
     console.error("Restore login error:", err);
     clearLoginSession();
@@ -7099,14 +7314,6 @@ function renderHomeButtons(){
     );
   }
 
-  if(canAccessAny(["RETURNCANCELRELEASE","SALES"])){
-    addHomeButton(
-      "followup",
-      "Transaction Follow-up",
-      "Search a ticket, sale, order, or receipt and review its details.",
-      openTicketLookup
-    );
-  }
 
   addHomeButton(
     "recent",
@@ -7395,6 +7602,7 @@ function getMenuIconSvg_(label){
   if(text.includes("count"))return wrap('<path d="M7 4h10v16H7z"/><path d="M9.5 8h5M9.5 12h5M9.5 16h3"/>');
   if(text.includes("adjustment"))return wrap('<path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="17" r="2"/>');
   if(text.includes("follow-up"))return wrap('<circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/>');
+  if(text.includes("recent transactions"))return wrap('<path d="M4 6h16M4 12h16M4 18h10"/><path d="M18 16v5M15.5 18.5H20.5"/>');
   return wrap('<rect x="4" y="4" width="16" height="16" rx="3"/>');
 }
 
@@ -7573,6 +7781,8 @@ function backHome(){
 async function findProduct(){
   const searchValue=val("searchValue").trim();
   const searchButton=document.getElementById("mainProductSearchBtn");
+  const mobileSearchButton=document.getElementById("mobileSaleSearchBtn");
+  const searchButtons=[searchButton,mobileSearchButton].filter(Boolean);
 
   if(!searchValue){
     setStatus(
@@ -7585,10 +7795,16 @@ async function findProduct(){
   keywordSearchResults=[];
   hide("keywordResults");
 
-  if(searchButton){
-    searchButton.disabled=true;
-    searchButton.innerHTML='<span class="button-icon" aria-hidden="true">⌕</span><span>Searching...</span>';
-  }
+  searchButtons.forEach(button=>{
+    button.disabled=true;
+
+    const label=button.querySelector(".tool-action-copy strong")||
+      button.querySelector("span:last-child");
+
+    if(label){
+      label.textContent="Searching...";
+    }
+  });
 
   /*
    * Decide BEFORE calling Apps Script.
@@ -7853,10 +8069,16 @@ async function findProduct(){
       "error"
     );
   }finally{
-    if(searchButton){
-      searchButton.disabled=false;
-      searchButton.innerHTML='<span class="button-icon" aria-hidden="true">⌕</span><span>Search Product</span>';
-    }
+    searchButtons.forEach(button=>{
+      button.disabled=false;
+
+      const label=button.querySelector(".tool-action-copy strong")||
+        button.querySelector("span:last-child");
+
+      if(label){
+        label.textContent="Search Product";
+      }
+    });
   }
 }
 
@@ -10234,25 +10456,67 @@ function openMyReleaseRequests(){
   loadMyReleaseRequests();
 }
 
+function setRefreshButtonState_(button,refreshing,idleLabel){
+  if(!button){
+    return;
+  }
+
+  const label=button.querySelector("span:last-child");
+
+  button.disabled=Boolean(refreshing);
+
+  if(label){
+    label.textContent=
+      refreshing
+        ?"Refreshing..."
+        :idleLabel;
+  }
+}
+
+
 async function loadMyReleaseRequests(){
   if(!currentUser){
     setStatus("Please login first.", "error");
     return;
   }
-  setStatus("Loading release requests...", "info");
+
+  const button=document.getElementById("refreshRequestsBtn");
+  setRefreshButtonState_(button,true,"Refresh Requests");
+
   try{
-    const res = await apiCall({action: "getMyReleaseRequests", staffId: currentUser.staffId, pin: currentPin});
-    if(!res || !res.success){
-      setStatus(res && res.message ? res.message: "Could not load release requests.", "error");
+    const res=await apiCall({
+      action:"getMyReleaseRequests",
+      staffId:currentUser.staffId,
+      pin:currentPin
+    });
+
+    if(!res||!res.success){
+      setStatus(
+        res&&res.message
+          ?res.message
+          :"Could not load release requests.",
+        "error"
+      );
       return;
     }
-    releaseRequestRows = Array.isArray(res.rows) ? res.rows: [];
+
+    releaseRequestRows=Array.isArray(res.rows)?res.rows:[];
     pendingReleaseCount=releaseRequestRows.length;
+
     renderMyReleaseRequests(res);
-    setStatus("Release requests loaded.", "success-text");
-  } catch(err){
-    console.error("Release requests error:", err);
-    setStatus("Release requests error: " + escapeHtml(err.message || err), "error");
+    updateHomeNotificationBadge("RELEASES",pendingReleaseCount);
+    updateNotificationTitle();
+    setStatus("","muted");
+
+  }catch(err){
+    console.error("Release requests error:",err);
+    setStatus(
+      "Release requests error: "+escapeHtml(err.message||err),
+      "error"
+    );
+
+  }finally{
+    setRefreshButtonState_(button,false,"Refresh Requests");
   }
 }
 
@@ -11131,20 +11395,46 @@ async function loadMyApprovals(){
     setStatus("Please login first.", "error");
     return;
   }
+
+  const button=document.getElementById("refreshApprovalsBtn");
+  setRefreshButtonState_(button,true,"Refresh Approvals");
+
   try{
-    const res = await apiCall({action: "getMyRevampApprovals", staffId: currentUser.staffId, pin: currentPin});
-    console.log("My approvals response:", res);
-    if(!res || !res.success){
-      setStatus((res && res.message) ? res.message: "Could not load approvals.", "error");
+    const res=await apiCall({
+      action:"getMyRevampApprovals",
+      staffId:currentUser.staffId,
+      pin:currentPin
+    });
+
+    console.log("My approvals response:",res);
+
+    if(!res||!res.success){
+      setStatus(
+        res&&res.message
+          ?res.message
+          :"Could not load approvals.",
+        "error"
+      );
       return;
     }
-    revampApprovalRows = res.rows || [];
+
+    revampApprovalRows=Array.isArray(res.rows)?res.rows:[];
     pendingApprovalCount=revampApprovalRows.length;
+
     renderMyApprovals(res);
+    updateHomeNotificationBadge("APPROVALS",pendingApprovalCount);
+    updateNotificationTitle();
     setStatus("","muted");
-  } catch(err){
-    console.error("Load approvals error:", err);
-    setStatus("Load approvals error: " + escapeHtml(err.message || err), "error");
+
+  }catch(err){
+    console.error("Load approvals error:",err);
+    setStatus(
+      "Load approvals error: "+escapeHtml(err.message||err),
+      "error"
+    );
+
+  }finally{
+    setRefreshButtonState_(button,false,"Refresh Approvals");
   }
 }
 
@@ -12005,12 +12295,7 @@ async function loadRecentTransactions(){
   }
 
   const button=document.getElementById("recentTransactionsRefreshBtn");
-  const originalText=button?button.textContent:"Refresh Transactions";
-
-  if(button){
-    button.disabled=true;
-    button.textContent="Loading...";
-  }
+  setRefreshButtonState_(button,true,"Refresh Transactions");
 
   try{
     const res=await apiCall({
@@ -12026,18 +12311,25 @@ async function loadRecentTransactions(){
     });
 
     if(!res||!res.success){
-      setStatus((res&&res.message)?res.message:"Could not load recent transactions.","error");
+      setStatus(
+        res&&res.message
+          ?res.message
+          :"Could not load recent transactions.",
+        "error"
+      );
       return;
     }
 
     renderRecentTransactions_(res);
+
   }catch(err){
-    setStatus("Recent Transactions error: "+escapeHtml(err.message||err),"error");
+    setStatus(
+      "Recent Transactions error: "+escapeHtml(err.message||err),
+      "error"
+    );
+
   }finally{
-    if(button){
-      button.disabled=false;
-      button.textContent=originalText;
-    }
+    setRefreshButtonState_(button,false,"Refresh Transactions");
   }
 }
 
