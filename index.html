@@ -546,7 +546,7 @@
 
 
     /* ======================================================
-       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.05
+       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.06
        Inspired by a classic inventory admin dashboard while
        keeping the current workflows and mobile usability.
        ====================================================== */
@@ -910,7 +910,7 @@
   
 
     /* ======================================================
-       CHARLON UI REFINEMENT — v2026.4.05
+       CHARLON UI REFINEMENT — v2026.4.06
        Cleaner lists, compact desktop actions, pagination,
        and a true mobile header navigation drawer.
        ====================================================== */
@@ -1469,7 +1469,7 @@
   
 
     /* ======================================================
-       FUNCTIONAL UI REFINEMENT — v2026.4.05
+       FUNCTIONAL UI REFINEMENT — v2026.4.06
        Keep the existing Charlon UI, improve consistency only.
        ====================================================== */
 
@@ -1664,7 +1664,7 @@
 
   
     /* ======================================================
-       POLISH UPDATE — v2026.4.05
+       POLISH UPDATE — v2026.4.06
        ====================================================== */
 
     .tool-action-button,
@@ -1731,7 +1731,7 @@
   
 
     /* ======================================================
-       SCREEN / FONT CONSISTENCY — v2026.4.05
+       SCREEN / FONT CONSISTENCY — v2026.4.06
        ====================================================== */
 
     /* One typography system throughout all clickable controls. */
@@ -1786,7 +1786,7 @@
   
 
     /* ======================================================
-       NAVIGATION / SEARCH RESET POLISH — v2026.4.05
+       NAVIGATION / SEARCH RESET POLISH — v2026.4.06
        ====================================================== */
 
     /* Quick action buttons use Charlon's dark blue action style. */
@@ -1853,7 +1853,7 @@
   
 
     /* =========================================================
-       NAVIGATION + FORM POLISH — v2026.4.05
+       NAVIGATION + FORM POLISH — v2026.4.06
        ========================================================= */
     .screen-title-row{
       display:flex;
@@ -1939,7 +1939,7 @@
   
 
     /* =========================================================
-       SPACE + TITLE POLISH — v2026.4.05
+       SPACE + TITLE POLISH — v2026.4.06
        ========================================================= */
 
     /* The blue app header belongs to the top of the page and no longer
@@ -2138,7 +2138,7 @@
     }
 
     /* =========================================================
-       CONSISTENCY POLISH — v2026.4.05
+       CONSISTENCY POLISH — v2026.4.06
        ========================================================= */
 
     /* Product Management sub-pages should begin exactly like
@@ -2216,6 +2216,66 @@
       }
     }
 
+  
+    /* =========================================================
+       FUNCTIONAL POLISH — v2026.4.06
+       ========================================================= */
+
+    /* Refresh icon is centered vertically and horizontally. */
+    .refresh-pending-button{
+      display:inline-flex!important;
+      align-items:center!important;
+      justify-content:center!important;
+      gap:7px!important;
+    }
+
+    .refresh-pending-icon{
+      display:grid!important;
+      place-items:center!important;
+      width:18px!important;
+      height:18px!important;
+      line-height:1!important;
+      flex:0 0 18px!important;
+    }
+
+    .refresh-pending-icon svg{
+      width:16px!important;
+      height:16px!important;
+      display:block!important;
+      margin:auto!important;
+    }
+
+    /* Give Submit breathing room after the last field / Notes. */
+    #mainSubmitTransactionBtn{
+      margin-top:14px!important;
+    }
+
+    /* Clear Cart: spacing only, no divider line. */
+    #cartCard #cartItems{
+      border-bottom:0!important;
+      padding-bottom:0!important;
+      margin-bottom:18px!important;
+    }
+
+    #cartCard > button[onclick="clearCart()"]{
+      margin-top:4px!important;
+    }
+
+    /* Selected Product / Edit Details should be visually separated
+       from the search-result list above it. */
+    #productDeletePanel{
+      margin-top:18px!important;
+      padding-top:18px!important;
+      border-top:1px solid #e1e8ed!important;
+    }
+
+    /* Standard inline transaction result, matching the successful
+       Product Management result panel. */
+    .transaction-feedback-banner{
+      margin:12px 0 14px!important;
+      line-height:1.45!important;
+    }
+
   </style>
 </head>
 <body>
@@ -2256,7 +2316,7 @@
   <nav id="sidebarNav" class="sidebar-nav"></nav>
 
   <div class="sidebar-footer">
-    <small>v2026.4.05</small>
+    <small>v2026.4.06</small>
   </div>
 </aside>
 
@@ -2306,7 +2366,7 @@
       </div>
     </div>
     <p class="auth-copy">Internal inventory, sales, releasing, transfer, return, and stock-management workspace.</p>
-    <span class="version-chip">v2026.4.05</span>
+    <span class="version-chip">v2026.4.06</span>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -2691,8 +2751,6 @@
     id="unlistedCreateCard"
     class="hidden"
   >
-    <hr>
-  
     <h3>Create New Product</h3>
   
     <p class="muted">
@@ -2800,11 +2858,17 @@
     </p>
   
     <button
-      class="compact-primary-action"
+      class="compact-primary-action refresh-pending-button"
       type="button"
       onclick="loadPendingUnlistedProducts()"
     >
-      ↻ Refresh Pending Products
+      <span class="button-icon refresh-pending-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 11a8 8 0 1 0-2.34 5.66"/>
+          <path d="M20 4v7h-7"/>
+        </svg>
+      </span>
+      <span>Refresh Pending Products</span>
     </button>
   
     <div
@@ -2935,6 +2999,156 @@ let statusToastDelayTimer=null;
 let statusToastHideTimer=null;
 
 
+function clearInlineActionFeedback_(){
+  document
+    .querySelectorAll(
+      ".transaction-feedback-banner"
+    )
+    .forEach(element=>element.remove());
+}
+
+
+function getInlineFeedbackHost_(){
+  const preferredIds=[
+    "formCard",
+    "unlistedCreateCard",
+    "unlistedMatchCard",
+    "approvalCard",
+    "releaseRequestsCard",
+    "revampReturnCard",
+    "unlistedReviewCard",
+    "productManagementCard",
+    "ticketCard",
+    "cartCard",
+    "scanCard",
+    "reportsCard",
+    "homeCard"
+  ];
+
+  for(const id of preferredIds){
+    const element=document.getElementById(id);
+
+    if(
+      element&&
+      !element.classList.contains("hidden")&&
+      element.offsetParent!==null
+    ){
+      return element;
+    }
+  }
+
+  return null;
+}
+
+
+function showInlineActionFeedback_(htmlText){
+  const host=getInlineFeedbackHost_();
+
+  if(!host){
+    return;
+  }
+
+  /*
+   * Some workflows already render their own green result panel,
+   * such as Delete Product and Edit Product Details.
+   */
+  const existingResult=
+    host.querySelector(
+      ".success-panel.inline-result"
+    );
+
+  if(existingResult){
+    return;
+  }
+
+  clearInlineActionFeedback_();
+
+  const banner=document.createElement("div");
+  banner.className=
+    "notice-panel success-panel inline-result transaction-feedback-banner";
+
+  banner.innerHTML=htmlText||"Completed successfully.";
+
+  const titleRow=
+    host.querySelector(
+      ":scope > .screen-title-row"
+    );
+
+  const heading=
+    host.querySelector(
+      ":scope > h3"
+    );
+
+  const description=
+    titleRow
+      ?titleRow.nextElementSibling
+      :heading
+        ?heading.nextElementSibling
+        :null;
+
+  if(
+    description&&
+    description.classList&&
+    description.classList.contains("muted")
+  ){
+    description.insertAdjacentElement(
+      "afterend",
+      banner
+    );
+
+  }else if(titleRow){
+    titleRow.insertAdjacentElement(
+      "afterend",
+      banner
+    );
+
+  }else if(heading){
+    heading.insertAdjacentElement(
+      "afterend",
+      banner
+    );
+
+  }else{
+    host.prepend(
+      banner
+    );
+  }
+
+  banner.scrollIntoView({
+    behavior:"smooth",
+    block:"nearest"
+  });
+}
+
+
+function shouldShowInlineTransactionSuccess_(htmlText){
+  const plain=String(htmlText||"")
+    .replace(/<[^>]*>/g," ")
+    .replace(/\s+/g," ")
+    .trim();
+
+  if(!plain){
+    return false;
+  }
+
+  /*
+   * Do not create permanent green cards for ordinary navigation,
+   * searches, loading, scanning, or selection messages.
+   */
+  if(
+    /(loaded|found|selected|camera started|scanned:|session continued|login restored)/i
+      .test(plain)
+  ){
+    return false;
+  }
+
+  return(
+    /(success|successfully|submitted|completed|approved|rejected|created|deleted|removed|updated|saved|matched|processed|stock transferred|return request|sale)/i
+      .test(plain)
+  );
+}
+
+
 function setStatus(
   text,
   type=""
@@ -3056,6 +3270,8 @@ function setStatus(
     statusType==="info"
   ){
 
+    clearInlineActionFeedback_();
+
     /*
      * Only use the floating bar for real processing work.
      * Instructional messages such as "Review the product" stay silent.
@@ -3093,36 +3309,30 @@ function setStatus(
    * SUCCESS
    * ========================================
    *
-   * If the operation finished quickly,
-   * don't show a popup at all.
+   * Transaction/submission successes are shown
+   * inside the active workspace as a green result
+   * card, similar to Delete Product.
    *
-   * If the loading popup had already appeared,
-   * replace it with the success result.
+   * The floating loading toast is closed instead
+   * of changing into another notification bar.
    */
   if(
     statusType==="success-text"
   ){
 
-    if(!wasVisible){
-      return;
-    }
+    toast.classList.remove(
+      "visible"
+    );
 
-
-    toast.className=
-      "success-text visible";
-
-
-    statusToastHideTimer=
-      setTimeout(
-        ()=>{
-
-          toast.classList.remove(
-            "visible"
-          );
-
-        },
-        4000
+    if(
+      shouldShowInlineTransactionSuccess_(
+        text
+      )
+    ){
+      showInlineActionFeedback_(
+        text
       );
+    }
 
     return;
   }
@@ -3238,6 +3448,7 @@ function resetProductSearchState_(){
 }
 
 function hideAllWorkspaceCards_(){
+  clearInlineActionFeedback_();
   resetProductSearchState_();
   [
     "homeCard",
