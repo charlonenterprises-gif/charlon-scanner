@@ -546,7 +546,7 @@
 
 
     /* ======================================================
-       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.03
+       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.04
        Inspired by a classic inventory admin dashboard while
        keeping the current workflows and mobile usability.
        ====================================================== */
@@ -910,7 +910,7 @@
   
 
     /* ======================================================
-       CHARLON UI REFINEMENT — v2026.4.03
+       CHARLON UI REFINEMENT — v2026.4.04
        Cleaner lists, compact desktop actions, pagination,
        and a true mobile header navigation drawer.
        ====================================================== */
@@ -1469,7 +1469,7 @@
   
 
     /* ======================================================
-       FUNCTIONAL UI REFINEMENT — v2026.4.03
+       FUNCTIONAL UI REFINEMENT — v2026.4.04
        Keep the existing Charlon UI, improve consistency only.
        ====================================================== */
 
@@ -1664,7 +1664,7 @@
 
   
     /* ======================================================
-       POLISH UPDATE — v2026.4.03
+       POLISH UPDATE — v2026.4.04
        ====================================================== */
 
     .tool-action-button,
@@ -1731,7 +1731,7 @@
   
 
     /* ======================================================
-       SCREEN / FONT CONSISTENCY — v2026.4.03
+       SCREEN / FONT CONSISTENCY — v2026.4.04
        ====================================================== */
 
     /* One typography system throughout all clickable controls. */
@@ -1786,7 +1786,7 @@
   
 
     /* ======================================================
-       NAVIGATION / SEARCH RESET POLISH — v2026.4.03
+       NAVIGATION / SEARCH RESET POLISH — v2026.4.04
        ====================================================== */
 
     /* Quick action buttons use Charlon's dark blue action style. */
@@ -1853,7 +1853,7 @@
   
 
     /* =========================================================
-       NAVIGATION + FORM POLISH — v2026.4.03
+       NAVIGATION + FORM POLISH — v2026.4.04
        ========================================================= */
     .screen-title-row{
       display:flex;
@@ -1936,6 +1936,205 @@
       }
     }
 
+  
+
+    /* =========================================================
+       SPACE + TITLE POLISH — v2026.4.04
+       ========================================================= */
+
+    /* The blue app header belongs to the top of the page and no longer
+       follows the user while scrolling. */
+    .app-header{
+      position:relative!important;
+      top:auto!important;
+    }
+
+    /* Main page titles use Check Stock as the reference size. */
+    .screen-title-row > h2,
+    .screen-title-row > h3,
+    .card > h3:first-child{
+      font-family:Arial,Helvetica,sans-serif!important;
+      font-size:22px!important;
+      line-height:1.2!important;
+      font-weight:700!important;
+      letter-spacing:-.2px!important;
+    }
+
+    /* Compact field system used by Unlisted Product and Sold Immediately. */
+    .compact-form-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px 14px;
+      align-items:start;
+      max-width:940px;
+    }
+
+    .compact-form-field{
+      min-width:0;
+    }
+
+    .compact-form-field label{
+      margin-top:0!important;
+      margin-bottom:5px!important;
+    }
+
+    .compact-form-field input,
+    .compact-form-field select,
+    .compact-form-field textarea{
+      margin:0!important;
+      min-height:38px!important;
+    }
+
+    .compact-form-field textarea{
+      min-height:64px!important;
+      resize:vertical;
+    }
+
+    .compact-form-grid .grid-span-full{
+      grid-column:1/-1;
+    }
+
+    .compact-number-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px 14px;
+      align-items:start;
+    }
+
+    .compact-page-help{
+      max-width:860px;
+      margin:4px 0 14px!important;
+    }
+
+    .compact-field-help{
+      margin:5px 0 0!important;
+      font-size:10px!important;
+    }
+
+    .no-panel-action-row{
+      padding:0!important;
+      margin-top:14px!important;
+      border-top:0!important;
+      background:transparent!important;
+    }
+
+    .no-panel-action-row button{
+      width:auto!important;
+      min-width:140px!important;
+    }
+
+    /* Scanned cart items are compact, structured, and easy to skim. */
+    .compact-cart-list{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .compact-cart-line{
+      margin:0!important;
+      padding:12px!important;
+      min-width:0;
+    }
+
+    .compact-cart-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      padding-bottom:9px;
+      margin-bottom:9px;
+      border-bottom:1px solid #e7edf2;
+    }
+
+    .compact-cart-head > div{
+      min-width:0;
+    }
+
+    .compact-cart-head > div > strong{
+      display:block;
+      color:#203d50;
+      font-size:13px;
+      line-height:1.35;
+    }
+
+    .compact-cart-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px 10px;
+      margin-top:5px;
+      color:#71818e;
+      font-size:10px;
+      line-height:1.35;
+    }
+
+    .compact-cart-fields{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px 10px;
+      align-items:end;
+    }
+
+    .compact-cart-remarks{
+      grid-column:1/-1;
+    }
+
+    .compact-remove-button{
+      width:auto!important;
+      min-width:64px!important;
+      min-height:30px!important;
+      padding:6px 9px!important;
+      margin:0!important;
+      font-size:10px!important;
+    }
+
+    /* Product Found footer keeps Cost and a compact Back arrow together. */
+    .product-found-footer{
+      display:flex;
+      align-items:stretch;
+      gap:8px;
+      margin-top:4px;
+    }
+
+    .product-found-footer .product-cost-line{
+      flex:1 1 auto;
+      display:flex;
+      align-items:center;
+      min-width:0;
+    }
+
+    .product-found-back-button{
+      flex:0 0 40px!important;
+      width:40px!important;
+      min-width:40px!important;
+      height:auto!important;
+      min-height:40px!important;
+      border-radius:8px!important;
+    }
+
+    @media(max-width:900px){
+      .compact-cart-list{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media(max-width:700px){
+      .compact-form-grid,
+      .compact-number-grid,
+      .compact-cart-fields{
+        grid-template-columns:1fr;
+      }
+
+      .compact-form-grid .grid-span-full,
+      .compact-cart-remarks{
+        grid-column:auto;
+      }
+
+      .product-found-footer{
+        align-items:center;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -1976,7 +2175,7 @@
   <nav id="sidebarNav" class="sidebar-nav"></nav>
 
   <div class="sidebar-footer">
-    <small>v2026.4.03</small>
+    <small>v2026.4.04</small>
   </div>
 </aside>
 
@@ -2026,7 +2225,7 @@
       </div>
     </div>
     <p class="auth-copy">Internal inventory, sales, releasing, transfer, return, and stock-management workspace.</p>
-    <span class="version-chip">v2026.4.03</span>
+    <span class="version-chip">v2026.4.04</span>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -2119,14 +2318,14 @@
 
   <div class="card hidden" id="unlistedProductCard">
     <h3>Add Unlisted Product</h3>
-  
-    <p class="muted">
+
+    <p class="muted compact-page-help">
       Use this only when the product cannot be found in the inventory system.
       Product Name will be generated automatically.
     </p>
-  
-    <div class="row">
-      <div>
+
+    <div class="compact-form-grid unlisted-entry-grid">
+      <div class="compact-form-field">
         <label>Brand *</label>
         <div class="autocomplete-field">
           <input
@@ -2140,38 +2339,24 @@
           <div id="unlistedBrandSuggestions" class="suggestion-list hidden"></div>
         </div>
       </div>
-  
-      <div>
+
+      <div class="compact-form-field">
         <label>Model</label>
-        <input
-          type="text"
-          id="unlistedModel"
-          placeholder="Example: GA4030"
-          oninput="updateUnlistedProductNamePreview()"
-        >
+        <input type="text" id="unlistedModel" placeholder="Example: GA4030" oninput="updateUnlistedProductNamePreview()">
       </div>
-    </div>
-  
-    <label>Specifications</label>
-    <input
-      type="text"
-      id="unlistedSpecifications"
-      placeholder='Example: 18V / 4" 720W / 25HP'
-      oninput="updateUnlistedProductNamePreview()"
-    >
-    
-    <label>Description</label>
-    <input
-      type="text"
-      id="unlistedDescription"
-      placeholder="Example: Cordless / Air Cooled / 4-Stroke"
-      oninput="updateUnlistedProductNamePreview()"
-    >
-    
-    <div class="row">
-      <div>
+
+      <div class="compact-form-field">
+        <label>Specifications</label>
+        <input type="text" id="unlistedSpecifications" placeholder='Example: 18V / 4" 720W / 25HP' oninput="updateUnlistedProductNamePreview()">
+      </div>
+
+      <div class="compact-form-field">
+        <label>Description</label>
+        <input type="text" id="unlistedDescription" placeholder="Example: Cordless / Air Cooled / 4-Stroke" oninput="updateUnlistedProductNamePreview()">
+      </div>
+
+      <div class="compact-form-field">
         <label>Item Type *</label>
-    
         <div class="autocomplete-field">
           <input
             type="text"
@@ -2183,97 +2368,47 @@
           >
           <div id="unlistedItemTypeSuggestions" class="suggestion-list hidden"></div>
         </div>
-    
         <datalist id="unlistedItemTypeList"></datalist>
-    
-        <p class="muted">
-          Select from the list or type a new Item Type.
-        </p>
+        <p class="muted compact-field-help">Select from the list or type a new Item Type.</p>
       </div>
-    
-      <div>
+
+      <div class="compact-form-field">
         <label>For / With</label>
-    
-        <input
-          type="text"
-          id="unlistedForWith"
-          placeholder="Example: for Metal / with Battery"
-          oninput="updateUnlistedProductNamePreview()"
-        >
-    
-        <p class="muted">
-          Start with "for" or "with".
-        </p>
+        <input type="text" id="unlistedForWith" placeholder="Example: for Metal / with Battery" oninput="updateUnlistedProductNamePreview()">
+        <p class="muted compact-field-help">Start with "for" or "with".</p>
+      </div>
+
+      <div class="compact-form-field grid-span-full">
+        <label>Generated Product Name</label>
+        <input type="text" id="unlistedProductName" placeholder="Product name will appear here" readonly>
+        <p class="muted compact-field-help">Format: Brand Model Specifications Description Item Type For/With</p>
+      </div>
+
+      <div class="compact-number-grid grid-span-full">
+        <div class="compact-form-field">
+          <label>Quantity *</label>
+          <input type="number" id="unlistedQty" min="1" step="1" value="1">
+        </div>
+        <div class="compact-form-field">
+          <label>Price Per Unit *</label>
+          <input type="number" id="unlistedPrice" min="0" step="0.01" value="0">
+        </div>
+        <div class="compact-form-field">
+          <label>Cost Per Unit</label>
+          <input type="number" id="unlistedCost" min="0" step="0.01" value="0">
+        </div>
+      </div>
+
+      <div class="compact-form-field grid-span-full">
+        <label>Notes</label>
+        <textarea id="unlistedNotes" rows="2" placeholder="Optional notes for Admin review"></textarea>
       </div>
     </div>
-  
-    <label>Generated Product Name</label>
-    <input
-      type="text"
-      id="unlistedProductName"
-      placeholder="Product name will appear here"
-      readonly
-    >
-  
-    <p class="muted">
-      Format: Brand Model Specifications Description Item Type For/With
-    </p>
-  
-    <div class="row">
-      <div>
-        <label>Quantity *</label>
-        <input
-          type="number"
-          id="unlistedQty"
-          min="1"
-          step="1"
-          value="1"
-        >
-      </div>
-  
-      <div>
-        <label>Price Per Unit *</label>
-        <input
-          type="number"
-          id="unlistedPrice"
-          min="0"
-          step="0.01"
-          value="0"
-        >
-      </div>
+
+    <div class="compact-action-row no-panel-action-row">
+      <button class="success compact-primary-action" type="button" onclick="addUnlistedProductToCart()">Add to Sale Cart</button>
+      <button class="secondary compact-primary-action" type="button" onclick="closeUnlistedProductForm()">Cancel</button>
     </div>
-  
-    <label>Cost Per Unit</label>
-    <input
-      type="number"
-      id="unlistedCost"
-      min="0"
-      step="0.01"
-      value="0"
-    >
-  
-    <label>Notes</label>
-    <textarea
-      id="unlistedNotes"
-      rows="2"
-      placeholder="Optional notes for Admin review"
-    ></textarea>
-  
-    <button
-      class="success"
-      type="button"
-      onclick="addUnlistedProductToCart()"
-    >
-      Add to Sale Cart
-    </button>
-  
-    <button
-      class="secondary"
-      type="button"
-      onclick="closeUnlistedProductForm()"
-    >
-      Cancel
-    </button>
   </div>
 
   <div class="card hidden" id="cartCard">
@@ -2337,7 +2472,7 @@
   </div>  
   
   <div class="card hidden" id="productManagementCard">
-    <div class="section-heading">
+    <div class="section-heading" id="productManagementLandingHeader">
       <div>
         <div class="screen-title-row"><button class="icon-back-button" type="button" onclick="backHome()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m10 17-5-5 5-5"/></svg></button><h3>Product Management</h3></div>
         <p class="muted">Manager tools for correcting stock and maintaining active product records.</p>
@@ -7450,13 +7585,17 @@ function renderProduct(){
         <div class="location-cell"><span>UNKNOWN</span><strong>${Number(p.unknownQty||0).toLocaleString()}</strong></div>
       </div>
 
-      <div class="product-cost-line">
-        Cost Per Unit: <strong>₱${Number(p.averageCost||0).toLocaleString()}</strong>
-      </div>
+      <div class="product-found-footer">
+        <div class="product-cost-line">
+          Cost Per Unit: <strong>₱${Number(p.averageCost||0).toLocaleString()}</strong>
+        </div>
 
-      ${keywordSearchResults.length?`
-        <button type="button" class="secondary" onclick="backToKeywordResults()">Back</button>
-      `:""}
+        ${keywordSearchResults.length?`
+          <button type="button" class="icon-back-button product-found-back-button" onclick="backToKeywordResults()" aria-label="Back to search results" title="Back to search results">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m10 17-5-5 5-5"/></svg>
+          </button>
+        `:""}
+      </div>
     </div>
   `;
 
@@ -7996,73 +8135,85 @@ function renderCart(){
     hide("cartCard");
     return;
   }
-  let html = "";
+
+  let html = `<div class="compact-cart-list">`;
+
   cartItems.forEach((item, index) => {
-    const p = item.product || {}; 
+    const p = item.product || {};
     const isUnlisted=item.isUnlisted===true;
+
     html += `
-      <div class="cart-line">
-        <strong>
-          ${escapeHtml(p.productName || item.productName || "")}
-        </strong>
-        
-        <div class="muted">
-          ${
-            isUnlisted
-              ?`
-                <span class="badge">UNLISTED PRODUCT</span><br>
-                Brand: ${escapeHtml(item.brand || "-")}<br>
-                Model: ${escapeHtml(item.model || "-")}<br>
-                Item Type: ${escapeHtml(item.itemType || "-")}<br>
-                ${item.forWith ? `For / With: ${escapeHtml(item.forWith)}<br>` : ""}
-                <span class="error">Pending Admin review</span>
-              `
-              :`
-                SKU: ${escapeHtml(p.sku || "")}<br>
-                QR Value: ${escapeHtml(p.qrValue || p.barcodeValue || "")}<br>
-                ${p.drNumber ? `DR Number: ${escapeHtml(p.drNumber)}<br>` : ""}
-                Available Qty: <strong>${getAvailableQty(p)}</strong>
-              `
-          }
+      <div class="cart-line compact-cart-line">
+        <div class="compact-cart-head">
+          <div>
+            <strong>${escapeHtml(p.productName || item.productName || "")}</strong>
+            <div class="compact-cart-meta">
+              ${
+                isUnlisted
+                  ?`
+                    <span class="badge">UNLISTED PRODUCT</span>
+                    <span>Brand: ${escapeHtml(item.brand || "-")}</span>
+                    <span>Model: ${escapeHtml(item.model || "-")}</span>
+                    <span>Item Type: ${escapeHtml(item.itemType || "-")}</span>
+                    ${item.forWith ? `<span>For / With: ${escapeHtml(item.forWith)}</span>` : ""}
+                    <span class="error">Pending Admin review</span>
+                  `
+                  :`
+                    <span>SKU: ${escapeHtml(p.sku || "")}</span>
+                    ${p.drNumber ? `<span>DR: ${escapeHtml(p.drNumber)}</span>` : ""}
+                    <span>Available: <strong>${getAvailableQty(p)}</strong></span>
+                  `
+              }
+            </div>
+          </div>
+          <button class="danger compact-remove-button" type="button" onclick="removeCartItem(${index})" aria-label="Remove item" title="Remove item">Remove</button>
         </div>
 
-        <label>Quantity</label>
-        <input type="number" min="1" value="${item.quantity}" onchange="updateCartQty(${index}, this.value)">
-        <label>Unit</label>
-        <select onchange="updateCartUnit(${index}, this.value)">
-          ${unitOptionsHtml(item.unit || "unit")}
-        </select>
-        
-        <label>Unit Details / Remarks</label>
-        <input
-          type="text"
-          value="${escapeHtml(item.unitDetails || "")}"
-          placeholder="Example: 100m roll, per meter, full set"
-          onchange="updateCartUnitDetails(${index}, this.value)"
-        >
+        <div class="compact-cart-fields">
+          <div class="compact-form-field">
+            <label>Quantity</label>
+            <input type="number" min="1" value="${item.quantity}" onchange="updateCartQty(${index}, this.value)">
+          </div>
 
-        ${
-          currentType === "SALE"
-            ? `
-              <label>Price Per Unit</label>
-              <input type="number" min="0" step="0.01" value="${item.pricePerUnit}" onchange="updateCartPrice(${index}, this.value)">
-            `
-            : ""
-        }
+          <div class="compact-form-field">
+            <label>Unit</label>
+            <select onchange="updateCartUnit(${index}, this.value)">
+              ${unitOptionsHtml(item.unit || "unit")}
+            </select>
+          </div>
 
-        ${
-          currentType === "PURCHASE"
-            ? `
-              <label>Cost Per Unit</label>
-              <input type="number" min="0" step="0.01" value="${item.costPerUnit}" onchange="updateCartCost(${index}, this.value)">
-            `
-            : ""
-        }
+          <div class="compact-form-field compact-cart-remarks">
+            <label>Unit Details / Remarks</label>
+            <input type="text" value="${escapeHtml(item.unitDetails || "")}" placeholder="Example: 100m roll, full set" onchange="updateCartUnitDetails(${index}, this.value)">
+          </div>
 
-        <button class="danger" type="button" onclick="removeCartItem(${index})">Remove Item</button>
+          ${
+            currentType === "SALE"
+              ? `
+                <div class="compact-form-field">
+                  <label>Price Per Unit</label>
+                  <input type="number" min="0" step="0.01" value="${item.pricePerUnit}" onchange="updateCartPrice(${index}, this.value)">
+                </div>
+              `
+              : ""
+          }
+
+          ${
+            currentType === "PURCHASE"
+              ? `
+                <div class="compact-form-field">
+                  <label>Cost Per Unit</label>
+                  <input type="number" min="0" step="0.01" value="${item.costPerUnit}" onchange="updateCartCost(${index}, this.value)">
+                </div>
+              `
+              : ""
+          }
+        </div>
       </div>
     `;
   });
+
+  html += `</div>`;
   container.innerHTML = html;
   show("cartCard");
 }
@@ -8174,69 +8325,78 @@ function renderCartForm(){
   if(currentType === "SALE"){
     document.getElementById("formTitle").innerText = "Sold Immediately - Cart";
     document.getElementById("formFields").innerHTML = `
-      <p class="muted">
-        Scan lahat ng sold items. Kapag kumpleto na, saka i-submit isang beses.
+      <p class="muted compact-page-help">
+        Scan all sold items first. When the cart is complete, submit once.
       </p>
 
-      <label>Date Sold</label>
-      <input type="date" id="dateSold" value="${today()}">
-
-      <label>System Ticket No.</label>
-      <input type="text" id="autoTicketNo" value="Generating..." disabled>
-
-      <label>Sales Channel</label>
-      ${selectHtml("salesChannel", settings.salesChannels)}
-
-      <label>Location / Stock Source</label>
-      ${inventoryLocationSelectHtml("saleLocation", currentUser.location)}
-
-      <div class="row">
-        <div>
-          <label>Sold By</label>
-          <input
-            type="text"
-            id="soldBy"
-            value="${escapeHtml(currentUser.name||"")}"
-            disabled
-          >
+      <div class="compact-form-grid sale-cart-form-grid">
+        <div class="compact-form-field">
+          <label>Date Sold</label>
+          <input type="date" id="dateSold" value="${today()}">
         </div>
-      
-        <div>
+
+        <div class="compact-form-field">
+          <label>System Ticket No.</label>
+          <input type="text" id="autoTicketNo" value="Generating..." disabled>
+        </div>
+
+        <div class="compact-form-field">
+          <label>Sales Channel</label>
+          ${selectHtml("salesChannel", settings.salesChannels)}
+        </div>
+
+        <div class="compact-form-field">
+          <label>Location / Stock Source</label>
+          ${inventoryLocationSelectHtml("saleLocation", currentUser.location)}
+        </div>
+
+        <div class="compact-form-field">
+          <label>Sold By</label>
+          <input type="text" id="soldBy" value="${escapeHtml(currentUser.name||"")}" disabled>
+        </div>
+
+        <div class="compact-form-field">
           <label>Released By</label>
-          ${selectHtml(
-            "releasedBy",
-            settings.releaseStaffNames,
-            ""
+          ${selectHtml("releasedBy", settings.releaseStaffNames, "")}
+        </div>
+
+        <div class="compact-form-field">
+          <label>Payment Status</label>
+          ${salePaymentStatusSelectHtml(
+            "paymentStatus",
+            "updatePaymentTermsFields('paymentStatus','paymentTermsFields','paymentTerms')"
           )}
         </div>
+
+        <div id="paymentTermsFields" class="compact-form-field hidden">
+          <label>Payment Terms</label>
+          ${paymentTermsSelectHtml("paymentTerms")}
+        </div>
+
+        <div class="compact-form-field">
+          <label>Receipt Type</label>
+          <select id="receiptType">
+            <option value="Sales Invoice">Sales Invoice</option>
+            <option value="Delivery Receipt">Delivery Receipt</option>
+            <option value="No Receipt">No Receipt</option>
+          </select>
+        </div>
+
+        <div class="compact-form-field">
+          <label>Receipt No.</label>
+          <input type="text" id="receiptNo" placeholder="Enter receipt number">
+        </div>
+
+        <div class="compact-form-field grid-span-full">
+          <label>Customer Name</label>
+          <input type="text" id="customerName">
+        </div>
+
+        <div class="compact-form-field grid-span-full">
+          <label>Notes</label>
+          <textarea id="notes" rows="2"></textarea>
+        </div>
       </div>
-
-      <label>Payment Status</label>
-      ${salePaymentStatusSelectHtml(
-        "paymentStatus",
-        "updatePaymentTermsFields('paymentStatus','paymentTermsFields','paymentTerms')"
-      )}
-
-      <div id="paymentTermsFields" class="hidden">
-        <label>Payment Terms</label>
-        ${paymentTermsSelectHtml("paymentTerms")}
-      </div>
-
-      <label>Receipt Type</label>
-      <select id="receiptType">
-        <option value="Sales Invoice">Sales Invoice</option>
-        <option value="Delivery Receipt">Delivery Receipt</option>
-        <option value="No Receipt">No Receipt</option>
-      </select>
-
-      <label>Receipt No.</label>
-      <input type="text" id="receiptNo" placeholder="Enter receipt number">
-
-      <label>Customer Name</label>
-      <input type="text" id="customerName">
-
-      <label>Notes</label>
-      <textarea id="notes"></textarea>
     `;
     loadTicketPreview("SALE", "autoTicketNo");
   }
@@ -10632,6 +10792,7 @@ function openProductManagement(){
   setSidebarActive_("products");
   show("productManagementCard");
 
+  show("productManagementLandingHeader");
   show("productManagementMenu");
   hide("productManagementWorkspace");
   document.getElementById("productManagementResults").innerHTML="";
@@ -10653,6 +10814,7 @@ function openProductManagementMode(mode){
   productManagementTotalPages=0;
   productManagementTotalCount=0;
 
+  hide("productManagementLandingHeader");
   hide("productManagementMenu");
   show("productManagementWorkspace");
 
@@ -10679,6 +10841,7 @@ function closeProductManagementWorkspace(){
   productManagementMode="";
   productManagementResults=[];
   selectedProductManagementIndex=-1;
+  show("productManagementLandingHeader");
   show("productManagementMenu");
   hide("productManagementWorkspace");
   document.getElementById("productManagementResults").innerHTML="";
