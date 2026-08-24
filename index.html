@@ -546,7 +546,7 @@
 
 
     /* ======================================================
-       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.07
+       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.08
        Inspired by a classic inventory admin dashboard while
        keeping the current workflows and mobile usability.
        ====================================================== */
@@ -910,7 +910,7 @@
   
 
     /* ======================================================
-       CHARLON UI REFINEMENT — v2026.4.07
+       CHARLON UI REFINEMENT — v2026.4.08
        Cleaner lists, compact desktop actions, pagination,
        and a true mobile header navigation drawer.
        ====================================================== */
@@ -1469,7 +1469,7 @@
   
 
     /* ======================================================
-       FUNCTIONAL UI REFINEMENT — v2026.4.07
+       FUNCTIONAL UI REFINEMENT — v2026.4.08
        Keep the existing Charlon UI, improve consistency only.
        ====================================================== */
 
@@ -1664,7 +1664,7 @@
 
   
     /* ======================================================
-       POLISH UPDATE — v2026.4.07
+       POLISH UPDATE — v2026.4.08
        ====================================================== */
 
     .tool-action-button,
@@ -1731,7 +1731,7 @@
   
 
     /* ======================================================
-       SCREEN / FONT CONSISTENCY — v2026.4.07
+       SCREEN / FONT CONSISTENCY — v2026.4.08
        ====================================================== */
 
     /* One typography system throughout all clickable controls. */
@@ -1786,7 +1786,7 @@
   
 
     /* ======================================================
-       NAVIGATION / SEARCH RESET POLISH — v2026.4.07
+       NAVIGATION / SEARCH RESET POLISH — v2026.4.08
        ====================================================== */
 
     /* Quick action buttons use Charlon's dark blue action style. */
@@ -1853,7 +1853,7 @@
   
 
     /* =========================================================
-       NAVIGATION + FORM POLISH — v2026.4.07
+       NAVIGATION + FORM POLISH — v2026.4.08
        ========================================================= */
     .screen-title-row{
       display:flex;
@@ -1939,7 +1939,7 @@
   
 
     /* =========================================================
-       SPACE + TITLE POLISH — v2026.4.07
+       SPACE + TITLE POLISH — v2026.4.08
        ========================================================= */
 
     /* The blue app header belongs to the top of the page and no longer
@@ -2138,7 +2138,7 @@
     }
 
     /* =========================================================
-       CONSISTENCY POLISH — v2026.4.07
+       CONSISTENCY POLISH — v2026.4.08
        ========================================================= */
 
     /* Product Management sub-pages should begin exactly like
@@ -2218,7 +2218,7 @@
 
   
     /* =========================================================
-       FUNCTIONAL POLISH — v2026.4.07
+       FUNCTIONAL POLISH — v2026.4.08
        ========================================================= */
 
     /* Refresh icon is centered vertically and horizontally. */
@@ -2276,6 +2276,223 @@
       line-height:1.45!important;
     }
 
+  
+    /* =========================================================
+       TRANSACTION / HISTORY POLISH — v2026.4.08
+       ========================================================= */
+
+    .transaction-feedback-banner{
+      padding:14px!important;
+      background:#e9f8f0!important;
+      border:1px solid #afe0c6!important;
+      color:#006b36!important;
+    }
+
+    .transaction-feedback-title{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:10px;
+      font-size:12px;
+      line-height:1.35;
+    }
+
+    .transaction-feedback-check{
+      width:22px;
+      height:22px;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      flex:0 0 22px;
+      background:#168e5d;
+      color:#fff;
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .transaction-feedback-highlight{
+      margin:6px 0 10px;
+      padding:8px 10px;
+      border-radius:7px;
+      background:rgba(255,255,255,.55);
+      color:#075b36;
+      font-size:11px;
+      font-weight:700;
+    }
+
+    .transaction-feedback-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:7px;
+    }
+
+    .transaction-feedback-cell{
+      padding:8px 9px;
+      border:1px solid rgba(22,142,93,.16);
+      border-radius:7px;
+      background:rgba(255,255,255,.62);
+      min-width:0;
+    }
+
+    .transaction-feedback-cell span{
+      display:block;
+      color:#57806c;
+      font-size:8px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.35px;
+    }
+
+    .transaction-feedback-cell strong{
+      display:block;
+      margin-top:2px;
+      color:#075b36;
+      font-size:10px;
+      line-height:1.35;
+      overflow-wrap:anywhere;
+    }
+
+    .transaction-feedback-notes{
+      margin-top:9px;
+      padding-top:8px;
+      border-top:1px solid rgba(22,142,93,.18);
+      color:#386c54;
+      font-size:9px;
+      line-height:1.45;
+    }
+
+    .unlisted-create-section-title{
+      margin:12px 0 8px;
+      color:#16394d;
+      font-size:13px;
+    }
+
+    .recent-history-filter-grid{
+      display:grid;
+      grid-template-columns:2fr 1fr 1.25fr 1fr 1fr;
+      gap:9px;
+      align-items:end;
+    }
+
+    .recent-history-filter-grid > div{
+      min-width:0;
+    }
+
+    .recent-history-actions{
+      margin-top:10px;
+    }
+
+    .recent-history-meta{
+      margin:12px 0 7px;
+    }
+
+    .recent-history-list{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:9px;
+    }
+
+    .recent-transaction-card{
+      border:1px solid #d9e5ec;
+      border-left:3px solid var(--charlon-blue);
+      border-radius:9px;
+      background:#fff;
+      overflow:hidden;
+      min-width:0;
+    }
+
+    .recent-transaction-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:8px;
+      padding:10px 11px;
+      border-bottom:1px solid #e8eef2;
+      background:#fbfcfd;
+    }
+
+    .recent-transaction-head > div{
+      min-width:0;
+    }
+
+    .recent-transaction-action{
+      display:block;
+      color:#0870a8;
+      font-size:8px;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.35px;
+      margin-bottom:3px;
+    }
+
+    .recent-transaction-head strong{
+      display:block;
+      color:#203d50;
+      font-size:11px;
+      line-height:1.35;
+      overflow-wrap:anywhere;
+    }
+
+    .recent-transaction-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:6px;
+      padding:9px 11px;
+    }
+
+    .recent-transaction-grid > div{
+      padding:7px 8px;
+      border-radius:6px;
+      background:#f5f8fa;
+      min-width:0;
+    }
+
+    .recent-transaction-grid span{
+      display:block;
+      color:#84939f;
+      font-size:7px;
+      font-weight:800;
+      text-transform:uppercase;
+    }
+
+    .recent-transaction-grid strong{
+      display:block;
+      margin-top:2px;
+      color:#29485b;
+      font-size:9px;
+      line-height:1.35;
+      overflow-wrap:anywhere;
+    }
+
+    .recent-transaction-note{
+      margin:0 11px 10px;
+      padding:7px 8px;
+      border-radius:6px;
+      background:#fff8e7;
+      color:#6d5b30;
+      font-size:8px;
+      line-height:1.4;
+      overflow-wrap:anywhere;
+    }
+
+    @media(max-width:1000px){
+      .recent-history-filter-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+
+      .recent-history-list{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media(max-width:560px){
+      .transaction-feedback-grid,
+      .recent-history-filter-grid,
+      .recent-transaction-grid{
+        grid-template-columns:1fr;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -2316,7 +2533,7 @@
   <nav id="sidebarNav" class="sidebar-nav"></nav>
 
   <div class="sidebar-footer">
-    <small>v2026.4.07</small>
+    <small>v2026.4.08</small>
   </div>
 </aside>
 
@@ -2366,7 +2583,7 @@
       </div>
     </div>
     <p class="auth-copy">Internal inventory, sales, releasing, transfer, return, and stock-management workspace.</p>
-    <span class="version-chip">v2026.4.07</span>
+    <span class="version-chip">v2026.4.08</span>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -2557,6 +2774,71 @@
     <p class="muted">Scan all items first. Review the list before submitting.</p>
     <div id="cartItems"></div>
     <button class="secondary" type="button" onclick="clearCart()">Clear Cart</button>
+  </div>
+
+
+  <div class="card hidden" id="recentTransactionsCard">
+    <div class="screen-title-row">
+      <button class="icon-back-button" type="button" onclick="backHome()" aria-label="Back" title="Back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5"/>
+          <path d="m10 17-5-5 5-5"/>
+        </svg>
+      </button>
+      <h3>Recent Transactions</h3>
+    </div>
+    <p id="recentTransactionsHelp" class="muted">Review the transactions you recently processed.</p>
+
+    <div class="recent-history-filter-grid">
+      <div>
+        <label>Search</label>
+        <input type="text" id="recentTransactionsSearch" placeholder="Ticket, SKU, product, receipt, location, or notes" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();loadRecentTransactions();}">
+      </div>
+
+      <div id="recentTransactionsUserWrap" class="hidden">
+        <label>User</label>
+        <select id="recentTransactionsUser"><option value="">All Users</option></select>
+      </div>
+
+      <div>
+        <label>Transaction Type</label>
+        <select id="recentTransactionsAction">
+          <option value="">All Transactions</option>
+          <option value="SALE_STOCK_OUT">Sale / Stock Out</option>
+          <option value="RELEASING_REQUEST">Release Request</option>
+          <option value="TRANSFER_REQUEST">Transfer Request</option>
+          <option value="TRANSFER_APPROVED">Transfer Approved</option>
+          <option value="TRANSFER_REJECTED">Transfer Rejected</option>
+          <option value="RETURN_REQUEST">Return Request</option>
+          <option value="RETURN_APPROVED">Return Approved</option>
+          <option value="RETURN_REJECTED">Return Rejected</option>
+          <option value="UNLISTED_MATCH_EXISTING">Unlisted → Match Existing</option>
+          <option value="UNLISTED_NEW_PRODUCT_CREATED">Unlisted → New Product</option>
+          <option value="PRODUCT_DETAILS_UPDATED">Product Details Updated</option>
+          <option value="PRODUCT_DELETED">Product Deleted</option>
+          <option value="INVENTORY_ADJUSTMENT">Inventory Adjustment</option>
+          <option value="PURCHASE_STOCK_IN">Purchase Stock-In</option>
+          <option value="LOCATION_NOTE">Location Note</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Date From</label>
+        <input type="date" id="recentTransactionsFrom">
+      </div>
+
+      <div>
+        <label>Date To</label>
+        <input type="date" id="recentTransactionsTo">
+      </div>
+    </div>
+
+    <div class="recent-history-actions">
+      <button id="recentTransactionsRefreshBtn" class="compact-primary-action" type="button" onclick="loadRecentTransactions()">Refresh Transactions</button>
+    </div>
+
+    <div id="recentTransactionsMeta" class="muted recent-history-meta"></div>
+    <div id="recentTransactionsResults" class="recent-history-list"></div>
   </div>
 
   <div class="card hidden" id="reportsCard">
@@ -2787,12 +3069,10 @@
   
     <div
       id="unlistedCreateOriginal"
-      class="product-box"
+      class="hidden"
     ></div>
   
-    <hr>
-  
-    <h3>Final Product Information</h3>
+    <h4 class="unlisted-create-section-title">Final Product Information</h4>
 
     <div class="unlisted-create-form-grid">
       <div class="unlisted-create-field">
@@ -3043,6 +3323,98 @@ function getInlineFeedbackHost_(){
 }
 
 
+function buildStructuredTransactionFeedback_(htmlText){
+  const raw=String(htmlText||"Completed successfully.");
+
+  const normalized=raw
+    .replace(/<br\s*\/?>/gi,"\n")
+    .replace(/<\/p>/gi,"\n")
+    .replace(/<\/div>/gi,"\n");
+
+  const holder=document.createElement("div");
+  holder.innerHTML=normalized;
+
+  const lines=String(holder.textContent||holder.innerText||"")
+    .split(/\n+/)
+    .map(line=>line.replace(/\s+/g," ").trim())
+    .filter(Boolean);
+
+  if(!lines.length){
+    return`
+      <div class="transaction-feedback-title">
+        <span class="transaction-feedback-check">✓</span>
+        <strong>Completed successfully.</strong>
+      </div>
+    `;
+  }
+
+  const title=lines.shift();
+  const rows=[];
+  const highlights=[];
+  const notes=[];
+
+  lines.forEach(line=>{
+    const colonIndex=line.indexOf(":");
+
+    if(colonIndex>0&&colonIndex<=34){
+      const label=line.slice(0,colonIndex).trim();
+      const value=line.slice(colonIndex+1).trim();
+
+      if(label&&value){
+        rows.push([label,value]);
+        return;
+      }
+    }
+
+    if(line.length<=90&&!/[.!?]$/.test(line)){
+      highlights.push(line);
+    }else{
+      notes.push(line);
+    }
+  });
+
+  let html=`
+    <div class="transaction-feedback-title">
+      <span class="transaction-feedback-check">✓</span>
+      <strong>${escapeHtml(title)}</strong>
+    </div>
+  `;
+
+  highlights.forEach(text=>{
+    html+=`
+      <div class="transaction-feedback-highlight">
+        ${escapeHtml(text)}
+      </div>
+    `;
+  });
+
+  if(rows.length){
+    html+=`<div class="transaction-feedback-grid">`;
+
+    rows.forEach(pair=>{
+      html+=`
+        <div class="transaction-feedback-cell">
+          <span>${escapeHtml(pair[0])}</span>
+          <strong>${escapeHtml(pair[1])}</strong>
+        </div>
+      `;
+    });
+
+    html+=`</div>`;
+  }
+
+  if(notes.length){
+    html+=`
+      <div class="transaction-feedback-notes">
+        ${notes.map(note=>`<div>${escapeHtml(note)}</div>`).join("")}
+      </div>
+    `;
+  }
+
+  return html;
+}
+
+
 function showInlineActionFeedback_(htmlText){
   const host=getInlineFeedbackHost_();
 
@@ -3050,7 +3422,6 @@ function showInlineActionFeedback_(htmlText){
     return;
   }
 
-  /* Existing Product Management actions already render their own result. */
   const existingResult=host.querySelector(
     ".success-panel.inline-result:not(.transaction-feedback-banner)"
   );
@@ -3064,13 +3435,12 @@ function showInlineActionFeedback_(htmlText){
   const banner=document.createElement("div");
   banner.className=
     "notice-panel success-panel inline-result transaction-feedback-banner";
-  banner.innerHTML=htmlText||"Completed successfully.";
 
-  /*
-   * Always place transaction feedback at the BOTTOM of the current
-   * workspace. This keeps the title/header stable and makes the result
-   * appear after the form/list the user just worked on.
-   */
+  banner.innerHTML=
+    buildStructuredTransactionFeedback_(
+      htmlText
+    );
+
   host.appendChild(banner);
 
   banner.scrollIntoView({
@@ -3220,45 +3590,13 @@ function setStatus(
    * INFO / LOADING
    * ========================================
    *
-   * Don't show immediately.
-   *
-   * Only show if the operation is still
-   * running after 2.5 seconds.
+   * Progress belongs on the active button/workspace.
+   * Never show a floating top loading notification.
    */
   if(
     statusType==="info"
   ){
-
     clearInlineActionFeedback_();
-
-    /*
-     * Only use the floating bar for real processing work.
-     * Instructional messages such as "Review the product" stay silent.
-     */
-    const plainStatusText=String(text||"")
-      .replace(/<[^>]*>/g," ")
-      .replace(/\s+/g," ")
-      .trim();
-
-    const isProcessingMessage=
-      /(logging|loading|searching|submitting|creating|matching|saving|starting|completing|processing|generating|verifying|updating|approving|deleting|restoring|uploading|refreshing)/i
-        .test(plainStatusText);
-
-    if(!isProcessingMessage){
-      return;
-    }
-
-    statusToastDelayTimer=
-      setTimeout(
-        ()=>{
-
-          toast.className=
-            "info visible";
-
-        },
-        2500
-      );
-
     return;
   }
 
@@ -3415,6 +3753,7 @@ function hideAllWorkspaceCards_(){
     "productCard",
     "unlistedProductCard",
     "cartCard",
+    "recentTransactionsCard",
     "reportsCard",
     "productManagementCard",
     "ticketCard",
@@ -3542,6 +3881,14 @@ function renderSidebarNav_(){
   if(canAccessAny(["RETURNCANCELRELEASE","SALES"])){
     nav.appendChild(makeSidebarNavButton_("followup","Transaction Follow-up",openTicketLookup));
   }
+
+  nav.appendChild(
+    makeSidebarNavButton_(
+      "recent",
+      "Recent Transactions",
+      openRecentTransactions
+    )
+  );
 
   if(canReviewUnlistedProducts()){
     nav.appendChild(makeSidebarNavButton_("unlisted","Unlisted Product Review",openUnlistedProductReview,pendingUnlistedReviewCount,"UNLISTED"));
@@ -3940,12 +4287,6 @@ async function login(){
 
 
     startInactivityTimer();
-
-
-    setStatus(
-      "Login successful.",
-      "success-text"
-    );
 
 
   }catch(err){
@@ -4591,58 +4932,14 @@ function startUnlistedCreate(index){
 
 
   /*
-   * ========================================
-   * SHOW ORIGINAL SALESPERSON ENTRY
-   * ========================================
+   * The pending-review card above already shows the original entry.
+   * Do not repeat it inside Create New Product.
    */
-  const original=
-    document.getElementById(
-      "unlistedCreateOriginal"
-    );
-
+  const original=document.getElementById("unlistedCreateOriginal");
 
   if(original){
-    const originalPairs=[
-      ["Brand",item.brand||"-"],
-      ["Model",item.model||"-"],
-      ["Item Type",item.itemType||"-"],
-      ["Specifications",item.specifications||"-"],
-      ["Description",item.description||"-"],
-      ["For / With",item.forWith||"-"]
-    ];
-
-    original.innerHTML=`
-      <article class="unlisted-review-card unlisted-create-preview-card">
-        <div class="unlisted-review-head">
-          <div>
-            <div class="unlisted-review-name">${escapeHtml(item.productName||"")}</div>
-            <div class="unlisted-review-ids">
-              <span>${escapeHtml(item.unlistedId||"")}</span>
-              <span>Original salesperson entry</span>
-            </div>
-          </div>
-        </div>
-        <div class="unlisted-review-body">
-          <div class="unlisted-review-section">
-            <h4>Product Details</h4>
-            <div class="unlisted-detail-grid">
-              ${originalPairs.map(pair=>`<div><span>${escapeHtml(pair[0])}</span><strong>${escapeHtml(pair[1])}</strong></div>`).join("")}
-            </div>
-          </div>
-          <div class="unlisted-review-section sale-summary-section">
-            <h4>Sale Details</h4>
-            <div class="unlisted-sale-grid">
-              <div><span>Qty Sold</span><strong>${Number(item.qty||0).toLocaleString()}</strong></div>
-              <div><span>Source</span><strong>${escapeHtml(item.sourceLocation||"-")}</strong></div>
-              <div><span>Price / Unit</span><strong>₱${Number(item.pricePerUnit||0).toLocaleString()}</strong></div>
-              <div><span>Cost / Unit</span><strong>₱${Number(item.costPerUnit||0).toLocaleString()}</strong></div>
-              <div><span>Added By</span><strong>${escapeHtml(item.addedBy||"-")}</strong></div>
-              <div><span>Date Added</span><strong>${escapeHtml(formatDateTime(item.dateAdded))}</strong></div>
-            </div>
-          </div>
-        </div>
-      </article>
-    `;
+    original.innerHTML="";
+    original.classList.add("hidden");
   }
 
 
@@ -6810,6 +7107,17 @@ function renderHomeButtons(){
       openTicketLookup
     );
   }
+
+  addHomeButton(
+    "recent",
+    "Recent Transactions",
+    (
+      canFilterAllRecentTransactions_()
+        ?"Review recent transactions and filter by user or transaction type."
+        :"Review the transactions you recently processed."
+    ),
+    openRecentTransactions
+  );
 
   if(canReviewUnlistedProducts()){
     addHomeButton(
@@ -9848,6 +10156,15 @@ async function submitTransaction(){
     setStatus("Transaction cancelled. Nothing was saved.", "muted");
     return;
   }
+
+  const transactionSubmitButton=document.getElementById("mainSubmitTransactionBtn");
+  const transactionSubmitOriginal=transactionSubmitButton?transactionSubmitButton.textContent:"✓ Submit";
+
+  if(transactionSubmitButton){
+    transactionSubmitButton.disabled=true;
+    transactionSubmitButton.textContent="Submitting...";
+  }
+
   setStatus("Submitting transaction...", "info");
   try{
     const res = await apiCall(params);
@@ -9898,6 +10215,11 @@ async function submitTransaction(){
     setStatus("Submit error: " + escapeHtml(err.message || err), "error");
   } finally{
     isSubmitting = false;
+
+    if(transactionSubmitButton){
+      transactionSubmitButton.disabled=false;
+      transactionSubmitButton.textContent=transactionSubmitOriginal||"✓ Submit";
+    }
   }
 }
 
@@ -11589,6 +11911,218 @@ async function deleteSelectedInventoryProduct(){
     if(button){button.disabled=false;button.textContent="Delete Product";}
   }
 }
+
+
+function canFilterAllRecentTransactions_(){
+  if(!currentUser){
+    return false;
+  }
+
+  const role=String(currentUser.role||"").trim().toUpperCase();
+
+  return[
+    "MANAGER",
+    "ADMIN",
+    "WEB DEVELOPER"
+  ].includes(role);
+}
+
+
+function populateRecentTransactionUsers_(){
+  const wrap=document.getElementById("recentTransactionsUserWrap");
+  const select=document.getElementById("recentTransactionsUser");
+
+  if(!wrap||!select){
+    return;
+  }
+
+  const canFilter=canFilterAllRecentTransactions_();
+  wrap.classList.toggle("hidden",!canFilter);
+  select.innerHTML=`<option value="">All Users</option>`;
+
+  if(!canFilter){
+    return;
+  }
+
+  const names=[
+    ...new Set(
+      (settings.allActiveStaffNames||settings.staffNames||[])
+        .map(name=>String(name||"").trim())
+        .filter(Boolean)
+    )
+  ].sort((a,b)=>a.localeCompare(b));
+
+  names.forEach(name=>{
+    const option=document.createElement("option");
+    option.value=name;
+    option.textContent=name;
+    select.appendChild(option);
+  });
+}
+
+
+function openRecentTransactions(){
+  if(!currentUser){
+    setStatus("Please login first.","error");
+    return;
+  }
+
+  currentType="RECENT_TRANSACTIONS";
+  currentProduct=null;
+  currentTicket=null;
+  currentTicketLines=[];
+  cartItems=[];
+
+  hideAllWorkspaceCards_();
+  closeMobileNav();
+  setSidebarActive_("recent");
+  show("recentTransactionsCard");
+
+  document.getElementById("recentTransactionsSearch").value="";
+  document.getElementById("recentTransactionsAction").value="";
+  document.getElementById("recentTransactionsFrom").value="";
+  document.getElementById("recentTransactionsTo").value="";
+  document.getElementById("recentTransactionsResults").innerHTML="";
+  document.getElementById("recentTransactionsMeta").textContent="";
+
+  populateRecentTransactionUsers_();
+
+  const help=document.getElementById("recentTransactionsHelp");
+  if(help){
+    help.textContent=
+      canFilterAllRecentTransactions_()
+        ?"Review recent transactions. Managers/Admins can filter by user and transaction type."
+        :"Showing only transactions performed by "+(currentUser.name||"you")+".";
+  }
+
+  loadRecentTransactions();
+}
+
+
+async function loadRecentTransactions(){
+  if(!currentUser){
+    return;
+  }
+
+  const button=document.getElementById("recentTransactionsRefreshBtn");
+  const originalText=button?button.textContent:"Refresh Transactions";
+
+  if(button){
+    button.disabled=true;
+    button.textContent="Loading...";
+  }
+
+  try{
+    const res=await apiCall({
+      action:"getRecentTransactions",
+      staffId:currentUser.staffId,
+      pin:currentPin,
+      searchText:val("recentTransactionsSearch"),
+      userName:canFilterAllRecentTransactions_()?val("recentTransactionsUser"):"",
+      actionType:val("recentTransactionsAction"),
+      dateFrom:val("recentTransactionsFrom"),
+      dateTo:val("recentTransactionsTo"),
+      limit:100
+    });
+
+    if(!res||!res.success){
+      setStatus((res&&res.message)?res.message:"Could not load recent transactions.","error");
+      return;
+    }
+
+    renderRecentTransactions_(res);
+  }catch(err){
+    setStatus("Recent Transactions error: "+escapeHtml(err.message||err),"error");
+  }finally{
+    if(button){
+      button.disabled=false;
+      button.textContent=originalText;
+    }
+  }
+}
+
+
+function recentTransactionActionLabel_(value){
+  const action=String(value||"").trim();
+
+  const labels={
+    SALE_STOCK_OUT:"Sale / Stock Out",
+    RELEASING_REQUEST:"Release Request",
+    TRANSFER_REQUEST:"Transfer Request",
+    TRANSFER_APPROVED:"Transfer Approved",
+    TRANSFER_REJECTED:"Transfer Rejected",
+    RETURN_REQUEST:"Return Request",
+    RETURN_APPROVED:"Return Approved",
+    RETURN_REJECTED:"Return Rejected",
+    UNLISTED_MATCH_EXISTING:"Unlisted → Match Existing",
+    UNLISTED_NEW_PRODUCT_CREATED:"Unlisted → New Product",
+    PRODUCT_DETAILS_UPDATED:"Product Details Updated",
+    PRODUCT_DELETED:"Product Deleted",
+    INVENTORY_ADJUSTMENT:"Inventory Adjustment",
+    PURCHASE_STOCK_IN:"Purchase Stock-In",
+    LOCATION_NOTE:"Location Note"
+  };
+
+  return labels[action]||action||"Transaction";
+}
+
+
+function renderRecentTransactions_(res){
+  const rows=Array.isArray(res.rows)?res.rows:[];
+  const meta=document.getElementById("recentTransactionsMeta");
+  const container=document.getElementById("recentTransactionsResults");
+
+  if(meta){
+    meta.textContent=
+      rows.length
+        ?rows.length+" recent transaction"+(rows.length===1?"":"s")+" shown."
+        :"No matching transactions found.";
+  }
+
+  if(!container){
+    return;
+  }
+
+  if(!rows.length){
+    container.innerHTML=`<div class="empty-state compact-empty-state">No matching transactions found.</div>`;
+    return;
+  }
+
+  container.innerHTML=rows.map(row=>{
+    const locationText=
+      row.fromLocation||row.toLocation
+        ?[
+            row.fromLocation?"From "+row.fromLocation:"",
+            row.toLocation?"To "+row.toLocation:""
+          ].filter(Boolean).join(" → ")
+        :(row.location||"");
+
+    return`
+      <article class="recent-transaction-card">
+        <div class="recent-transaction-head">
+          <div>
+            <span class="recent-transaction-action">${escapeHtml(recentTransactionActionLabel_(row.action))}</span>
+            <strong>${escapeHtml(row.productName||row.transactionId||"Transaction")}</strong>
+          </div>
+          <span class="badge">${escapeHtml(row.status||"")}</span>
+        </div>
+
+        <div class="recent-transaction-grid">
+          <div><span>Date / Time</span><strong>${escapeHtml(formatDateTime(row.dateTime))}</strong></div>
+          <div><span>Transaction ID</span><strong>${escapeHtml(row.transactionId||"—")}</strong></div>
+          <div><span>SKU</span><strong>${escapeHtml(row.sku||"—")}</strong></div>
+          <div><span>Qty</span><strong>${escapeHtml(row.qty||0)}</strong></div>
+          <div><span>User</span><strong>${escapeHtml(row.user||"—")}</strong></div>
+          <div><span>Location</span><strong>${escapeHtml(locationText||"—")}</strong></div>
+          ${row.receiptNo?`<div><span>Receipt No.</span><strong>${escapeHtml(row.receiptNo)}</strong></div>`:""}
+        </div>
+
+        ${row.notes?`<div class="recent-transaction-note">${escapeHtml(row.notes)}</div>`:""}
+      </article>
+    `;
+  }).join("");
+}
+
 
 function openReportsView(){
   currentType="REPORTS_HISTORY";
