@@ -546,7 +546,7 @@
 
 
     /* ======================================================
-       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.06
+       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.07
        Inspired by a classic inventory admin dashboard while
        keeping the current workflows and mobile usability.
        ====================================================== */
@@ -910,7 +910,7 @@
   
 
     /* ======================================================
-       CHARLON UI REFINEMENT — v2026.4.06
+       CHARLON UI REFINEMENT — v2026.4.07
        Cleaner lists, compact desktop actions, pagination,
        and a true mobile header navigation drawer.
        ====================================================== */
@@ -1469,7 +1469,7 @@
   
 
     /* ======================================================
-       FUNCTIONAL UI REFINEMENT — v2026.4.06
+       FUNCTIONAL UI REFINEMENT — v2026.4.07
        Keep the existing Charlon UI, improve consistency only.
        ====================================================== */
 
@@ -1664,7 +1664,7 @@
 
   
     /* ======================================================
-       POLISH UPDATE — v2026.4.06
+       POLISH UPDATE — v2026.4.07
        ====================================================== */
 
     .tool-action-button,
@@ -1731,7 +1731,7 @@
   
 
     /* ======================================================
-       SCREEN / FONT CONSISTENCY — v2026.4.06
+       SCREEN / FONT CONSISTENCY — v2026.4.07
        ====================================================== */
 
     /* One typography system throughout all clickable controls. */
@@ -1786,7 +1786,7 @@
   
 
     /* ======================================================
-       NAVIGATION / SEARCH RESET POLISH — v2026.4.06
+       NAVIGATION / SEARCH RESET POLISH — v2026.4.07
        ====================================================== */
 
     /* Quick action buttons use Charlon's dark blue action style. */
@@ -1853,7 +1853,7 @@
   
 
     /* =========================================================
-       NAVIGATION + FORM POLISH — v2026.4.06
+       NAVIGATION + FORM POLISH — v2026.4.07
        ========================================================= */
     .screen-title-row{
       display:flex;
@@ -1939,7 +1939,7 @@
   
 
     /* =========================================================
-       SPACE + TITLE POLISH — v2026.4.06
+       SPACE + TITLE POLISH — v2026.4.07
        ========================================================= */
 
     /* The blue app header belongs to the top of the page and no longer
@@ -2138,7 +2138,7 @@
     }
 
     /* =========================================================
-       CONSISTENCY POLISH — v2026.4.06
+       CONSISTENCY POLISH — v2026.4.07
        ========================================================= */
 
     /* Product Management sub-pages should begin exactly like
@@ -2218,7 +2218,7 @@
 
   
     /* =========================================================
-       FUNCTIONAL POLISH — v2026.4.06
+       FUNCTIONAL POLISH — v2026.4.07
        ========================================================= */
 
     /* Refresh icon is centered vertically and horizontally. */
@@ -2316,7 +2316,7 @@
   <nav id="sidebarNav" class="sidebar-nav"></nav>
 
   <div class="sidebar-footer">
-    <small>v2026.4.06</small>
+    <small>v2026.4.07</small>
   </div>
 </aside>
 
@@ -2366,7 +2366,7 @@
       </div>
     </div>
     <p class="auth-copy">Internal inventory, sales, releasing, transfer, return, and stock-management workspace.</p>
-    <span class="version-chip">v2026.4.06</span>
+    <span class="version-chip">v2026.4.07</span>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -2747,7 +2747,35 @@
     class="card hidden"
     id="unlistedReviewCard"
   >
-  <div
+  
+    <div class="screen-title-row"><button class="icon-back-button" type="button" onclick="backHome()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m10 17-5-5 5-5"/></svg></button><h3>Unlisted Product Review</h3></div>
+  
+    <p class="muted">
+      Review products sold before they were listed in the inventory system.
+      No inventory deduction has been made for these products yet.
+    </p>
+  
+    <button
+      id="refreshUnlistedBtn"
+      class="compact-primary-action refresh-pending-button"
+      type="button"
+      onclick="loadPendingUnlistedProducts()"
+    >
+      <span class="button-icon refresh-pending-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 11a8 8 0 1 0-2.34 5.66"/>
+          <path d="M20 4v7h-7"/>
+        </svg>
+      </span>
+      <span>Refresh Pending Products</span>
+    </button>
+  
+    <div
+      id="unlistedReviewList"
+      class="product-box unlisted-review-grid"
+    ></div>
+      
+      <div
     id="unlistedCreateCard"
     class="hidden"
   >
@@ -2850,38 +2878,10 @@
     </button>
   
   </div>
-    <div class="screen-title-row"><button class="icon-back-button" type="button" onclick="backHome()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m10 17-5-5 5-5"/></svg></button><h3>Unlisted Product Review</h3></div>
-  
-    <p class="muted">
-      Review products sold before they were listed in the inventory system.
-      No inventory deduction has been made for these products yet.
-    </p>
-  
-    <button
-      class="compact-primary-action refresh-pending-button"
-      type="button"
-      onclick="loadPendingUnlistedProducts()"
-    >
-      <span class="button-icon refresh-pending-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 11a8 8 0 1 0-2.34 5.66"/>
-          <path d="M20 4v7h-7"/>
-        </svg>
-      </span>
-      <span>Refresh Pending Products</span>
-    </button>
-  
-    <div
-      id="unlistedReviewList"
-      class="product-box unlisted-review-grid"
-    ></div>
-      
       <div
         id="unlistedMatchCard"
         class="hidden"
       >
-        <hr>
-      
         <h3>Match Existing Product</h3>
       
         <div
@@ -3009,35 +3009,37 @@ function clearInlineActionFeedback_(){
 
 
 function getInlineFeedbackHost_(){
-  const preferredIds=[
-    "formCard",
-    "unlistedCreateCard",
-    "unlistedMatchCard",
-    "approvalCard",
-    "releaseRequestsCard",
-    "revampReturnCard",
-    "unlistedReviewCard",
-    "productManagementCard",
-    "ticketCard",
-    "cartCard",
-    "scanCard",
-    "reportsCard",
-    "homeCard"
-  ];
-
-  for(const id of preferredIds){
+  const visible=id=>{
     const element=document.getElementById(id);
-
-    if(
+    return(
       element&&
       !element.classList.contains("hidden")&&
       element.offsetParent!==null
-    ){
-      return element;
-    }
-  }
+    )?element:null;
+  };
 
-  return null;
+  /*
+   * Prefer the stable parent workspace, not a temporary form that
+   * may be hidden immediately after a successful transaction.
+   */
+  return(
+    visible("approvalCard")||
+    visible("revampReturnCard")||
+    visible("unlistedReviewCard")||
+    visible("releaseRequestsCard")||
+    visible("ticketCard")||
+    visible("productManagementCard")||
+    (
+      (currentType==="SALE"||currentType==="RELEASING")
+        ?visible("scanCard")
+        :null
+    )||
+    visible("formCard")||
+    visible("cartCard")||
+    visible("scanCard")||
+    visible("reportsCard")||
+    visible("homeCard")
+  );
 }
 
 
@@ -3048,14 +3050,10 @@ function showInlineActionFeedback_(htmlText){
     return;
   }
 
-  /*
-   * Some workflows already render their own green result panel,
-   * such as Delete Product and Edit Product Details.
-   */
-  const existingResult=
-    host.querySelector(
-      ".success-panel.inline-result"
-    );
+  /* Existing Product Management actions already render their own result. */
+  const existingResult=host.querySelector(
+    ".success-panel.inline-result:not(.transaction-feedback-banner)"
+  );
 
   if(existingResult){
     return;
@@ -3066,53 +3064,14 @@ function showInlineActionFeedback_(htmlText){
   const banner=document.createElement("div");
   banner.className=
     "notice-panel success-panel inline-result transaction-feedback-banner";
-
   banner.innerHTML=htmlText||"Completed successfully.";
 
-  const titleRow=
-    host.querySelector(
-      ":scope > .screen-title-row"
-    );
-
-  const heading=
-    host.querySelector(
-      ":scope > h3"
-    );
-
-  const description=
-    titleRow
-      ?titleRow.nextElementSibling
-      :heading
-        ?heading.nextElementSibling
-        :null;
-
-  if(
-    description&&
-    description.classList&&
-    description.classList.contains("muted")
-  ){
-    description.insertAdjacentElement(
-      "afterend",
-      banner
-    );
-
-  }else if(titleRow){
-    titleRow.insertAdjacentElement(
-      "afterend",
-      banner
-    );
-
-  }else if(heading){
-    heading.insertAdjacentElement(
-      "afterend",
-      banner
-    );
-
-  }else{
-    host.prepend(
-      banner
-    );
-  }
+  /*
+   * Always place transaction feedback at the BOTTOM of the current
+   * workspace. This keeps the title/header stable and makes the result
+   * appear after the form/list the user just worked on.
+   */
+  host.appendChild(banner);
 
   banner.scrollIntoView({
     behavior:"smooth",
@@ -4343,96 +4302,62 @@ async function loadPendingUnlistedProducts(){
     return;
   }
 
-  const container=
-    document.getElementById(
-      "unlistedReviewList"
-    );
+  const container=document.getElementById("unlistedReviewList");
+  const button=document.getElementById("refreshUnlistedBtn");
+  const label=button?button.querySelector("span:last-child"):null;
 
   if(container){
-    container.innerHTML=`
-      <p class="muted">
-        Loading pending products...
-      </p>
-    `;
+    container.innerHTML=`<p class="muted">Loading pending products...</p>`;
   }
 
-  setStatus(
-    "Loading unlisted products...",
-    "info"
-  );
+  if(button){
+    button.disabled=true;
+  }
+  if(label){
+    label.textContent="Refreshing...";
+  }
 
   try{
+    const res=await apiCall({
+      action:"getPendingUnlistedProducts",
+      staffId:currentUser.staffId,
+      pin:currentPin
+    });
 
-    const res=
-      await apiCall({
-        action:
-          "getPendingUnlistedProducts",
-
-        staffId:
-          currentUser.staffId,
-
-        pin:
-          currentPin
-      });
-
-    if(
-      !res||
-      !res.success
-    ){
+    if(!res||!res.success){
       throw new Error(
-        res&&res.message
-          ?res.message
-          :"Could not load pending products."
+        res&&res.message?res.message:"Could not load pending products."
       );
     }
 
-    unlistedReviewRows=
-      Array.isArray(res.rows)
-        ?res.rows
-        :[];
+    unlistedReviewRows=Array.isArray(res.rows)?res.rows:[];
+    pendingUnlistedReviewCount=unlistedReviewRows.length;
 
-    pendingUnlistedReviewCount=
-      unlistedReviewRows.length;
-    
     renderPendingUnlistedProducts();
-    
-    updateHomeNotificationBadge(
-      "UNLISTED",
-      pendingUnlistedReviewCount
-    );
+    updateHomeNotificationBadge("UNLISTED",pendingUnlistedReviewCount);
 
-    setStatus(
-      pendingUnlistedReviewCount+
-      " unlisted product(s) pending review.",
-      pendingUnlistedReviewCount>0
-        ?"info"
-        :"success-text"
-    );
+    /* The list itself already communicates the loaded state. */
+    setStatus("","muted");
 
   }catch(err){
-
-    console.error(
-      "Load unlisted products error:",
-      err
-    );
+    console.error("Load unlisted products error:",err);
 
     if(container){
-      container.innerHTML=`
-        <p class="error">
-          ${escapeHtml(
-            err.message||err
-          )}
-        </p>
-      `;
+      container.innerHTML=`<p class="error">${escapeHtml(err.message||err)}</p>`;
     }
 
     setStatus(
-      "Unlisted Product Review error: "+
-      escapeHtml(
-        err.message||err
-      ),
+      "Unlisted Product Review error: "+escapeHtml(err.message||err),
       "error"
     );
+
+  }finally{
+    if(button){
+      button.disabled=false;
+    }
+    if(label){
+      label.textContent="Refresh Pending Products";
+    }
   }
 }
 
@@ -4505,6 +4430,12 @@ function renderPendingUnlistedProducts(){
   container.innerHTML=html;
 }
 function startUnlistedMatch(index){
+
+  hide(
+    "unlistedCreateCard"
+  );
+
+  selectedUnlistedCreateIndex=-1;
 
   const item=
     unlistedReviewRows[index];
@@ -6037,11 +5968,6 @@ async function confirmCreateNewUnlistedProduct(){
     }
 
 
-    setStatus(
-      "Creating new inventory product...",
-      "info"
-    );
-
 
     /*
      * ========================================
@@ -6115,8 +6041,17 @@ async function confirmCreateNewUnlistedProduct(){
     );
 
 
-    await loadPendingUnlistedProducts();
+    /*
+     * The backend already confirmed the resolution. Remove it locally
+     * instead of making another slow API request just to reload the list.
+     */
+    unlistedReviewRows=unlistedReviewRows.filter(row=>
+      String(row.unlistedId||"").toUpperCase()!==
+      String(item.unlistedId||"").toUpperCase()
+    );
 
+    pendingUnlistedReviewCount=unlistedReviewRows.length;
+    renderPendingUnlistedProducts();
 
     updateHomeNotificationBadge(
       "UNLISTED",
@@ -6596,11 +6531,6 @@ async function confirmSelectedUnlistedMatch(){
     }
 
 
-    setStatus(
-      "Matching product and updating inventory...",
-      "info"
-    );
-
 
     const res=
       await apiCall({
@@ -6652,18 +6582,17 @@ async function confirmSelectedUnlistedMatch(){
 
 
     /*
-     * Reload pending products.
-     *
-     * The matched product should disappear
-     * because its status is no longer
-     * PENDING REVIEW.
+     * Backend confirmed the match. Update the pending list locally so
+     * the UI responds immediately without another Apps Script round trip.
      */
-    await loadPendingUnlistedProducts();
+    unlistedReviewRows=unlistedReviewRows.filter(row=>
+      String(row.unlistedId||"").toUpperCase()!==
+      String(unlisted.unlistedId||"").toUpperCase()
+    );
 
+    pendingUnlistedReviewCount=unlistedReviewRows.length;
+    renderPendingUnlistedProducts();
 
-    /*
-     * Update the Home notification badge too.
-     */
     updateHomeNotificationBadge(
       "UNLISTED",
       pendingUnlistedReviewCount
@@ -9616,7 +9545,6 @@ async function submitCartTransaction(){
     submitButton.disabled=true;
     submitButton.textContent="Submitting...";
   }
-  setStatus("Submitting cart transaction...", "info");
   try{
     let res;
 
@@ -9627,10 +9555,9 @@ async function submitCartTransaction(){
         throw requestError;
       }
 
-      setStatus(
-        "The sale response was interrupted. Verifying whether the transaction was saved...",
-        "info"
-      );
+      if(submitButton){
+        submitButton.textContent="Verifying...";
+      }
 
       res=await verifySavedSaleAfterResponseError_(
         params,
@@ -10784,7 +10711,7 @@ function renderRevampReturnItems(res){
       disabled
     >
 
-    <button class="success" type="button" onclick="submitRevampReturnRequest()">
+    <button id="submitReturnRequestBtn" class="success" type="button" onclick="submitRevampReturnRequest()">
       Submit Return for Approval
     </button>
   `;
@@ -10819,7 +10746,11 @@ async function submitRevampReturnRequest(){
     return;
   }
   isSubmitting = true;
-  setStatus("Submitting return request...", "info");
+  const submitButton=document.getElementById("submitReturnRequestBtn");
+  if(submitButton){
+    submitButton.disabled=true;
+    submitButton.textContent="Submitting...";
+  }
   try{
     const res = await apiCall({action: "submitRevampReturnRequest", staffId: currentUser.staffId, pin: currentPin, receiptNo, dateReturned: val("revampDateReturned"), returnLocation: val("revampReturnLocation"),
     handledBy: currentUser.name, returnItems: JSON.stringify(returnItems)});
@@ -10855,6 +10786,10 @@ async function submitRevampReturnRequest(){
     setStatus("Return request error: " + escapeHtml(err.message || err), "error");
   } finally{
     isSubmitting = false;
+    if(submitButton){
+      submitButton.disabled=false;
+      submitButton.textContent="Submit Return for Approval";
+    }
   }
 }
 
@@ -10874,7 +10809,6 @@ async function loadMyApprovals(){
     setStatus("Please login first.", "error");
     return;
   }
-  setStatus("Loading approvals...", "info");
   try{
     const res = await apiCall({action: "getMyRevampApprovals", staffId: currentUser.staffId, pin: currentPin});
     console.log("My approvals response:", res);
@@ -10885,7 +10819,7 @@ async function loadMyApprovals(){
     revampApprovalRows = res.rows || [];
     pendingApprovalCount=revampApprovalRows.length;
     renderMyApprovals(res);
-    setStatus("Approvals loaded.", "success-text");
+    setStatus("","muted");
   } catch(err){
     console.error("Load approvals error:", err);
     setStatus("Load approvals error: " + escapeHtml(err.message || err), "error");
@@ -10949,11 +10883,11 @@ function renderMyApprovals(res){
 
         ${details}<br><br>
 
-        <button class="success" type="button" onclick="submitRevampApprovalByIndex(${index},'APPROVE')">
+        <button id="approvalApproveBtn_${index}" class="success" type="button" onclick="submitRevampApprovalByIndex(${index},'APPROVE')">
           Approve
         </button>
 
-        <button class="danger" type="button" onclick="submitRevampApprovalByIndex(${index},'REJECT')">
+        <button id="approvalRejectBtn_${index}" class="danger" type="button" onclick="submitRevampApprovalByIndex(${index},'REJECT')">
           Reject
         </button>
       </div>
@@ -10976,11 +10910,12 @@ function submitRevampApprovalByIndex(index,decision){
 
   submitRevampApproval(
     row,
-    decision
+    decision,
+    index
   );
 }
 
-async function submitRevampApproval(row,decision){
+async function submitRevampApproval(row,decision,index){
   if(isSubmitting)return;
 
   const isTransfer=String(row.type||"").toUpperCase()==="TRANSFER";
@@ -10994,7 +10929,16 @@ async function submitRevampApproval(row,decision){
   }
 
   isSubmitting=true;
-  setStatus("Submitting approval...","info");
+
+  const approveButton=document.getElementById("approvalApproveBtn_"+index);
+  const rejectButton=document.getElementById("approvalRejectBtn_"+index);
+  const activeButton=decision==="APPROVE"?approveButton:rejectButton;
+
+  if(approveButton)approveButton.disabled=true;
+  if(rejectButton)rejectButton.disabled=true;
+  if(activeButton){
+    activeButton.textContent=decision==="APPROVE"?"Approving...":"Rejecting...";
+  }
 
   try{
     const params={
@@ -11058,13 +11002,38 @@ async function submitRevampApproval(row,decision){
       `;
     }
 
-    await loadMyApprovals();
+    const completedType=String(row.type||"").toUpperCase();
+    const completedReference=completedType==="TRANSFER"?row.transferId:row.returnId;
+
+    revampApprovalRows=revampApprovalRows.filter(item=>{
+      const itemType=String(item.type||"").toUpperCase();
+      const itemReference=itemType==="TRANSFER"?item.transferId:item.returnId;
+      return !(
+        itemType===completedType&&
+        String(itemReference||"").toUpperCase()===String(completedReference||"").toUpperCase()
+      );
+    });
+
+    pendingApprovalCount=revampApprovalRows.length;
+    renderMyApprovals({rows:revampApprovalRows});
+    updateHomeNotificationBadge("APPROVALS",pendingApprovalCount);
+    updateNotificationTitle();
+
     setStatus(resultHtml,"success-text");
   }catch(err){
     console.error("Approval error:",err);
     setStatus("Approval error: "+escapeHtml(err.message||err),"error");
   }finally{
     isSubmitting=false;
+
+    if(approveButton&&approveButton.isConnected){
+      approveButton.disabled=false;
+      approveButton.textContent="Approve";
+    }
+    if(rejectButton&&rejectButton.isConnected){
+      rejectButton.disabled=false;
+      rejectButton.textContent="Reject";
+    }
   }
 }
 
