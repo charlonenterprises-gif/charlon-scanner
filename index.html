@@ -546,7 +546,7 @@
 
 
     /* ======================================================
-       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.3.98
+       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.3.99
        Inspired by a classic inventory admin dashboard while
        keeping the current workflows and mobile usability.
        ====================================================== */
@@ -910,7 +910,7 @@
   
 
     /* ======================================================
-       CHARLON UI REFINEMENT — v2026.3.98
+       CHARLON UI REFINEMENT — v2026.3.99
        Cleaner lists, compact desktop actions, pagination,
        and a true mobile header navigation drawer.
        ====================================================== */
@@ -1466,6 +1466,202 @@
       }
     }
 
+  
+
+    /* ======================================================
+       FUNCTIONAL UI REFINEMENT — v2026.3.99
+       Keep the existing Charlon UI, improve consistency only.
+       ====================================================== */
+
+    /* Fix custom dropdown width/position in Product Management. */
+    .suggestion-field{position:relative;min-width:0;}
+    .suggestion-field .suggestion-list,
+    .autocomplete-field .suggestion-list{
+      top:calc(100% + 4px);
+      left:0;
+      right:0;
+      width:100%;
+      max-width:100%;
+      box-sizing:border-box;
+    }
+
+    /* Search rows use the same compact pattern everywhere. */
+    .primary-search-row{align-items:stretch;margin-bottom:10px;}
+    .primary-search-row input{margin:0;}
+    .search-action-btn{
+      width:auto!important;
+      min-width:150px!important;
+      margin:0!important;
+      padding:9px 16px!important;
+      display:inline-flex!important;
+      align-items:center;
+      justify-content:center;
+      gap:7px;
+      white-space:nowrap;
+    }
+    .button-icon{font-size:18px;line-height:1;}
+
+    /* Sold Immediately / Check Stock quick tools. */
+    .tool-action-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:9px;
+      margin:8px 0 12px;
+    }
+    .tool-action-button{
+      width:100%!important;
+      min-width:0!important;
+      min-height:74px!important;
+      margin:0!important;
+      padding:10px 12px!important;
+      display:flex!important;
+      align-items:center;
+      gap:10px;
+      text-align:left!important;
+      border-radius:10px!important;
+      background:#f8fafc!important;
+      color:#31495b!important;
+      border:1px solid #dce6ee!important;
+      box-shadow:none!important;
+    }
+    .tool-action-button:hover:not(:disabled){background:#fff!important;border-color:#a8c9dc!important;color:var(--charlon-blue)!important;}
+    .tool-action-icon{
+      width:36px;height:36px;flex:0 0 36px;display:grid;place-items:center;
+      border-radius:9px;background:#eef6fb;color:var(--charlon-blue);font-size:19px;font-weight:800;
+    }
+    .tool-action-copy{min-width:0;display:block;}
+    .tool-action-copy strong{display:block;font-size:12px;line-height:1.25;}
+    .tool-action-copy small{display:block;margin-top:2px;color:#788895;font-size:9px;font-weight:500;line-height:1.25;}
+
+    /* Product Management menu matches the Home action-tile language. */
+    .management-menu-grid{align-items:stretch;}
+    .management-menu-button{
+      min-height:150px!important;
+      aspect-ratio:1.45/1;
+      padding:18px 16px!important;
+      display:flex!important;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:11px;
+      text-align:center!important;
+      border-radius:10px!important;
+    }
+    .management-menu-icon{
+      width:50px;height:50px;display:grid;place-items:center;border-radius:50%;
+      background:#eef6fb;color:var(--charlon-blue);box-shadow:0 1px 6px rgba(0,98,153,.08);
+    }
+    .management-menu-icon.danger-icon{background:#fff1ef;color:#b42318;}
+    .management-menu-icon svg{width:25px;height:25px;}
+    .management-menu-copy{display:block;}
+    .management-menu-copy strong{margin:0 0 5px!important;font-size:13px!important;color:#31495b;}
+    .management-menu-copy > span{font-size:10px!important;line-height:1.35!important;}
+
+    /* Navigation is compact instead of full-width banners. */
+    .navigation-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:14px;
+      padding-top:12px;
+      border-top:1px solid #e6edf2;
+    }
+    .compact-nav-button,
+    .compact-primary-action{
+      width:auto!important;
+      min-width:130px!important;
+      margin:0!important;
+      padding:9px 15px!important;
+    }
+
+    /* Unlisted review: sheet-like structure on desktop, cards on mobile. */
+    #unlistedReviewList.unlisted-review-grid{padding:0;border:0;background:transparent;}
+    .unlisted-review-card{
+      margin:12px 0;
+      border:1px solid #d9e5ec;
+      border-left:4px solid var(--charlon-blue);
+      border-radius:10px;
+      background:#fff;
+      overflow:hidden;
+    }
+    .unlisted-review-head{
+      display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+      padding:13px 14px;border-bottom:1px solid #e8eef2;background:#fbfcfd;
+    }
+    .unlisted-review-name{font-size:14px;font-weight:800;color:#203d50;line-height:1.35;}
+    .unlisted-review-ids{display:flex;flex-wrap:wrap;gap:7px;margin-top:5px;color:#71808e;font-size:10px;}
+    .unlisted-review-ids span{padding:3px 7px;border:1px solid #e0e8ed;border-radius:999px;background:#fff;}
+    .unlisted-review-body{display:grid;grid-template-columns:1.45fr 1fr;gap:0;}
+    .unlisted-review-section{padding:13px 14px;min-width:0;}
+    .unlisted-review-section + .unlisted-review-section{border-left:1px solid #e8eef2;}
+    .unlisted-review-section h4{margin:0 0 9px;color:#4d6271;font-size:10px;text-transform:uppercase;letter-spacing:.55px;}
+    .unlisted-detail-grid,.unlisted-sale-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}
+    .unlisted-detail-grid div,.unlisted-sale-grid div{padding:7px 8px;border-radius:7px;background:#f7f9fa;min-width:0;}
+    .unlisted-detail-grid span,.unlisted-sale-grid span{display:block;color:#82909b;font-size:8px;font-weight:800;text-transform:uppercase;}
+    .unlisted-detail-grid strong,.unlisted-sale-grid strong{display:block;margin-top:2px;color:#29485b;font-size:11px;line-height:1.25;overflow-wrap:anywhere;}
+    .unlisted-notes{margin:0 14px 10px;padding:8px 10px;border-radius:7px;background:#fff8e6;color:#66521b;font-size:10px;}
+    .unlisted-notes span{font-weight:800;margin-right:7px;}
+    .compact-action-row{display:flex;flex-wrap:wrap;gap:8px;padding:11px 14px;border-top:1px solid #e8eef2;background:#fbfcfd;}
+    .compact-action-row button{width:auto!important;min-width:150px!important;margin:0!important;padding:9px 14px!important;font-size:11px!important;}
+
+    /* Match Existing results: selection button stays in a deliberate corner. */
+    .unlisted-match-result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px;}
+    .unlisted-match-result-card{padding:13px;border:1px solid #d9e5ec;border-radius:9px;background:#fff;}
+    .unlisted-match-result-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding-bottom:9px;border-bottom:1px solid #e8eef2;}
+    .unlisted-match-result-head > div{min-width:0;}
+    .unlisted-match-result-head .sku-chip{display:inline-flex;margin-top:6px;}
+    .unlisted-match-result-head .select-result-btn{width:auto!important;min-width:115px!important;margin:0!important;padding:8px 11px!important;font-size:10px!important;flex:0 0 auto;}
+    .match-total-line{margin-top:8px;padding:8px 9px;border-radius:7px;background:#f7f9fa;color:#687987;font-size:10px;text-align:right;}
+    .match-total-line strong{color:#203d50;font-size:13px;}
+    .compact-section-heading{margin-top:5px;}
+
+    .warning-badge{background:#f4b019!important;color:#493700!important;}
+    .stock-delete-warning{margin-top:12px;}
+
+    /* Keep the Edit Details dropdown inside its own column. */
+    .edit-product-form .suggestion-field{overflow:visible;}
+
+
+    #unlistedCreateCard > button,
+    #unlistedMatchCard > button{
+      width:auto!important;
+      min-width:135px!important;
+      margin:8px 7px 0 0!important;
+      padding:9px 14px!important;
+    }
+
+    #unlistedMatchCard .primary-search-row{margin-bottom:8px;}
+
+    @media(max-width:900px){
+      .tool-action-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+      .unlisted-match-result-grid{grid-template-columns:1fr;}
+    }
+
+    @media(max-width:600px){
+      .primary-search-row{grid-template-columns:minmax(0,1fr) auto!important;gap:7px!important;}
+      .search-action-btn{min-width:96px!important;padding:8px 10px!important;font-size:11px!important;}
+      .search-action-btn .button-icon{display:none;}
+      .tool-action-grid{grid-template-columns:1fr 1fr;gap:7px;}
+      .tool-action-button{min-height:64px!important;padding:8px!important;}
+      .tool-action-icon{width:31px;height:31px;flex-basis:31px;font-size:16px;}
+      .tool-action-copy strong{font-size:10px;}
+      .tool-action-copy small{display:none;}
+      .management-menu-grid{grid-template-columns:1fr 1fr!important;gap:9px;}
+      .management-menu-button{min-height:126px!important;aspect-ratio:auto;padding:13px 9px!important;}
+      .management-menu-icon{width:42px;height:42px;}
+      .management-menu-copy strong{font-size:11px!important;}
+      .management-menu-copy > span{font-size:9px!important;}
+      .navigation-actions{gap:7px;}
+      .compact-nav-button{min-width:0!important;flex:0 0 auto;padding:8px 11px!important;font-size:10px!important;}
+      .unlisted-review-body{grid-template-columns:1fr;}
+      .unlisted-review-section + .unlisted-review-section{border-left:0;border-top:1px solid #e8eef2;}
+      .unlisted-detail-grid,.unlisted-sale-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+      .unlisted-review-head{align-items:flex-start;}
+      .compact-action-row button{min-width:0!important;flex:1 1 140px;}
+      .unlisted-match-result-head{display:block;}
+      .unlisted-match-result-head .select-result-btn{margin-top:10px!important;width:auto!important;}
+    }
+
   </style>
 </head>
 <body>
@@ -1506,7 +1702,7 @@
   <nav id="sidebarNav" class="sidebar-nav"></nav>
 
   <div class="sidebar-footer">
-    <small>v2026.3.98</small>
+    <small>v2026.3.99</small>
   </div>
 </aside>
 
@@ -1556,7 +1752,7 @@
       </div>
     </div>
     <p class="auth-copy">Internal inventory, sales, releasing, transfer, return, and stock-management workspace.</p>
-    <span class="version-chip">v2026.3.98</span>
+    <span class="version-chip">v2026.3.99</span>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -1604,24 +1800,41 @@
   <div class="card hidden" id="scanCard">
     <h2 id="transactionTitle">Scan Product</h2>
     <label>Barcode / SKU / Product Keyword</label>
-    <input type="text" id="searchValue" placeholder="Scan SKU/QR or type product keywords" autocomplete="off">
-    
-    <button type="button" onclick="findProduct()">
-      Search Product
-    </button>
-    <button
-      id="addUnlistedProductBtn"
-      class="secondary hidden"
-      type="button"
-      onclick="openUnlistedProductForm()"
-    >
-      + Add Unlisted Product
-    </button>
-    
-    <button class="secondary" type="button" onclick="startCamera()">Start Camera Scanner</button>
-    <button class="secondary" type="button" onclick="stopCamera()">Stop Camera Scanner</button>
+    <div class="search-row primary-search-row">
+      <input type="text" id="searchValue" placeholder="Scan SKU/QR or type product keywords" autocomplete="off">
+      <button id="mainProductSearchBtn" class="search-action-btn" type="button" onclick="findProduct()">
+        <span class="button-icon" aria-hidden="true">⌕</span>
+        <span>Search Product</span>
+      </button>
+    </div>
+
+    <div class="tool-action-grid">
+      <button
+        id="addUnlistedProductBtn"
+        class="tool-action-button secondary hidden"
+        type="button"
+        onclick="openUnlistedProductForm()"
+      >
+        <span class="tool-action-icon" aria-hidden="true">＋</span>
+        <span class="tool-action-copy"><strong>Add Unlisted Product</strong><small>Product not yet in inventory</small></span>
+      </button>
+
+      <button class="tool-action-button secondary" type="button" onclick="startCamera()">
+        <span class="tool-action-icon" aria-hidden="true">▣</span>
+        <span class="tool-action-copy"><strong>Start Scanner</strong><small>Use device camera</small></span>
+      </button>
+
+      <button class="tool-action-button secondary" type="button" onclick="stopCamera()">
+        <span class="tool-action-icon" aria-hidden="true">■</span>
+        <span class="tool-action-copy"><strong>Stop Scanner</strong><small>Close camera scanner</small></span>
+      </button>
+
+      <button class="tool-action-button secondary" type="button" onclick="backHome()">
+        <span class="tool-action-icon" aria-hidden="true">←</span>
+        <span class="tool-action-copy"><strong>Back</strong><small>Return to Home</small></span>
+      </button>
+    </div>
     <div id="reader"></div>
-    <button class="secondary" type="button" onclick="backHome()">Back</button>
 
     <div id="keywordResults" class="product-box hidden"></div>
   </div>
@@ -1859,19 +2072,29 @@
 
     <div id="productManagementMenu" class="management-menu-grid">
       <button class="management-menu-button" type="button" onclick="openProductManagementAdjustment()">
-        <strong>Manager Inventory Adjustment</strong>
-        <span>Correct the verified quantity of an existing product by inventory location.</span>
+        <span class="management-menu-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="15" cy="17" r="2"/></svg>
+        </span>
+        <span class="management-menu-copy"><strong>Manager Inventory Adjustment</strong><span>Correct verified inventory quantities by location.</span></span>
       </button>
 
       <button class="management-menu-button" type="button" onclick="openProductManagementMode('DELETE')">
-        <strong>Delete Product</strong>
-        <span>Remove a zero-stock active product while preserving its transaction history.</span>
+        <span class="management-menu-icon danger-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M7 7l1 13h8l1-13"/><path d="M10 11v5M14 11v5"/></svg>
+        </span>
+        <span class="management-menu-copy"><strong>Delete Product</strong><span>Remove an active product while keeping its transaction history.</span></span>
       </button>
 
       <button class="management-menu-button" type="button" onclick="openProductManagementMode('EDIT')">
-        <strong>Add / Change Product Details</strong>
-        <span>Correct the name, brand, model, category, item type, description, specifications, or For/With details.</span>
+        <span class="management-menu-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l11-11-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>
+        </span>
+        <span class="management-menu-copy"><strong>Add / Change Product Details</strong><span>Correct product name, brand, model, item type, and specifications.</span></span>
       </button>
+    </div>
+
+    <div id="productManagementMenuBack" class="navigation-actions">
+      <button class="secondary compact-nav-button" type="button" onclick="backHome()">← Back to Home</button>
     </div>
 
     <div id="productManagementWorkspace" class="management-workspace hidden">
@@ -1891,16 +2114,17 @@
           autocomplete="off"
           onkeydown="if(event.key==='Enter'){event.preventDefault();searchProductManagement();}"
         >
-        <button id="productManagementSearchBtn" type="button" onclick="searchProductManagement()">Search</button>
+        <button id="productManagementSearchBtn" class="search-action-btn" type="button" onclick="searchProductManagement()">Search Product</button>
       </div>
 
       <div id="productManagementResults" class="product-box"></div>
       <div id="productDeletePanel" class="product-box hidden"></div>
 
-      <button class="secondary" type="button" onclick="closeProductManagementWorkspace()">Back to Product Management</button>
+      <div class="navigation-actions">
+        <button class="secondary compact-nav-button" type="button" onclick="closeProductManagementWorkspace()">← Product Management</button>
+        <button class="secondary compact-nav-button" type="button" onclick="backHome()">← Home</button>
+      </div>
     </div>
-
-    <button class="secondary" type="button" onclick="backHome()">Back to Home</button>
   </div>
 
   <div class="card hidden" id="ticketCard">
@@ -2160,15 +2384,16 @@
     </p>
   
     <button
+      class="compact-primary-action"
       type="button"
       onclick="loadPendingUnlistedProducts()"
     >
-      Refresh Pending Products
+      ↻ Refresh Pending Products
     </button>
   
     <div
       id="unlistedReviewList"
-      class="product-box"
+      class="product-box unlisted-review-grid"
     ></div>
       
       <div
@@ -2186,19 +2411,23 @@
       
         <label>Search Existing Product</label>
       
-        <input
-          type="text"
-          id="unlistedMatchSearch"
-          placeholder="SKU, brand, model, or product name"
-          autocomplete="off"
-        >
-      
-        <button
-          type="button"
-          onclick="searchExistingProductForUnlisted()"
-        >
-          Search Existing Product
-        </button>
+        <div class="search-row primary-search-row">
+          <input
+            type="text"
+            id="unlistedMatchSearch"
+            placeholder="SKU, brand, model, or product name"
+            autocomplete="off"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();searchExistingProductForUnlisted();}"
+          >
+          <button
+            id="unlistedMatchSearchBtn"
+            class="search-action-btn"
+            type="button"
+            onclick="searchExistingProductForUnlisted()"
+          >
+            Search Product
+          </button>
+        </div>
       
         <div
           id="unlistedMatchResults"
@@ -2229,11 +2458,12 @@
     <h3 id="formTitle">Transaction Form</h3>
     <div id="formFields"></div>
     <button
-      class="success"
+      id="mainSubmitTransactionBtn"
+      class="success compact-primary-action"
       type="button"
       onclick="submitTransaction()"
     >
-      Submit
+      ✓ Submit
     </button>
   </div>
   
@@ -3534,191 +3764,72 @@ async function loadPendingUnlistedProducts(){
 
 
 function renderPendingUnlistedProducts(){
+  const container=document.getElementById("unlistedReviewList");
+  if(!container)return;
 
-  const container=
-    document.getElementById(
-      "unlistedReviewList"
-    );
-
-  if(!container){
-    return;
-  }
-
-  /*
-   * Nothing pending.
-   */
-  if(
-    !unlistedReviewRows.length
-  ){
-
-    container.innerHTML=`
-      <p class="success-text">
-        No unlisted products are waiting for review.
-      </p>
-    `;
-
+  if(!unlistedReviewRows.length){
+    container.innerHTML=`<div class="notice-panel success-panel">No unlisted products are waiting for review.</div>`;
     return;
   }
 
   let html="";
 
-  unlistedReviewRows.forEach(
-    (item,index)=>{
+  unlistedReviewRows.forEach((item,index)=>{
+    const detailPairs=[
+      ["Brand",item.brand||"-"],
+      ["Model",item.model||"-"],
+      ["Item Type",item.itemType||"-"],
+      ["Specifications",item.specifications||"-"],
+      ["Description",item.description||"-"],
+      ["For / With",item.forWith||"-"]
+    ];
 
-      html+=`
-        <div class="cart-line">
-
-          <strong>
-            ${escapeHtml(
-              item.productName||""
-            )}
-          </strong>
-
-          <br>
-
-          <span class="badge">
-            PENDING REVIEW
-          </span>
-
-          <br><br>
-
-          <strong>Temporary SKU:</strong>
-          ${escapeHtml(
-            item.unlistedId||""
-          )}
-          <br>
-
-          <strong>Sale ID:</strong>
-          ${escapeHtml(
-            item.saleId||""
-          )}
-          <br>
-
-          <strong>Date Added:</strong>
-          ${escapeHtml(
-            formatDateTime(
-              item.dateAdded
-            )
-          )}
-
-          <br><br>
-
-          <strong>Product Details</strong>
-          <br>
-
-          Brand:
-          ${escapeHtml(
-            item.brand||"-"
-          )}
-          <br>
-
-          Model:
-          ${escapeHtml(
-            item.model||"-"
-          )}
-          <br>
-
-          Specifications:
-          ${escapeHtml(
-            item.specifications||"-"
-          )}
-          <br>
-
-          Description:
-          ${escapeHtml(
-            item.description||"-"
-          )}
-          <br>
-
-          Item Type:
-          ${escapeHtml(
-            item.itemType||"-"
-          )}
-          <br>
-
-          For / With:
-          ${escapeHtml(
-            item.forWith||"-"
-          )}
-
-          <br><br>
-
-          <strong>Sale Details</strong>
-          <br>
-
-          Qty:
-          ${Number(
-            item.qty||0
-          ).toLocaleString()}
-          <br>
-
-          Source Location:
-          <strong>
-            ${escapeHtml(
-              item.sourceLocation||""
-            )}
-          </strong>
-          <br>
-
-          Price Per Unit:
-          ₱${Number(
-            item.pricePerUnit||0
-          ).toLocaleString()}
-          <br>
-
-          Cost Per Unit:
-          ₱${Number(
-            item.costPerUnit||0
-          ).toLocaleString()}
-          <br>
-
-          Added By:
-          ${escapeHtml(
-            item.addedBy||""
-          )}
-
-          ${
-            item.notes
-              ?`
-                <br>
-                Notes:
-                ${escapeHtml(
-                  item.notes
-                )}
-              `
-              :""
-          }
-
-          <br><br>
-
-          <button
-            type="button"
-            onclick="startUnlistedMatch(${index})"
-          >
-            Match Existing Product
-          </button>
-          <button
-            class="secondary"
-            type="button"
-            onclick="startUnlistedCreate(${index})"
-          >
-            Create New Product
-          </button>
-          
-          <p class="muted">
-            Use this when this Sale actually belongs to a product
-            that already exists in the inventory system.
-          </p>
-
+    html+=`
+      <article class="unlisted-review-card">
+        <div class="unlisted-review-head">
+          <div>
+            <div class="unlisted-review-name">${escapeHtml(item.productName||"")}</div>
+            <div class="unlisted-review-ids">
+              <span>${escapeHtml(item.unlistedId||"")}</span>
+              <span>Sale ${escapeHtml(item.saleId||"")}</span>
+            </div>
+          </div>
+          <span class="badge">PENDING REVIEW</span>
         </div>
-      `;
-    }
-  );
 
-  container.innerHTML=
-    html;
+        <div class="unlisted-review-body">
+          <div class="unlisted-review-section">
+            <h4>Product Details</h4>
+            <div class="unlisted-detail-grid">
+              ${detailPairs.map(pair=>`<div><span>${escapeHtml(pair[0])}</span><strong>${escapeHtml(pair[1])}</strong></div>`).join("")}
+            </div>
+          </div>
+
+          <div class="unlisted-review-section sale-summary-section">
+            <h4>Sale Details</h4>
+            <div class="unlisted-sale-grid">
+              <div><span>Qty</span><strong>${Number(item.qty||0).toLocaleString()}</strong></div>
+              <div><span>Source</span><strong>${escapeHtml(item.sourceLocation||"-")}</strong></div>
+              <div><span>Price / Unit</span><strong>₱${Number(item.pricePerUnit||0).toLocaleString()}</strong></div>
+              <div><span>Cost / Unit</span><strong>₱${Number(item.costPerUnit||0).toLocaleString()}</strong></div>
+              <div><span>Added By</span><strong>${escapeHtml(item.addedBy||"-")}</strong></div>
+              <div><span>Date Added</span><strong>${escapeHtml(formatDateTime(item.dateAdded))}</strong></div>
+            </div>
+          </div>
+        </div>
+
+        ${item.notes?`<div class="unlisted-notes"><span>Notes</span>${escapeHtml(item.notes)}</div>`:""}
+
+        <div class="compact-action-row unlisted-action-row">
+          <button type="button" onclick="startUnlistedMatch(${index})">Match Existing Product</button>
+          <button class="secondary" type="button" onclick="startUnlistedCreate(${index})">Create New Product</button>
+        </div>
+      </article>
+    `;
+  });
+
+  container.innerHTML=html;
 }
-
 function startUnlistedMatch(index){
 
   const item=
@@ -5508,6 +5619,16 @@ async function searchExistingProductForUnlisted(){
       "unlistedMatchResults"
     );
 
+  const searchButton=
+    document.getElementById(
+      "unlistedMatchSearchBtn"
+    );
+
+  if(searchButton){
+    searchButton.disabled=true;
+    searchButton.textContent="Searching...";
+  }
+
 
   if(container){
     container.innerHTML=`
@@ -5517,11 +5638,6 @@ async function searchExistingProductForUnlisted(){
     `;
   }
 
-
-  setStatus(
-    "Searching existing inventory...",
-    "info"
-  );
 
 
   try{
@@ -5578,15 +5694,6 @@ async function searchExistingProductForUnlisted(){
     }
 
 
-    setStatus(
-      Number(
-        res.count||0
-      ).toLocaleString()+
-      " matching existing product(s) found.",
-      "success-text"
-    );
-
-
   }catch(err){
 
     console.error(
@@ -5613,188 +5720,68 @@ async function searchExistingProductForUnlisted(){
       ),
       "error"
     );
+  }finally{
+    if(searchButton){
+      searchButton.disabled=false;
+      searchButton.textContent="Search Product";
+    }
   }
 }
-function renderUnlistedMatchResults(
-  totalCount
-){
+function renderUnlistedMatchResults(totalCount){
+  const container=document.getElementById("unlistedMatchResults");
+  if(!container)return;
 
-  const container=
-    document.getElementById(
-      "unlistedMatchResults"
-    );
-
-
-  if(!container){
+  if(!unlistedMatchSearchResults.length){
+    container.innerHTML=`<div class="notice-panel">No matching existing products found.</div>`;
     return;
   }
-
-
-  if(
-    !unlistedMatchSearchResults.length
-  ){
-
-    container.innerHTML=`
-      <p class="muted">
-        No matching existing products found.
-      </p>
-    `;
-
-    return;
-  }
-
 
   let html=`
-    <hr>
-
-    <h3>Existing Products Found</h3>
-
-    <p class="muted">
-      Found ${Number(
-        totalCount||0
-      ).toLocaleString()} matching product(s).
-      Check the SKU, name and stock carefully before selecting.
-    </p>
+    <div class="section-heading compact-section-heading">
+      <div>
+        <h3>Existing Products Found</h3>
+        <p class="muted">${Number(totalCount||0).toLocaleString()} matching product(s). Confirm the SKU and inventory before selecting.</p>
+      </div>
+    </div>
+    <div class="unlisted-match-result-grid">
   `;
 
-
-  unlistedMatchSearchResults.forEach(
-    (product,index)=>{
-
-      html+=`
-        <div class="cart-line">
-
-          <strong>
-            ${escapeHtml(
-              product.productName||
-              ""
-            )}
-          </strong>
-
-          SKU:
-          <strong>
-            ${escapeHtml(
-              product.sku||
-              ""
-            )}
-          </strong>
-
-          <br>
-
-          ${
-            product.brand
-              ?`
-                Brand:
-                ${escapeHtml(
-                  product.brand
-                )}
-                <br>
-              `
-              :""
-          }
-
-          ${
-            product.model
-              ?`
-                Model:
-                ${escapeHtml(
-                  product.model
-                )}
-                <br>
-              `
-              :""
-          }
-
-          ${
-            product.itemType
-              ?`
-                Item Type:
-                ${escapeHtml(
-                  product.itemType
-                )}
-                <br>
-              `
-              :""
-          }
-
-          ${
-            product.specifications
-              ?`
-                Specifications:
-                ${escapeHtml(
-                  product.specifications
-                )}
-                <br>
-              `
-              :""
-          }
-
-          <br>
-
-          <strong>Current Inventory</strong>
-          <br>
-
-          CE1:
-          ${Number(
-            product.ce1Qty||0
-          ).toLocaleString()}
-          |
-
-          CE2:
-          ${Number(
-            product.ce2Qty||0
-          ).toLocaleString()}
-          |
-
-          CE3:
-          ${Number(
-            product.ce3Qty||0
-          ).toLocaleString()}
-
-          <br>
-
-          SOLER:
-          ${Number(
-            product.solerQty||0
-          ).toLocaleString()}
-          |
-
-          VACANT:
-          ${Number(
-            product.vacantQty||0
-          ).toLocaleString()}
-          |
-
-          UNKNOWN:
-          ${Number(
-            product.unknownQty||0
-          ).toLocaleString()}
-
-          <br>
-
-          Total:
-          <strong>
-            ${Number(
-              product.availableQty||0
-            ).toLocaleString()}
-          </strong>
-
-          <button
-            type="button"
-            onclick="selectExistingProductForUnlisted(${index})"
-          >
-            Select This Product
-          </button>
-
+  unlistedMatchSearchResults.forEach((product,index)=>{
+    html+=`
+      <div class="unlisted-match-result-card">
+        <div class="unlisted-match-result-head">
+          <div>
+            <div class="search-result-name">${escapeHtml(product.productName||"")}</div>
+            <span class="sku-chip">${escapeHtml(product.sku||"")}</span>
+          </div>
+          <button class="select-result-btn" type="button" onclick="selectExistingProductForUnlisted(${index})">Select Product</button>
         </div>
-      `;
-    }
-  );
 
+        <div class="search-result-meta">
+          <div>BRAND<strong>${escapeHtml(product.brand||"-")}</strong></div>
+          <div>MODEL<strong>${escapeHtml(product.model||"-")}</strong></div>
+          <div>ITEM TYPE<strong>${escapeHtml(product.itemType||"-")}</strong></div>
+          <div>SPECIFICATIONS<strong>${escapeHtml(product.specifications||"-")}</strong></div>
+        </div>
 
-  container.innerHTML=
-    html;
+        <div class="search-result-locations">
+          <div>CE1<strong>${Number(product.ce1Qty||0).toLocaleString()}</strong></div>
+          <div>CE2<strong>${Number(product.ce2Qty||0).toLocaleString()}</strong></div>
+          <div>CE3<strong>${Number(product.ce3Qty||0).toLocaleString()}</strong></div>
+          <div>SOLER<strong>${Number(product.solerQty||0).toLocaleString()}</strong></div>
+          <div>VACANT<strong>${Number(product.vacantQty||0).toLocaleString()}</strong></div>
+          <div>UNKNOWN<strong>${Number(product.unknownQty||0).toLocaleString()}</strong></div>
+        </div>
+
+        <div class="match-total-line">Available / Total: <strong>${Number(product.availableQty||product.posTotalQty||0).toLocaleString()}</strong></div>
+      </div>
+    `;
+  });
+
+  html+='</div>';
+  container.innerHTML=html;
 }
+
 function canUseReleaseItem(){
   const roleKey = String(currentUser && currentUser.role || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
   return(canAccess("RELEASING") && ["SALES", "SHOPEESTOCKCHECKER", "RELEASING"].includes(roleKey));
@@ -6712,6 +6699,7 @@ function backHome(){
 
 async function findProduct(){
   const searchValue=val("searchValue").trim();
+  const searchButton=document.getElementById("mainProductSearchBtn");
 
   if(!searchValue){
     setStatus(
@@ -6724,10 +6712,10 @@ async function findProduct(){
   keywordSearchResults=[];
   hide("keywordResults");
 
-  setStatus(
-    "Searching product...",
-    "info"
-  );
+  if(searchButton){
+    searchButton.disabled=true;
+    searchButton.innerHTML='<span class="button-icon" aria-hidden="true">⌕</span><span>Searching...</span>';
+  }
 
   /*
    * Decide BEFORE calling Apps Script.
@@ -6991,6 +6979,11 @@ async function findProduct(){
       ),
       "error"
     );
+  }finally{
+    if(searchButton){
+      searchButton.disabled=false;
+      searchButton.innerHTML='<span class="button-icon" aria-hidden="true">⌕</span><span>Search Product</span>';
+    }
   }
 }
 
@@ -8957,6 +8950,11 @@ async function submitCartTransaction(){
     return;
   }
   isSubmitting = true;
+  const submitButton=document.getElementById("mainSubmitTransactionBtn");
+  if(submitButton){
+    submitButton.disabled=true;
+    submitButton.textContent="Submitting...";
+  }
   setStatus("Submitting cart transaction...", "info");
   try{
     let res;
@@ -9141,6 +9139,10 @@ async function submitCartTransaction(){
     setStatus("Cart submit error: " + escapeHtml(err.message || err), "error");
   } finally{
     isSubmitting = false;
+    if(submitButton){
+      submitButton.disabled=false;
+      submitButton.textContent="✓ Submit";
+    }
   }
 }
 
@@ -10370,6 +10372,7 @@ function openProductManagement(){
   show("productManagementCard");
 
   show("productManagementMenu");
+  show("productManagementMenuBack");
   hide("productManagementWorkspace");
   document.getElementById("productManagementResults").innerHTML="";
   document.getElementById("productDeletePanel").innerHTML="";
@@ -10392,6 +10395,7 @@ function openProductManagementMode(mode){
   productManagementTotalCount=0;
 
   hide("productManagementMenu");
+  hide("productManagementMenuBack");
   show("productManagementWorkspace");
 
   const title=document.getElementById("productManagementModeTitle");
@@ -10399,7 +10403,7 @@ function openProductManagementMode(mode){
 
   if(productManagementMode==="DELETE"){
     title.textContent="Delete Product";
-    help.textContent="Search the exact product. Deletion is allowed only at zero stock with no pending workflow.";
+    help.textContent="Search the exact product. Products with stock can be deleted after a warning and confirmation. Pending workflows must still be cleared first.";
   }else{
     title.textContent="Add / Change Product Details";
     help.textContent="Search an active product and correct its descriptive information. SKU, quantities, and cost are not changed here.";
@@ -10418,6 +10422,7 @@ function closeProductManagementWorkspace(){
   productManagementResults=[];
   selectedProductManagementIndex=-1;
   show("productManagementMenu");
+  show("productManagementMenuBack");
   hide("productManagementWorkspace");
   document.getElementById("productManagementResults").innerHTML="";
   document.getElementById("productDeletePanel").innerHTML="";
@@ -10447,8 +10452,6 @@ async function searchProductManagement(page=1){
     container.innerHTML=`<p class="muted">Searching active inventory...</p>`;
   }
 
-  setStatus("Searching product management records...","info");
-
   try{
     const res=await apiCall({
       action:"searchProducts",
@@ -10475,7 +10478,6 @@ async function searchProductManagement(page=1){
       return;
     }
 
-    setStatus("Product search completed.","success-text");
   }catch(err){
     if(container){
       container.innerHTML=`<div class="notice-panel danger-panel">${escapeHtml(err.message||err)}</div>`;
@@ -10484,7 +10486,7 @@ async function searchProductManagement(page=1){
   }finally{
     if(button){
       button.disabled=false;
-      button.textContent="Search";
+      button.textContent="Search Product";
     }
   }
 }
@@ -10569,15 +10571,17 @@ function renderProductDeletePanel_(product){
 
   const total=Number(product.posTotalQty||0);
   const reserved=Number(product.reservedQty||0);
-  const canDelete=Math.abs(total)<0.000001&&Math.abs(reserved)<0.000001;
+  const hasStock=Math.abs(total)>0.000001;
+  const blockedByPending=Math.abs(reserved)>0.000001;
+  const statusText=blockedByPending?"PENDING WORKFLOW":hasStock?"STOCK WARNING":"READY TO DELETE";
 
   panel.innerHTML=`
     <div class="section-heading">
       <div>
         <h3>Selected Product</h3>
-        <p class="muted">The product must have zero physical stock and zero pending release quantity.</p>
+        <p class="muted">Active stock is allowed to be deleted, but you will receive a clear warning first. Pending release/workflow quantity must still be cleared.</p>
       </div>
-      <span class="badge">${canDelete?"READY TO DELETE":"CANNOT DELETE"}</span>
+      <span class="badge ${hasStock&&!blockedByPending?"warning-badge":""}">${statusText}</span>
     </div>
 
     <div class="product-found-shell">
@@ -10600,10 +10604,21 @@ function renderProductDeletePanel_(product){
       </div>
     </div>
 
-    ${canDelete?`
+    ${blockedByPending?`
+      <div class="notice-panel danger-panel">
+        This product has <strong>${reserved.toLocaleString()}</strong> pending release/workflow quantity. Complete or cancel the pending workflow before deleting the product.
+      </div>
+    `:`
+      ${hasStock?`
+        <div class="notice-panel warning-panel stock-delete-warning">
+          <strong>Warning: this product still has ${total.toLocaleString()} stock.</strong><br>
+          Deleting it will remove the active Inventory Dashboard, Product Location Log, and QR Maker rows including the current stock balances. Historical transactions will remain.
+        </div>
+      `:""}
+
       <div class="delete-zone">
         <h3>Delete Product</h3>
-        <p class="muted">This physically deletes the active rows from Inventory Dashboard, Product Location Log, and QR Maker. Historical transactions stay intact.</p>
+        <p class="muted">Enter a reason and type the exact SKU. This action removes the active product record; history remains available.</p>
 
         <label>Reason for Deletion *</label>
         <select id="productDeleteReason" onchange="updateProductDeleteReasonOther();updateDeleteProductButtonState();">
@@ -10623,11 +10638,7 @@ function renderProductDeletePanel_(product){
         <label>Type the Exact SKU to Confirm *</label>
         <input type="text" id="productDeleteConfirmSku" placeholder="${escapeHtml(product.sku||"")}" autocomplete="off" oninput="updateDeleteProductButtonState()">
 
-        <button id="confirmDeleteProductBtn" class="danger" type="button" onclick="deleteSelectedInventoryProduct()" disabled>Delete Product</button>
-      </div>
-    `:`
-      <div class="notice-panel danger-panel">
-        This product cannot be deleted yet. Total Stock: <strong>${total.toLocaleString()}</strong>; Pending Release: <strong>${reserved.toLocaleString()}</strong>.
+        <button id="confirmDeleteProductBtn" class="danger compact-primary-action" type="button" onclick="deleteSelectedInventoryProduct()" disabled>Delete Product</button>
       </div>
     `}
   `;
@@ -10729,10 +10740,9 @@ function updateDeleteProductButtonState(){
   const reason=getProductDeleteReason();
   const confirmSku=val("productDeleteConfirmSku").trim().toUpperCase();
   const exactSku=String(product.sku||"").trim().toUpperCase();
-  const total=Number(product.posTotalQty||0);
   const reserved=Number(product.reservedQty||0);
 
-  button.disabled=!(reason&&confirmSku===exactSku&&Math.abs(total)<0.000001&&Math.abs(reserved)<0.000001);
+  button.disabled=!(reason&&confirmSku===exactSku&&Math.abs(reserved)<0.000001);
 }
 
 async function saveSelectedProductDetails(){
@@ -10841,12 +10851,17 @@ async function deleteSelectedInventoryProduct(){
     return;
   }
 
+  const currentStock=Number(product.posTotalQty||0);
+  const stockWarning=Math.abs(currentStock)>0.000001
+    ?"\n\nWARNING: This product still has "+currentStock+" stock. Those active stock balances will be removed with the product."
+    :"";
+
   const confirmed=confirm(
     "Delete this product from ACTIVE inventory?\n\n"+
     "Product: "+(product.productName||"")+"\n"+
     "SKU: "+sku+"\n"+
-    "Reason: "+reason+"\n\n"+
-    "Historical transactions will remain."
+    "Reason: "+reason+
+    stockWarning+"\n\nHistorical transactions will remain."
   );
 
   if(!confirmed)return;
