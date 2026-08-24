@@ -546,7 +546,7 @@
 
 
     /* ======================================================
-       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.02
+       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.03
        Inspired by a classic inventory admin dashboard while
        keeping the current workflows and mobile usability.
        ====================================================== */
@@ -910,7 +910,7 @@
   
 
     /* ======================================================
-       CHARLON UI REFINEMENT — v2026.4.02
+       CHARLON UI REFINEMENT — v2026.4.03
        Cleaner lists, compact desktop actions, pagination,
        and a true mobile header navigation drawer.
        ====================================================== */
@@ -1469,7 +1469,7 @@
   
 
     /* ======================================================
-       FUNCTIONAL UI REFINEMENT — v2026.4.02
+       FUNCTIONAL UI REFINEMENT — v2026.4.03
        Keep the existing Charlon UI, improve consistency only.
        ====================================================== */
 
@@ -1664,7 +1664,7 @@
 
   
     /* ======================================================
-       POLISH UPDATE — v2026.4.02
+       POLISH UPDATE — v2026.4.03
        ====================================================== */
 
     .tool-action-button,
@@ -1731,7 +1731,7 @@
   
 
     /* ======================================================
-       SCREEN / FONT CONSISTENCY — v2026.4.02
+       SCREEN / FONT CONSISTENCY — v2026.4.03
        ====================================================== */
 
     /* One typography system throughout all clickable controls. */
@@ -1786,7 +1786,7 @@
   
 
     /* ======================================================
-       NAVIGATION / SEARCH RESET POLISH — v2026.4.02
+       NAVIGATION / SEARCH RESET POLISH — v2026.4.03
        ====================================================== */
 
     /* Quick action buttons use Charlon's dark blue action style. */
@@ -1850,6 +1850,92 @@
       min-width:120px!important;
     }
 
+  
+
+    /* =========================================================
+       NAVIGATION + FORM POLISH — v2026.4.03
+       ========================================================= */
+    .screen-title-row{
+      display:flex;
+      align-items:center;
+      gap:9px;
+      margin:0 0 4px;
+    }
+    .screen-title-row h2,
+    .screen-title-row h3{
+      margin:0!important;
+      line-height:1.2;
+    }
+    .icon-back-button{
+      width:34px!important;
+      min-width:34px!important;
+      height:34px!important;
+      min-height:34px!important;
+      padding:0!important;
+      margin:0!important;
+      border-radius:8px!important;
+      display:grid!important;
+      place-items:center!important;
+      flex:0 0 34px!important;
+      background:var(--brand)!important;
+      color:#fff!important;
+      border:0!important;
+      box-shadow:0 2px 6px rgba(16,42,67,.12)!important;
+    }
+    .icon-back-button:hover{background:var(--brand-dark)!important;}
+    .icon-back-button svg{width:17px;height:17px;display:block;}
+
+    /* Product Management search field and button share one baseline/height. */
+    #productManagementWorkspace .primary-search-row{
+      align-items:stretch!important;
+    }
+    #productManagementWorkspace .primary-search-row input,
+    #productManagementWorkspace .primary-search-row .search-action-btn{
+      min-height:40px!important;
+      height:40px!important;
+      margin:0!important;
+      box-sizing:border-box!important;
+    }
+
+    /* Compact Admin create form instead of full-page-width bars. */
+    .unlisted-create-form-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px 14px;
+      align-items:start;
+    }
+    .unlisted-create-field{min-width:0;}
+    .unlisted-create-field label{margin-top:0;}
+    .unlisted-create-field input,
+    .unlisted-create-field select,
+    .unlisted-create-field textarea{margin-bottom:0;}
+    .unlisted-create-field .muted{margin:5px 0 0;}
+    .unlisted-create-form-grid .grid-span-full{grid-column:1/-1;}
+    .unlisted-create-preview-card{margin:0;}
+    #unlistedCreateOriginal.product-box{
+      padding:0!important;
+      border:0!important;
+      background:transparent!important;
+    }
+
+    /* With Back moved to title rows, keep action areas focused on actions only. */
+    #scanCard .tool-action-grid{
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    }
+
+    @media(max-width:700px){
+      .unlisted-create-form-grid{grid-template-columns:1fr;}
+      .unlisted-create-form-grid .grid-span-full{grid-column:auto;}
+      .screen-title-row{gap:7px;}
+      .icon-back-button{
+        width:32px!important;
+        min-width:32px!important;
+        height:32px!important;
+        min-height:32px!important;
+        flex-basis:32px!important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -1890,7 +1976,7 @@
   <nav id="sidebarNav" class="sidebar-nav"></nav>
 
   <div class="sidebar-footer">
-    <small>v2026.4.02</small>
+    <small>v2026.4.03</small>
   </div>
 </aside>
 
@@ -1940,7 +2026,7 @@
       </div>
     </div>
     <p class="auth-copy">Internal inventory, sales, releasing, transfer, return, and stock-management workspace.</p>
-    <span class="version-chip">v2026.4.02</span>
+    <span class="version-chip">v2026.4.03</span>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -1986,7 +2072,10 @@
   </div>
 
   <div class="card hidden" id="scanCard">
-    <h2 id="transactionTitle">Scan Product</h2>
+    <div class="screen-title-row">
+      <button class="icon-back-button" type="button" onclick="goBackFromScan()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m10 17-5-5 5-5"/></svg></button>
+      <h2 id="transactionTitle">Scan Product</h2>
+    </div>
     <label>Barcode / SKU / Product Keyword</label>
     <div class="search-row primary-search-row">
       <input type="text" id="searchValue" placeholder="Scan SKU/QR or type product keywords" autocomplete="off">
@@ -2017,10 +2106,6 @@
         <span class="tool-action-copy"><strong>Stop Scanner</strong><small>Close camera scanner</small></span>
       </button>
 
-      <button class="tool-action-button secondary" type="button" onclick="backHome()">
-        <span class="tool-action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m10 17-5-5 5-5"/></svg></span>
-        <span class="tool-action-copy"><strong>Back</strong><small>Return to Home</small></span>
-      </button>
     </div>
     <div id="reader"></div>
 
@@ -2199,7 +2284,10 @@
   </div>
 
   <div class="card hidden" id="reportsCard">
-    <h3>Reports / History</h3>
+    <div class="screen-title-row">
+      <button class="icon-back-button" type="button" onclick="backHome()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m10 17-5-5 5-5"/></svg></button>
+      <h3>Reports / History</h3>
+    </div>
     <p class="muted">For manager/admin checking. Search by transaction ID, receipt no., SKU, product name, staff name, location, or notes.</p>
 
     <label>Search</label>
@@ -2245,15 +2333,13 @@
     <input type="number" id="historyLimit" min="10" max="200" value="50">
   
     <button type="button" onclick="findHistory()">Search History</button>
-    <button class="secondary" type="button" onclick="backHome()">Back</button>
-  
     <div id="historyResults" class="product-box"></div>
   </div>  
   
   <div class="card hidden" id="productManagementCard">
     <div class="section-heading">
       <div>
-        <h3>Product Management</h3>
+        <div class="screen-title-row"><button class="icon-back-button" type="button" onclick="backHome()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m10 17-5-5 5-5"/></svg></button><h3>Product Management</h3></div>
         <p class="muted">Manager tools for correcting stock and maintaining active product records.</p>
       </div>
     </div>
@@ -2281,20 +2367,16 @@
       </button>
     </div>
 
-    <div id="productManagementMenuBack" class="navigation-actions">
-      <button class="secondary compact-nav-button" type="button" onclick="backHome()">Back</button>
-    </div>
-
     <div id="productManagementWorkspace" class="management-workspace hidden">
       <div class="section-heading">
         <div>
-          <h3 id="productManagementModeTitle">Product Tool</h3>
+          <div class="screen-title-row"><button class="icon-back-button" type="button" onclick="closeProductManagementWorkspace()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m10 17-5-5 5-5"/></svg></button><h3 id="productManagementModeTitle">Product Tool</h3></div>
           <p id="productManagementModeHelp" class="muted"></p>
         </div>
       </div>
 
       <label>Search Product</label>
-      <div class="search-row">
+      <div class="search-row primary-search-row">
         <input
           type="text"
           id="productManagementSearch"
@@ -2307,17 +2389,13 @@
 
       <div id="productManagementResults" class="product-box"></div>
       <div id="productDeletePanel" class="product-box hidden"></div>
-
-      <div class="navigation-actions">
-        <button class="secondary compact-nav-button" type="button" onclick="closeProductManagementWorkspace()">Back</button>
-      </div>
     </div>
   </div>
 
   <div class="card hidden" id="ticketCard">
     <div class="section-heading">
       <div>
-        <h3>Transaction Follow-up</h3>
+        <div class="screen-title-row"><button class="icon-back-button" type="button" onclick="backHome()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m10 17-5-5 5-5"/></svg></button><h3>Transaction Follow-up</h3></div>
         <p class="muted">Search by Ticket No., Order No., or Receipt No. and review the transaction details.</p>
       </div>
     </div>
@@ -2330,14 +2408,10 @@
 
     <div id="ticketInfo" class="ticket-results"></div>
     <div id="ticketActions"></div>
-
-    <div class="navigation-actions ticket-navigation-actions">
-      <button class="secondary compact-nav-button" type="button" onclick="backHome()">Back</button>
-    </div>
   </div>
 
   <div class="card hidden" id="revampReturnCard">
-    <h3>Return Stock-In</h3>
+    <div class="screen-title-row"><button class="icon-back-button" type="button" onclick="backHome()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m10 17-5-5 5-5"/></svg></button><h3>Return Stock-In</h3></div>
     <p class="muted">
       Search receipt no., choose returned item/s, then submit for approval.
       Stock will only be added after approval.
@@ -2365,11 +2439,10 @@
 
     <div id="revampReturnItems" class="product-box"></div>
 
-    <button class="secondary" type="button" onclick="backHome()">Back</button>
   </div>
 
   <div class="card hidden" id="approvalCard">
-    <h3>My Approvals</h3>
+    <div class="screen-title-row"><button class="icon-back-button" type="button" onclick="backHome()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m10 17-5-5 5-5"/></svg></button><h3>My Approvals</h3></div>
     <p class="muted">
       Review pending returns and stock transfers assigned to you. Stock changes only after approval.
     </p>
@@ -2378,11 +2451,10 @@
 
     <div id="approvalList" class="product-box"></div>
 
-    <button class="secondary" type="button" onclick="backHome()">Back</button>
   </div>
 
   <div class="card hidden" id="releaseRequestsCard">
-    <h3>My Release Requests</h3>
+    <div class="screen-title-row"><button class="icon-back-button" type="button" onclick="backHome()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m10 17-5-5 5-5"/></svg></button><h3>My Release Requests</h3></div>
   
     <p class="muted">
       Review pending released items assigned to you.
@@ -2393,10 +2465,6 @@
     </button>
   
     <div id="releaseRequestsList" class="product-box"></div>
-  
-    <button class="secondary" type="button" onclick="backHome()">
-      Back
-    </button>
   </div>
   
   <div
@@ -2423,145 +2491,70 @@
     <hr>
   
     <h3>Final Product Information</h3>
-  
-  
-    <label>Brand *</label>
-    <div class="autocomplete-field">
-      <input
-        type="text"
-        id="unlistedCreateBrand"
-        autocomplete="off"
-        placeholder='Search Brand or enter "No Brand"'
-        oninput="handleCatalogInput(this,'unlistedCreateBrandSuggestions','brands',updateAdminCreateDerivedFields)"
-        onfocus="handleCatalogInput(this,'unlistedCreateBrandSuggestions','brands',updateAdminCreateDerivedFields)"
-      >
-      <div id="unlistedCreateBrandSuggestions" class="suggestion-list hidden"></div>
+
+    <div class="unlisted-create-form-grid">
+      <div class="unlisted-create-field">
+        <label>Brand *</label>
+        <div class="autocomplete-field">
+          <input type="text" id="unlistedCreateBrand" autocomplete="off" placeholder='Search Brand or enter "No Brand"' oninput="handleCatalogInput(this,'unlistedCreateBrandSuggestions','brands',updateAdminCreateDerivedFields)" onfocus="handleCatalogInput(this,'unlistedCreateBrandSuggestions','brands',updateAdminCreateDerivedFields)">
+          <div id="unlistedCreateBrandSuggestions" class="suggestion-list hidden"></div>
+        </div>
+        <div id="unlistedCreateBrandCodeWrap" class="hidden">
+          <label>New Brand Code *</label>
+          <input type="text" id="unlistedCreateBrandCode" maxlength="2" placeholder="1-2 characters" oninput="sanitizeAdminCreateCode(this,2);updateAdminCreateDerivedFields();">
+          <p class="muted">New Brand detected. Confirm the 1-2 character Brand Code.</p>
+        </div>
+      </div>
+
+      <div class="unlisted-create-field">
+        <label>Model</label>
+        <input type="text" id="unlistedCreateModel" oninput="updateAdminCreateDerivedFields()">
+      </div>
+
+      <div class="unlisted-create-field">
+        <label>Specifications</label>
+        <input type="text" id="unlistedCreateSpecifications" oninput="updateAdminCreateDerivedFields()">
+      </div>
+
+      <div class="unlisted-create-field">
+        <label>Description</label>
+        <input type="text" id="unlistedCreateDescription" oninput="updateAdminCreateDerivedFields()">
+      </div>
+
+      <div class="unlisted-create-field">
+        <label>Item Type *</label>
+        <div class="autocomplete-field">
+          <input type="text" id="unlistedCreateItemType" autocomplete="off" placeholder="Search or type Item Type" oninput="handleCatalogInput(this,'unlistedCreateItemTypeSuggestions','itemTypes',updateAdminCreateDerivedFields)" onfocus="handleCatalogInput(this,'unlistedCreateItemTypeSuggestions','itemTypes',updateAdminCreateDerivedFields)">
+          <div id="unlistedCreateItemTypeSuggestions" class="suggestion-list hidden"></div>
+        </div>
+        <div id="unlistedCreateItemTypeCodeWrap" class="hidden">
+          <label>New Item Type Code *</label>
+          <input type="text" id="unlistedCreateItemTypeCode" maxlength="4" placeholder="3-4 characters" oninput="sanitizeAdminCreateCode(this,4);updateAdminCreateDerivedFields();">
+          <p class="muted">New Item Type detected. Confirm the 3-4 character Item Type Code.</p>
+        </div>
+      </div>
+
+      <div class="unlisted-create-field">
+        <label>For / With</label>
+        <input type="text" id="unlistedCreateForWith" placeholder="Example: for Metal / with Battery" oninput="updateAdminCreateDerivedFields()">
+      </div>
+
+      <div class="unlisted-create-field">
+        <label>Cost Per Unit</label>
+        <input type="number" id="unlistedCreateCost" min="0" step="0.01">
+      </div>
+
+      <div class="unlisted-create-field grid-span-full">
+        <label>Final Product Name</label>
+        <input type="text" id="unlistedCreateProductName" readonly>
+      </div>
+
+      <div class="unlisted-create-field grid-span-full">
+        <label>Generated SKU</label>
+        <input type="text" id="unlistedCreateSku" placeholder="SKU will be generated automatically" readonly>
+        <p class="muted">The SKU is generated automatically from the product information.</p>
+      </div>
     </div>
-  
-  
-    <!-- ONLY APPEARS IF BRAND IS NEW -->
-    <div
-      id="unlistedCreateBrandCodeWrap"
-      class="hidden"
-    >
-      <label>New Brand Code *</label>
-  
-      <input
-        type="text"
-        id="unlistedCreateBrandCode"
-        maxlength="2"
-        placeholder="1-2 characters"
-        oninput="
-          sanitizeAdminCreateCode(this,2);
-          updateAdminCreateDerivedFields();
-        "
-      >
-  
-      <p class="muted">
-        New Brand detected. Confirm the 1-2 character Brand Code.
-      </p>
-    </div>
-  
-  
-    <label>Model</label>
-    <input
-      type="text"
-      id="unlistedCreateModel"
-      oninput="updateAdminCreateDerivedFields()"
-    >
-  
-  
-    <label>Specifications</label>
-    <input
-      type="text"
-      id="unlistedCreateSpecifications"
-      oninput="updateAdminCreateDerivedFields()"
-    >
-  
-  
-    <label>Description</label>
-    <input
-      type="text"
-      id="unlistedCreateDescription"
-      oninput="updateAdminCreateDerivedFields()"
-    >
-  
-  
-    <label>Item Type *</label>
-    <div class="autocomplete-field">
-      <input
-        type="text"
-        id="unlistedCreateItemType"
-        autocomplete="off"
-        placeholder="Search or type Item Type"
-        oninput="handleCatalogInput(this,'unlistedCreateItemTypeSuggestions','itemTypes',updateAdminCreateDerivedFields)"
-        onfocus="handleCatalogInput(this,'unlistedCreateItemTypeSuggestions','itemTypes',updateAdminCreateDerivedFields)"
-      >
-      <div id="unlistedCreateItemTypeSuggestions" class="suggestion-list hidden"></div>
-    </div>
-  
-  
-    <!-- ONLY APPEARS IF ITEM TYPE IS NEW -->
-    <div
-      id="unlistedCreateItemTypeCodeWrap"
-      class="hidden"
-    >
-      <label>New Item Type Code *</label>
-  
-      <input
-        type="text"
-        id="unlistedCreateItemTypeCode"
-        maxlength="4"
-        placeholder="3-4 characters"
-        oninput="
-          sanitizeAdminCreateCode(this,4);
-          updateAdminCreateDerivedFields();
-        "
-      >
-  
-      <p class="muted">
-        New Item Type detected. Confirm the 3-4 character Item Type Code.
-      </p>
-    </div>
-  
-  
-    <label>For / With</label>
-    <input
-      type="text"
-      id="unlistedCreateForWith"
-      placeholder="Example: for Metal / with Battery"
-      oninput="updateAdminCreateDerivedFields()"
-    >
-  
-  
-    <label>Cost Per Unit</label>
-    <input
-      type="number"
-      id="unlistedCreateCost"
-      min="0"
-      step="0.01"
-    >
-  
-  
-    <label>Final Product Name</label>
-    <input
-      type="text"
-      id="unlistedCreateProductName"
-      readonly
-    >
-  
-  
-    <label>Generated SKU</label>
-    <input
-      type="text"
-      id="unlistedCreateSku"
-      placeholder="SKU will be generated automatically"
-      readonly
-    >
-  
-    <p class="muted">
-      The SKU is generated automatically from the product information.
-    </p>
   
   
     <button
@@ -2583,7 +2576,7 @@
     </button>
   
   </div>
-    <h3>Unlisted Product Review</h3>
+    <div class="screen-title-row"><button class="icon-back-button" type="button" onclick="backHome()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m10 17-5-5 5-5"/></svg></button><h3>Unlisted Product Review</h3></div>
   
     <p class="muted">
       Review products sold before they were listed in the inventory system.
@@ -2649,18 +2642,8 @@
           Cancel Match
         </button>
       </div>
-      
-      
-      <button
-        class="secondary"
-        type="button"
-        onclick="backHome()"
-      >
-        Back
-      </button>
   </div>
-  
-  
+
   <div class="card hidden" id="formCard">
     <h3 id="formTitle">Transaction Form</h3>
     <div id="formFields"></div>
@@ -3188,10 +3171,8 @@ function renderSidebarNav_(){
     nav.appendChild(makeSidebarNavButton_("count","Count Actual Stock",()=>chooseType("COUNT_CHECK")));
   }
 
-  const currentNameKey=String(currentUser.name||"").trim().toUpperCase();
-  const approvalUserKeys=(settings.approvalUsers||[]).map(name=>String(name||"").trim().toUpperCase());
-  if(approvalUserKeys.includes(currentNameKey)){
-    nav.appendChild(makeSidebarNavButton_("approvals","My Approvals",openMyApprovals));
+  if(canViewMyApprovals()){
+    nav.appendChild(makeSidebarNavButton_("approvals","My Approvals",openMyApprovals,pendingApprovalCount,"APPROVALS"));
   }
 
   if(canAccess("REPORTSHISTORY")){
@@ -4263,87 +4244,47 @@ function startUnlistedCreate(index){
 
 
   if(original){
+    const originalPairs=[
+      ["Brand",item.brand||"-"],
+      ["Model",item.model||"-"],
+      ["Item Type",item.itemType||"-"],
+      ["Specifications",item.specifications||"-"],
+      ["Description",item.description||"-"],
+      ["For / With",item.forWith||"-"]
+    ];
 
     original.innerHTML=`
-      <div class="cart-line">
-
-        <strong>
-          Original Salesperson Entry
-        </strong>
-
-        <br><br>
-
-        Product Name:
-        ${escapeHtml(
-          item.productName||"-"
-        )}
-
-        <br>
-
-        Brand:
-        ${escapeHtml(
-          item.brand||"-"
-        )}
-
-        <br>
-
-        Model:
-        ${escapeHtml(
-          item.model||"-"
-        )}
-
-        <br>
-
-        Specifications:
-        ${escapeHtml(
-          item.specifications||"-"
-        )}
-
-        <br>
-
-        Description:
-        ${escapeHtml(
-          item.description||"-"
-        )}
-
-        <br>
-
-        Item Type:
-        ${escapeHtml(
-          item.itemType||"-"
-        )}
-
-        <br>
-
-        For / With:
-        ${escapeHtml(
-          item.forWith||"-"
-        )}
-
-        <br><br>
-
-        Qty Sold:
-        ${Number(
-          item.qty||0
-        ).toLocaleString()}
-
-        <br>
-
-        Source:
-        ${escapeHtml(
-          item.sourceLocation||""
-        )}
-
-        <br>
-
-        Added By:
-        ${escapeHtml(
-          item.addedBy||""
-        )}
-
-      </div>
+      <article class="unlisted-review-card unlisted-create-preview-card">
+        <div class="unlisted-review-head">
+          <div>
+            <div class="unlisted-review-name">${escapeHtml(item.productName||"")}</div>
+            <div class="unlisted-review-ids">
+              <span>${escapeHtml(item.unlistedId||"")}</span>
+              <span>Original salesperson entry</span>
+            </div>
+          </div>
+        </div>
+        <div class="unlisted-review-body">
+          <div class="unlisted-review-section">
+            <h4>Product Details</h4>
+            <div class="unlisted-detail-grid">
+              ${originalPairs.map(pair=>`<div><span>${escapeHtml(pair[0])}</span><strong>${escapeHtml(pair[1])}</strong></div>`).join("")}
+            </div>
+          </div>
+          <div class="unlisted-review-section sale-summary-section">
+            <h4>Sale Details</h4>
+            <div class="unlisted-sale-grid">
+              <div><span>Qty Sold</span><strong>${Number(item.qty||0).toLocaleString()}</strong></div>
+              <div><span>Source</span><strong>${escapeHtml(item.sourceLocation||"-")}</strong></div>
+              <div><span>Price / Unit</span><strong>₱${Number(item.pricePerUnit||0).toLocaleString()}</strong></div>
+              <div><span>Cost / Unit</span><strong>₱${Number(item.costPerUnit||0).toLocaleString()}</strong></div>
+              <div><span>Added By</span><strong>${escapeHtml(item.addedBy||"-")}</strong></div>
+              <div><span>Date Added</span><strong>${escapeHtml(formatDateTime(item.dateAdded))}</strong></div>
+            </div>
+          </div>
+        </div>
+      </article>
     `;
-
   }
 
 
@@ -6417,6 +6358,16 @@ function openHome(){
   startNotificationRefresh();
 }
 
+function canViewMyApprovals(){
+  if(!currentUser){
+    return false;
+  }
+
+  const currentNameKey=String(currentUser.name||"").trim().toUpperCase();
+  const approvalUserKeys=(settings.approvalUsers||[]).map(name=>String(name||"").trim().toUpperCase());
+  return approvalUserKeys.includes(currentNameKey);
+}
+
 function renderHomeButtons(){
   const container=document.getElementById("homeButtons");
   if(!container)return;
@@ -6472,6 +6423,17 @@ function renderHomeButtons(){
       openMyReleaseRequests,
       pendingReleaseCount,
       "RELEASES"
+    );
+  }
+
+  if(canViewMyApprovals()){
+    addHomeButton(
+      "approvals",
+      "My Approvals",
+      "Review pending returns and stock transfers assigned to you.",
+      openMyApprovals,
+      pendingApprovalCount,
+      "APPROVALS"
     );
   }
 
@@ -6918,6 +6880,17 @@ function chooseType(type){
   document.getElementById("transactionTitle").innerText=titles[type]||"Scan Product";
   setStatus("Scan QR code or type SKU.","muted");
   setTimeout(()=>document.getElementById("searchValue").focus(),300);
+}
+
+function goBackFromScan(){
+  stopCamera();
+
+  if(currentType==="INVENTORY_ADJUSTMENT" || productManagementMode==="ADJUST"){
+    openProductManagement();
+    return;
+  }
+
+  backHome();
 }
 
 function backHome(){
@@ -10660,7 +10633,6 @@ function openProductManagement(){
   show("productManagementCard");
 
   show("productManagementMenu");
-  show("productManagementMenuBack");
   hide("productManagementWorkspace");
   document.getElementById("productManagementResults").innerHTML="";
   document.getElementById("productDeletePanel").innerHTML="";
@@ -10682,7 +10654,6 @@ function openProductManagementMode(mode){
   productManagementTotalCount=0;
 
   hide("productManagementMenu");
-  hide("productManagementMenuBack");
   show("productManagementWorkspace");
 
   const title=document.getElementById("productManagementModeTitle");
@@ -10709,7 +10680,6 @@ function closeProductManagementWorkspace(){
   productManagementResults=[];
   selectedProductManagementIndex=-1;
   show("productManagementMenu");
-  show("productManagementMenuBack");
   hide("productManagementWorkspace");
   document.getElementById("productManagementResults").innerHTML="";
   document.getElementById("productDeletePanel").innerHTML="";
