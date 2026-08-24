@@ -546,7 +546,7 @@
 
 
     /* ======================================================
-       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.01
+       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.02
        Inspired by a classic inventory admin dashboard while
        keeping the current workflows and mobile usability.
        ====================================================== */
@@ -910,7 +910,7 @@
   
 
     /* ======================================================
-       CHARLON UI REFINEMENT — v2026.4.01
+       CHARLON UI REFINEMENT — v2026.4.02
        Cleaner lists, compact desktop actions, pagination,
        and a true mobile header navigation drawer.
        ====================================================== */
@@ -1469,7 +1469,7 @@
   
 
     /* ======================================================
-       FUNCTIONAL UI REFINEMENT — v2026.4.01
+       FUNCTIONAL UI REFINEMENT — v2026.4.02
        Keep the existing Charlon UI, improve consistency only.
        ====================================================== */
 
@@ -1664,7 +1664,7 @@
 
   
     /* ======================================================
-       POLISH UPDATE — v2026.4.01
+       POLISH UPDATE — v2026.4.02
        ====================================================== */
 
     .tool-action-button,
@@ -1731,7 +1731,7 @@
   
 
     /* ======================================================
-       SCREEN / FONT CONSISTENCY — v2026.4.01
+       SCREEN / FONT CONSISTENCY — v2026.4.02
        ====================================================== */
 
     /* One typography system throughout all clickable controls. */
@@ -1783,6 +1783,73 @@
       }
     }
 
+  
+
+    /* ======================================================
+       NAVIGATION / SEARCH RESET POLISH — v2026.4.02
+       ====================================================== */
+
+    /* Quick action buttons use Charlon's dark blue action style. */
+    .tool-action-button,
+    .tool-action-button.secondary{
+      background:var(--charlon-blue)!important;
+      border-color:var(--charlon-blue)!important;
+      color:#fff!important;
+      box-shadow:0 2px 6px rgba(0,72,113,.12)!important;
+    }
+
+    .tool-action-button:hover:not(:disabled),
+    .tool-action-button.secondary:hover:not(:disabled){
+      background:var(--charlon-blue-dark)!important;
+      border-color:var(--charlon-blue-dark)!important;
+      color:#fff!important;
+      box-shadow:0 4px 10px rgba(0,72,113,.18)!important;
+    }
+
+    .tool-action-button .tool-action-icon{
+      background:rgba(255,255,255,.13)!important;
+      color:#fff!important;
+      border:1px solid rgba(255,255,255,.14)!important;
+    }
+
+    .tool-action-button .tool-action-icon svg{
+      color:#fff!important;
+      stroke:#fff!important;
+    }
+
+    .tool-action-button .tool-action-copy strong{
+      color:#fff!important;
+    }
+
+    .tool-action-button .tool-action-copy small{
+      color:rgba(255,255,255,.76)!important;
+    }
+
+    /* Product Management uses the exact title/helper typography
+       used by the Home action cards. */
+    .management-menu-copy strong{
+      font-family:Arial,Helvetica,sans-serif!important;
+      font-size:14px!important;
+      font-weight:700!important;
+      line-height:1.25!important;
+      color:#344b5c!important;
+      text-align:center!important;
+    }
+
+    .management-menu-copy > span{
+      font-family:Arial,Helvetica,sans-serif!important;
+      font-size:11px!important;
+      font-weight:400!important;
+      line-height:1.35!important;
+      color:#7a8995!important;
+      text-align:center!important;
+    }
+
+    /* Every ordinary Back control shares one concise label/style. */
+    .compact-nav-button{
+      min-width:120px!important;
+    }
+
   </style>
 </head>
 <body>
@@ -1823,7 +1890,7 @@
   <nav id="sidebarNav" class="sidebar-nav"></nav>
 
   <div class="sidebar-footer">
-    <small>v2026.4.01</small>
+    <small>v2026.4.02</small>
   </div>
 </aside>
 
@@ -1873,7 +1940,7 @@
       </div>
     </div>
     <p class="auth-copy">Internal inventory, sales, releasing, transfer, return, and stock-management workspace.</p>
-    <span class="version-chip">v2026.4.01</span>
+    <span class="version-chip">v2026.4.02</span>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -2215,7 +2282,7 @@
     </div>
 
     <div id="productManagementMenuBack" class="navigation-actions">
-      <button class="secondary compact-nav-button" type="button" onclick="backHome()">← Back to Home</button>
+      <button class="secondary compact-nav-button" type="button" onclick="backHome()">Back</button>
     </div>
 
     <div id="productManagementWorkspace" class="management-workspace hidden">
@@ -2242,8 +2309,7 @@
       <div id="productDeletePanel" class="product-box hidden"></div>
 
       <div class="navigation-actions">
-        <button class="secondary compact-nav-button" type="button" onclick="closeProductManagementWorkspace()">← Product Management</button>
-        <button class="secondary compact-nav-button" type="button" onclick="backHome()">← Home</button>
+        <button class="secondary compact-nav-button" type="button" onclick="closeProductManagementWorkspace()">Back</button>
       </div>
     </div>
   </div>
@@ -2266,7 +2332,7 @@
     <div id="ticketActions"></div>
 
     <div class="navigation-actions ticket-navigation-actions">
-      <button class="secondary compact-nav-button" type="button" onclick="backHome()">← Home</button>
+      <button class="secondary compact-nav-button" type="button" onclick="backHome()">Back</button>
     </div>
   </div>
 
@@ -2904,7 +2970,76 @@ function hide(id){
   }
 }
 
+function resetProductSearchState_(){
+  /*
+   * Clear product-search state whenever the user changes
+   * to another main workspace. This prevents old results,
+   * selected products, and page numbers from cluttering
+   * the next screen when the user comes back later.
+   */
+  keywordSearchResults=[];
+  productSearchPage=1;
+  productSearchTotalPages=0;
+  productSearchTotalCount=0;
+  currentProduct=null;
+
+  const searchValue=document.getElementById("searchValue");
+  if(searchValue){
+    searchValue.value="";
+  }
+
+  const keywordResults=document.getElementById("keywordResults");
+  if(keywordResults){
+    keywordResults.innerHTML="";
+    keywordResults.classList.add("hidden");
+  }
+
+  const productInfo=document.getElementById("productInfo");
+  if(productInfo){
+    productInfo.innerHTML="";
+  }
+  hide("productCard");
+
+  /* Product Management search */
+  productManagementResults=[];
+  selectedProductManagementIndex=-1;
+  productManagementPage=1;
+  productManagementTotalPages=0;
+  productManagementTotalCount=0;
+
+  const managementSearch=document.getElementById("productManagementSearch");
+  if(managementSearch){
+    managementSearch.value="";
+  }
+
+  const managementResults=document.getElementById("productManagementResults");
+  if(managementResults){
+    managementResults.innerHTML="";
+  }
+
+  const managementPanel=document.getElementById("productDeletePanel");
+  if(managementPanel){
+    managementPanel.innerHTML="";
+    managementPanel.classList.add("hidden");
+  }
+
+  /* Unlisted Product -> Match Existing search */
+  unlistedMatchSearchResults=[];
+  window.selectedExistingUnlistedProduct=null;
+
+  const unlistedSearch=document.getElementById("unlistedMatchSearch");
+  if(unlistedSearch){
+    unlistedSearch.value="";
+  }
+
+  const unlistedResults=document.getElementById("unlistedMatchResults");
+  if(unlistedResults){
+    unlistedResults.innerHTML="";
+  }
+}
+
 function hideAllWorkspaceCards_(){
+  resetProductSearchState_();
   [
     "homeCard",
     "scanCard",
@@ -7347,7 +7482,7 @@ function renderProduct(){
       </div>
 
       ${keywordSearchResults.length?`
-        <button type="button" class="secondary" onclick="backToKeywordResults()">Back to Search Results</button>
+        <button type="button" class="secondary" onclick="backToKeywordResults()">Back</button>
       `:""}
     </div>
   `;
