@@ -546,7 +546,7 @@
 
 
     /* ======================================================
-       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.10
+       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.08.25.2
        Inspired by a classic inventory admin dashboard while
        keeping the current workflows and mobile usability.
        ====================================================== */
@@ -910,7 +910,7 @@
   
 
     /* ======================================================
-       CHARLON UI REFINEMENT — v2026.4.10
+       CHARLON UI REFINEMENT — v2026.08.25.2
        Cleaner lists, compact desktop actions, pagination,
        and a true mobile header navigation drawer.
        ====================================================== */
@@ -1469,7 +1469,7 @@
   
 
     /* ======================================================
-       FUNCTIONAL UI REFINEMENT — v2026.4.10
+       FUNCTIONAL UI REFINEMENT — v2026.08.25.2
        Keep the existing Charlon UI, improve consistency only.
        ====================================================== */
 
@@ -1664,7 +1664,7 @@
 
   
     /* ======================================================
-       POLISH UPDATE — v2026.4.10
+       POLISH UPDATE — v2026.08.25.2
        ====================================================== */
 
     .tool-action-button,
@@ -1731,7 +1731,7 @@
   
 
     /* ======================================================
-       SCREEN / FONT CONSISTENCY — v2026.4.10
+       SCREEN / FONT CONSISTENCY — v2026.08.25.2
        ====================================================== */
 
     /* One typography system throughout all clickable controls. */
@@ -1786,7 +1786,7 @@
   
 
     /* ======================================================
-       NAVIGATION / SEARCH RESET POLISH — v2026.4.10
+       NAVIGATION / SEARCH RESET POLISH — v2026.08.25.2
        ====================================================== */
 
     /* Quick action buttons use Charlon's dark blue action style. */
@@ -1853,7 +1853,7 @@
   
 
     /* =========================================================
-       NAVIGATION + FORM POLISH — v2026.4.10
+       NAVIGATION + FORM POLISH — v2026.08.25.2
        ========================================================= */
     .screen-title-row{
       display:flex;
@@ -1939,7 +1939,7 @@
   
 
     /* =========================================================
-       SPACE + TITLE POLISH — v2026.4.10
+       SPACE + TITLE POLISH — v2026.08.25.2
        ========================================================= */
 
     /* The blue app header belongs to the top of the page and no longer
@@ -2138,7 +2138,7 @@
     }
 
     /* =========================================================
-       CONSISTENCY POLISH — v2026.4.10
+       CONSISTENCY POLISH — v2026.08.25.2
        ========================================================= */
 
     /* Product Management sub-pages should begin exactly like
@@ -2218,7 +2218,7 @@
 
   
     /* =========================================================
-       FUNCTIONAL POLISH — v2026.4.10
+       FUNCTIONAL POLISH — v2026.08.25.2
        ========================================================= */
 
     /* Refresh icon is centered vertically and horizontally. */
@@ -2278,7 +2278,7 @@
 
   
     /* =========================================================
-       TRANSACTION / HISTORY POLISH — v2026.4.10
+       TRANSACTION / HISTORY POLISH — v2026.08.25.2
        ========================================================= */
 
     .transaction-feedback-banner{
@@ -2528,7 +2528,7 @@
 
   
     /* =========================================================
-       MOBILE + NOTIFICATION POLISH — v2026.4.10
+       MOBILE + NOTIFICATION POLISH — v2026.08.25.2
        ========================================================= */
 
     .refresh-action-button{
@@ -2669,7 +2669,7 @@
 
   
     /* =========================================================
-       SECURITY / MANAGER HEALTH — v2026.4.10
+       SECURITY / MANAGER HEALTH — v2026.08.25.2
        ========================================================= */
 
     .manager-dashboard-warnings{
@@ -2779,7 +2779,7 @@
   <nav id="sidebarNav" class="sidebar-nav"></nav>
 
   <div class="sidebar-footer">
-    <small>v2026.4.10</small>
+    <small>v2026.08.25.2</small>
   </div>
 </aside>
 
@@ -2829,7 +2829,7 @@
       </div>
     </div>
     <p class="auth-copy">Internal inventory, sales, releasing, transfer, return, and stock-management workspace.</p>
-    <span class="version-chip">v2026.4.10</span>
+    <span class="version-chip">v2026.08.25.2</span>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -3507,6 +3507,8 @@
 
 <script>
 'use strict';
+const APP_VERSION = "2026.08.25.2";
+const EXPECTED_API_VERSION = APP_VERSION;
 const API_URL = "https://script.google.com/macros/s/AKfycbx7iFaGeikvykjRicd8kcv6NZQAFg5oYwaRTXU3m4ylM4l8mvqaS84X-iUgLrFWiNUUrw/exec";
 let currentUser = null;
 let currentPin = "";
@@ -3546,14 +3548,19 @@ let pendingReleaseCount=0;
 let notificationRefreshTimer=null;
 let notificationRefreshRunning=false;
 const NOTIFICATION_REFRESH_MS=5*1000;
-const SESSION_STORAGE_KEY = "charlonMiniPosSessionV2";
-const LEGACY_SESSION_STORAGE_KEY = "charlonMiniPosSessionV1";
+const SESSION_STORAGE_KEY = "charlonMiniPosSessionV3";
+const LEGACY_SESSION_STORAGE_KEYS = [
+  "charlonMiniPosSessionV1",
+  "charlonMiniPosSessionV2",
+  "charlonMiniPosSessionV3"
+];
 const CLIENT_REQUEST_ID_TTL_MS = 6 * 60 * 60 * 1000;
 
 const IDEMPOTENT_WRITE_ACTIONS = new Set([
   "submitticketfollowup",
   "submitlocationnote",
   "submitinventoryadjustment",
+  "submitinventoryadjustmentapproval",
   "submitrevampreturnrequest",
   "confirmunlistedmatch",
   "createnewproductfromunlisted",
@@ -3578,6 +3585,51 @@ live: true}];
 
 let statusToastDelayTimer=null;
 let statusToastHideTimer=null;
+let apiVersionMismatchShown=false;
+
+function applyVersionUi_(){
+  document
+    .querySelectorAll(".version-chip,.sidebar-footer small")
+    .forEach(element=>{
+      element.textContent="v"+APP_VERSION;
+    });
+
+  const homeFooter=document.querySelector(".home-footer");
+  if(homeFooter){
+    homeFooter.textContent=
+      "Charlon Enterprises · Internal Inventory System · v"+
+      APP_VERSION;
+  }
+}
+
+function checkApiVersion_(data){
+  const apiVersion=String(
+    data&&data.apiVersion||""
+  ).trim();
+
+  if(!apiVersion||apiVersion===EXPECTED_API_VERSION){
+    return;
+  }
+
+  console.warn(
+    "Charlon version mismatch. UI:",
+    APP_VERSION,
+    "API:",
+    apiVersion
+  );
+
+  if(!apiVersionMismatchShown){
+    apiVersionMismatchShown=true;
+    setStatus(
+      "System version mismatch detected. UI v"+
+      APP_VERSION+
+      " is connected to API v"+
+      apiVersion+
+      ". Redeploy Code.gs/HTML together and hard-refresh the browser.",
+      "error"
+    );
+  }
+}
 
 
 function clearInlineActionFeedback_(){
@@ -4856,6 +4908,8 @@ function apiCall(params){
             );
           }
 
+          checkApiVersion_(data);
+
           resolve(
             data
           );
@@ -5161,100 +5215,73 @@ async function changePin(){
 }
 
 function saveLoginSession(){
-  if(
-    !currentUser||
-    !currentSessionToken
-  ){
+  if(!currentUser||!currentSessionToken){
     return;
   }
 
   try{
     const sessionData={
-      staffId:
-        currentUser.staffId,
-      sessionToken:
-        currentSessionToken,
-      sessionExpiresAt:
-        currentSessionExpiresAt,
-      savedAt:
-        Date.now(),
-      lastActiveAt:
-        Date.now()
+      staffId:currentUser.staffId,
+      sessionToken:currentSessionToken,
+      sessionExpiresAt:currentSessionExpiresAt,
+      savedAt:Date.now(),
+      lastActiveAt:Date.now()
     };
 
-    localStorage.setItem(
+    /*
+     * Session tokens are tab/browser-session scoped.
+     * Closing the browser removes them automatically.
+     */
+    sessionStorage.setItem(
       SESSION_STORAGE_KEY,
-      JSON.stringify(
-        sessionData
-      )
+      JSON.stringify(sessionData)
     );
 
     /*
-     * Remove the legacy version that contained PIN.
+     * Remove any older persistent copies that may still exist.
      */
-    localStorage.removeItem(
-      LEGACY_SESSION_STORAGE_KEY
-    );
+    LEGACY_SESSION_STORAGE_KEYS.forEach(key=>{
+      try{
+        localStorage.removeItem(key);
+      }catch(err){}
+    });
 
   }catch(err){
-    console.log(
-      "Could not save login session:",
-      err
-    );
+    console.log("Could not save login session:",err);
   }
 }
 
 
 function updateSessionActivityTime(){
   try{
-    const raw=
-      localStorage.getItem(
-        SESSION_STORAGE_KEY
-      );
+    const raw=sessionStorage.getItem(SESSION_STORAGE_KEY);
+    if(!raw)return;
 
-    if(!raw){
-      return;
-    }
+    const sessionData=JSON.parse(raw);
+    sessionData.lastActiveAt=Date.now();
 
-    const sessionData=
-      JSON.parse(
-        raw
-      );
-
-    sessionData.lastActiveAt=
-      Date.now();
-
-    localStorage.setItem(
+    sessionStorage.setItem(
       SESSION_STORAGE_KEY,
-      JSON.stringify(
-        sessionData
-      )
+      JSON.stringify(sessionData)
     );
-
   }catch(err){
-    console.log(
-      "Could not update session activity:",
-      err
-    );
+    console.log("Could not update session activity:",err);
   }
 }
 
 
 function clearLoginSession(){
   try{
-    localStorage.removeItem(
-      SESSION_STORAGE_KEY
-    );
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
 
-    localStorage.removeItem(
-      LEGACY_SESSION_STORAGE_KEY
-    );
+    LEGACY_SESSION_STORAGE_KEYS.forEach(key=>{
+      try{
+        localStorage.removeItem(key);
+      }catch(err){}
+    });
 
   }catch(err){
-    console.log(
-      "Could not clear login session:",
-      err
-    );
+    console.log("Could not clear login session:",err);
   }
 }
 
@@ -5307,14 +5334,16 @@ async function restoreSavedLoginSession(){
 
   try{
     /*
-     * Delete any old PIN-based saved session immediately.
+     * Delete older persistent login/session copies.
      */
-    localStorage.removeItem(
-      LEGACY_SESSION_STORAGE_KEY
-    );
+    LEGACY_SESSION_STORAGE_KEYS.forEach(key=>{
+      try{
+        localStorage.removeItem(key);
+      }catch(err){}
+    });
 
     const raw=
-      localStorage.getItem(
+      sessionStorage.getItem(
         SESSION_STORAGE_KEY
       );
 
@@ -7684,8 +7713,7 @@ function renderUnlistedMatchResults(totalCount){
 }
 
 function canUseReleaseItem(){
-  const roleKey = String(currentUser && currentUser.role || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-  return(canAccess("RELEASING") && ["SALES", "SHOPEESTOCKCHECKER", "RELEASING"].includes(roleKey));
+  return canAccess("RELEASING");
 }
 function selectExistingProductForUnlisted(index){
 
@@ -8179,9 +8207,26 @@ function canViewMyApprovals(){
     return false;
   }
 
+  const roleKey=String(currentUser.role||"")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g,"");
+
+  if(["MANAGER","ADMIN","WEBDEVELOPER"].includes(roleKey)){
+    return true;
+  }
+
   const currentNameKey=String(currentUser.name||"").trim().toUpperCase();
-  const approvalUserKeys=(settings.approvalUsers||[]).map(name=>String(name||"").trim().toUpperCase());
-  return approvalUserKeys.includes(currentNameKey);
+  const approvalUserKeys=(settings.approvalUsers||[])
+    .map(name=>String(name||"").trim().toUpperCase());
+
+  const adjustmentApproverKeys=(settings.inventoryAdjustmentApproverNames||[])
+    .map(name=>String(name||"").trim().toUpperCase());
+
+  return(
+    approvalUserKeys.includes(currentNameKey)||
+    adjustmentApproverKeys.includes(currentNameKey)
+  );
 }
 
 function renderHomeButtons(){
@@ -10222,17 +10267,31 @@ function renderPurchaseForm(){
 }
 
 function renderInventoryAdjustmentForm(){
-  const p = currentProduct || {};
-  const totalQty = Number(p.posTotalQty || 0);
-  const reservedQty = Number(p.reservedQty || 0);
-  const availableQty = Number(p.availableQty !== undefined ? p.availableQty: p.currentQty || 0);
-  const adjustmentApprovers = settings.inventoryAdjustmentApproverNames || [];
-  const defaultAdjustmentApprover = adjustmentApprovers.includes(currentUser.name) ? currentUser.name: "";
-  document.getElementById("formTitle").innerText = "Manager Inventory Adjustment";
-  document.getElementById("formFields").innerHTML = `
+  const p=currentProduct||{};
+  const totalQty=Number(p.posTotalQty||0);
+  const reservedQty=Number(p.reservedQty||0);
+  const availableQty=Number(
+    p.availableQty!==undefined
+      ?p.availableQty
+      :p.currentQty||0
+  );
+
+  const adjustmentApprovers=
+    settings.inventoryAdjustmentApproverNames||[];
+
+  const defaultAdjustmentApprover=
+    adjustmentApprovers.includes(currentUser.name)
+      ?currentUser.name
+      :"";
+
+  document.getElementById("formTitle").innerText=
+    "Manager Inventory Adjustment";
+
+  document.getElementById("formFields").innerHTML=`
     <p class="muted">
-      Manager/Admin only. Select the actual inventory location being checked.
-      This updates PRODUCT_LOCATION_LOG and the matching INVENTORY_DASHBOARD DR batch.
+      Manager/Admin inventory correction. Submitting this form creates a
+      <strong>pending approval request</strong>. Stock will not change until
+      the assigned approver approves it in My Approvals.
     </p>
 
     <label>Date Adjusted</label>
@@ -10279,16 +10338,22 @@ function renderInventoryAdjustmentForm(){
       <option value="Other">Other</option>
     </select>
 
-    <label>Approved By</label>
+    <label>Send For Approval To</label>
     ${selectHtml(
       "approvedBy",
-      settings.inventoryAdjustmentApproverNames,
-      ""
+      adjustmentApprovers,
+      defaultAdjustmentApprover
     )}
+
+    <p class="muted" style="margin-top:-4px;">
+      The selected person must approve this request in My Approvals before
+      inventory is changed.
+    </p>
 
     <label>Notes</label>
     <textarea id="notes" placeholder="Explain why this adjustment is needed."></textarea>
   `;
+
   updateAdjustmentLocationQty();
 }
 
@@ -10615,7 +10680,7 @@ function buildConfirmMessage(){
     } else{
       qtyText = "Adjustment Qty: " + val("adjustmentQty");
     }
-    details = "Inventory Location: " + val("adjustmentLocation") + "\n" + "Adjustment Type: " + val("adjustmentType") + "\n" + qtyText + "\n" + "Reason: " + val("reason") + "\n" + "Approved By: " + val("approvedBy");
+    details = "Inventory Location: " + val("adjustmentLocation") + "\n" + "Adjustment Type: " + val("adjustmentType") + "\n" + qtyText + "\n" + "Reason: " + val("reason") + "\n" + "Required Approver: " + val("approvedBy");
   }
   return("Please confirm before saving:\n\n" + "Action: " + actionName + "\n" + "Product: " + productName + "\n" + "SKU: " + sku + "\n\n" + details + "\n\n" + "Continue?");
 }
@@ -11421,17 +11486,31 @@ async function submitTransaction(){
     }
     if(res.systemQty !== undefined) extra += `<br>System Qty: ${res.systemQty}<br>Actual Qty: ${res.actualQty}<br>Difference: ${res.difference}`;
     if(res.pendingApproval){
-      extra+=`
-        <br>Transfer ID:
-        <strong>${escapeHtml(res.transferId||"")}</strong>
-        <br>Approval Status:
-        <strong>${escapeHtml(res.approvalStatus||"PENDING")}</strong>
-        <br>Received By:
-        <strong>${escapeHtml(res.receivedBy||"")}</strong>
-        <br><span class="muted">
-          Stock has not moved yet. It will move only after approval.
-        </span>
-      `;
+      if(res.adjustmentId){
+        extra+=`
+          <br>Adjustment ID:
+          <strong>${escapeHtml(res.adjustmentId||"")}</strong>
+          <br>Approval Status:
+          <strong>${escapeHtml(res.approvalStatus||"PENDING")}</strong>
+          <br>Required Approver:
+          <strong>${escapeHtml(res.requiredApprover||"")}</strong>
+          <br><span class="muted">
+            Stock has not changed yet. It will change only after approval.
+          </span>
+        `;
+      }else{
+        extra+=`
+          <br>Transfer ID:
+          <strong>${escapeHtml(res.transferId||"")}</strong>
+          <br>Approval Status:
+          <strong>${escapeHtml(res.approvalStatus||"PENDING")}</strong>
+          <br>Received By:
+          <strong>${escapeHtml(res.receivedBy||"")}</strong>
+          <br><span class="muted">
+            Stock has not moved yet. It will move only after approval.
+          </span>
+        `;
+      }
     }else if(res.affectsInventory===false){
       extra+=`
         <br><span class="muted">
@@ -12458,15 +12537,35 @@ function renderMyApprovals(res){
   let html=`<hr><strong>Pending Approvals:</strong> ${escapeHtml(rows.length)}<br>`;
 
   if(!rows.length){
-    container.innerHTML=html+`<p class="muted">No pending approvals assigned to you.</p>`;
+    container.innerHTML=
+      html+`<p class="muted">No pending approvals assigned to you.</p>`;
     return;
   }
 
   rows.forEach((row,index)=>{
-    const isTransfer=String(row.type||"").toUpperCase()==="TRANSFER";
+    const type=String(row.type||"").toUpperCase();
+    const isTransfer=type==="TRANSFER";
+    const isAdjustment=type==="INVENTORY_ADJUSTMENT";
     let details="";
 
-    if(isTransfer){
+    if(isAdjustment){
+      details=`
+        Adjustment ID: <strong>${escapeHtml(row.adjustmentId||"")}</strong><br>
+        Date Adjusted: ${escapeHtml(row.dateAdjusted||"")}<br>
+        Product: <strong>${escapeHtml(row.productName||"")}</strong><br>
+        SKU: ${escapeHtml(row.sku||"")}<br>
+        Location: <strong>${escapeHtml(row.location||"")}</strong><br>
+        Adjustment Type: ${escapeHtml(row.adjustmentType||"")}<br>
+        Change Qty: <strong>${escapeHtml(row.adjustmentQty||0)}</strong><br>
+        Location Qty: <strong>${escapeHtml(row.oldLocationQty||0)} → ${escapeHtml(row.newLocationQty||0)}</strong><br>
+        Total Qty: <strong>${escapeHtml(row.oldTotalQty||0)} → ${escapeHtml(row.newTotalQty||0)}</strong><br>
+        Reason: ${escapeHtml(row.reason||"")}<br>
+        Requested By: ${escapeHtml(row.adjustedBy||"")}<br>
+        Required Approver: ${escapeHtml(row.requiredApprover||"")}
+        ${row.notes?`<br>Notes: ${escapeHtml(row.notes)}`:""}
+      `;
+
+    }else if(isTransfer){
       const items=Array.isArray(row.items)?row.items:[];
       const itemsHtml=items.length
         ?items.map(item=>`
@@ -12489,6 +12588,7 @@ function renderMyApprovals(res){
         <strong>Items:</strong>
         ${itemsHtml}
       `;
+
     }else{
       details=`
         Return ID: <strong>${escapeHtml(row.returnId||"")}</strong><br>
@@ -12544,42 +12644,82 @@ function submitRevampApprovalByIndex(index,decision){
 async function submitRevampApproval(row,decision,index){
   if(isSubmitting)return;
 
-  const isTransfer=String(row.type||"").toUpperCase()==="TRANSFER";
-  const reference=isTransfer?row.transferId:row.returnId;
-  const label=decision==="APPROVE"?"approve":"reject";
-  const transactionLabel=isTransfer?"transfer":"return";
+  const type=String(row.type||"").toUpperCase();
+  const isTransfer=type==="TRANSFER";
+  const isAdjustment=type==="INVENTORY_ADJUSTMENT";
 
-  if(!confirm("Are you sure you want to "+label+" this "+transactionLabel+"?\n\nReference: "+reference)){
+  const reference=isAdjustment
+    ?row.adjustmentId
+    :isTransfer
+      ?row.transferId
+      :row.returnId;
+
+  const label=decision==="APPROVE"?"approve":"reject";
+  const transactionLabel=isAdjustment
+    ?"inventory adjustment"
+    :isTransfer
+      ?"transfer"
+      :"return";
+
+  if(!confirm(
+    "Are you sure you want to "+label+" this "+transactionLabel+
+    "?\n\nReference: "+reference
+  )){
     setStatus("Approval cancelled.","muted");
     return;
   }
 
   isSubmitting=true;
 
-  const approveButton=document.getElementById("approvalApproveBtn_"+index);
-  const rejectButton=document.getElementById("approvalRejectBtn_"+index);
-  const activeButton=decision==="APPROVE"?approveButton:rejectButton;
+  const approveButton=document.getElementById(
+    "approvalApproveBtn_"+index
+  );
+  const rejectButton=document.getElementById(
+    "approvalRejectBtn_"+index
+  );
+  const activeButton=decision==="APPROVE"
+    ?approveButton
+    :rejectButton;
 
   if(approveButton)approveButton.disabled=true;
   if(rejectButton)rejectButton.disabled=true;
+
   if(activeButton){
-    activeButton.textContent=decision==="APPROVE"?"Approving...":"Rejecting...";
+    activeButton.textContent=
+      decision==="APPROVE"
+        ?"Approving..."
+        :"Rejecting...";
   }
 
   try{
     const params={
-      action:isTransfer?"submitRevampTransferApproval":"submitRevampReturnApproval",
+      action:isAdjustment
+        ?"submitInventoryAdjustmentApproval"
+        :isTransfer
+          ?"submitRevampTransferApproval"
+          :"submitRevampReturnApproval",
       staffId:currentUser.staffId,
       pin:currentPin,
       decision
     };
 
-    if(isTransfer)params.transferId=row.transferId;
-    else params.returnId=row.returnId;
+    if(isAdjustment){
+      params.adjustmentId=row.adjustmentId;
+    }else if(isTransfer){
+      params.transferId=row.transferId;
+    }else{
+      params.returnId=row.returnId;
+    }
 
     const res=await apiCall(params);
+
     if(!res||!res.success){
-      setStatus(res&&res.message?res.message:"Approval failed.","error");
+      setStatus(
+        res&&res.message
+          ?res.message
+          :"Approval failed.",
+        "error"
+      );
       return;
     }
 
@@ -12588,7 +12728,24 @@ async function submitRevampApproval(row,decision,index){
       Status: <strong>${escapeHtml(res.status||"")}</strong>
     `;
 
-    if(isTransfer){
+    if(isAdjustment){
+      resultHtml+=`
+        <br>Adjustment ID: <strong>${escapeHtml(res.adjustmentId||"")}</strong>
+        <br>Product: ${escapeHtml(res.productName||"")}
+        <br>SKU: ${escapeHtml(res.sku||"")}
+        <br>Location: ${escapeHtml(res.location||"")}
+      `;
+
+      if(res.affectsInventory){
+        resultHtml+=`
+          <br>Location Qty:
+          ${escapeHtml(res.oldLocationQty)} → ${escapeHtml(res.newLocationQty)}
+          <br>Total Qty:
+          ${escapeHtml(res.oldTotalQty)} → ${escapeHtml(res.newTotalQty)}
+        `;
+      }
+
+    }else if(isTransfer){
       resultHtml+=`
         <br>Transfer ID: <strong>${escapeHtml(res.transferId||"")}</strong>
         <br>Items: <strong>${escapeHtml(res.itemCount||1)}</strong>
@@ -12596,6 +12753,7 @@ async function submitRevampApproval(row,decision,index){
 
       if(Array.isArray(res.results)&&res.results.length){
         resultHtml+="<br><br>";
+
         res.results.forEach(item=>{
           resultHtml+=`
             <strong>${escapeHtml(item.productName||"")}</strong>
@@ -12618,6 +12776,7 @@ async function submitRevampApproval(row,decision,index){
           resultHtml+="<br>";
         });
       }
+
     }else{
       resultHtml+=`
         <br>Return ID: <strong>${escapeHtml(res.returnId||"")}</strong>
@@ -12629,14 +12788,21 @@ async function submitRevampApproval(row,decision,index){
     }
 
     const completedType=String(row.type||"").toUpperCase();
-    const completedReference=completedType==="TRANSFER"?row.transferId:row.returnId;
+
+    const getReference=item=>{
+      const itemType=String(item.type||"").toUpperCase();
+      if(itemType==="INVENTORY_ADJUSTMENT")return item.adjustmentId;
+      if(itemType==="TRANSFER")return item.transferId;
+      return item.returnId;
+    };
 
     revampApprovalRows=revampApprovalRows.filter(item=>{
       const itemType=String(item.type||"").toUpperCase();
-      const itemReference=itemType==="TRANSFER"?item.transferId:item.returnId;
+
       return !(
         itemType===completedType&&
-        String(itemReference||"").toUpperCase()===String(completedReference||"").toUpperCase()
+        String(getReference(item)||"").toUpperCase()===
+        String(reference||"").toUpperCase()
       );
     });
 
@@ -12646,9 +12812,15 @@ async function submitRevampApproval(row,decision,index){
     updateNotificationTitle();
 
     setStatus(resultHtml,"success-text");
+
   }catch(err){
     console.error("Approval error:",err);
-    setStatus("Approval error: "+escapeHtml(err.message||err),"error");
+
+    setStatus(
+      "Approval error: "+escapeHtml(err.message||err),
+      "error"
+    );
+
   }finally{
     isSubmitting=false;
 
@@ -12656,6 +12828,7 @@ async function submitRevampApproval(row,decision,index){
       approveButton.disabled=false;
       approveButton.textContent="Approve";
     }
+
     if(rejectButton&&rejectButton.isConnected){
       rejectButton.disabled=false;
       rejectButton.textContent="Reject";
@@ -13574,6 +13747,8 @@ async function stopCamera(){
 }
 
 window.addEventListener("DOMContentLoaded", function(){
+  applyVersionUi_();
+
   document.getElementById("loginBtn").addEventListener("click", login); document.getElementById("changePinBtn").addEventListener("click", changePin); document.getElementById("staffId").addEventListener("keydown",
   function(e){
     if(e.key === "Enter"){
