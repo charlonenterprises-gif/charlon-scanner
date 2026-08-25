@@ -2310,6 +2310,39 @@
       font-weight:700;
     }
 
+    /* Pending release request: saved successfully, but stock has NOT moved yet. */
+    .transaction-feedback-banner.pending-release-feedback{
+      background:#fff8e7!important;
+      border-color:#e8cf94!important;
+      color:#765013!important;
+    }
+
+    .transaction-feedback-banner.pending-release-feedback .transaction-feedback-check{
+      background:#c98a00!important;
+      color:#fff!important;
+    }
+
+    .transaction-feedback-banner.pending-release-feedback .transaction-feedback-highlight{
+      color:#765013!important;
+    }
+
+    .transaction-feedback-banner.pending-release-feedback .transaction-feedback-cell{
+      border-color:rgba(180,125,0,.18)!important;
+    }
+
+    .transaction-feedback-banner.pending-release-feedback .transaction-feedback-cell span{
+      color:#8a6a2f!important;
+    }
+
+    .transaction-feedback-banner.pending-release-feedback .transaction-feedback-cell strong{
+      color:#684800!important;
+    }
+
+    .transaction-feedback-banner.pending-release-feedback .transaction-feedback-notes{
+      border-top-color:rgba(180,125,0,.20)!important;
+      color:#765013!important;
+    }
+
     .transaction-feedback-highlight{
       margin:6px 0 10px;
       padding:8px 10px;
@@ -3751,6 +3784,41 @@ function showInlineActionFeedback_(htmlText){
     buildStructuredTransactionFeedback_(
       htmlText
     );
+
+  host.appendChild(banner);
+
+  banner.scrollIntoView({
+    behavior:"smooth",
+    block:"nearest"
+  });
+}
+
+
+function showInlinePendingReleaseFeedback_(htmlText){
+  const host=getInlineFeedbackHost_();
+
+  if(!host){
+    return;
+  }
+
+  clearInlineActionFeedback_();
+
+  const banner=document.createElement("div");
+  banner.className=
+    "notice-panel warning-panel inline-result transaction-feedback-banner pending-release-feedback";
+
+  banner.innerHTML=
+    buildStructuredTransactionFeedback_(
+      htmlText
+    );
+
+  const icon=banner.querySelector(
+    ".transaction-feedback-check"
+  );
+
+  if(icon){
+    icon.textContent="i";
+  }
 
   host.appendChild(banner);
 
@@ -8145,6 +8213,15 @@ function renderHomeButtons(){
     );
   }
 
+  if(canUseReleaseItem()){
+    addHomeButton(
+      "releaseitem",
+      "Customer Order / Release Item",
+      "Create a customer release request. Stock is deducted only when the ticket is completed as a sale.",
+      ()=>chooseType("RELEASING")
+    );
+  }
+
   if(canAccess("SALES")){
     addHomeButton(
       "sale",
@@ -10986,6 +11063,63 @@ async function submitCartTransaction(){
       setStatus((res && res.message) ? res.message: "Cart transaction failed.", "error");
       return;
     }
+    if(currentType==="RELEASING"){
+      let releaseResultHtml=`
+        Release request saved — pending sale.<br>
+        Ticket No.: <strong>${escapeHtml(res.ticketNo||"")}</strong><br>
+        Status: <strong>${escapeHtml(res.status||"PENDING SALE")}</strong><br>
+        Items Saved: <strong>${escapeHtml(res.itemCount||0)}</strong><br>
+        Requested By: <strong>${escapeHtml(res.requestedBy||val("requestedBy"))}</strong><br>
+        Released By: <strong>${escapeHtml(res.releasedBy||(currentUser&&currentUser.name)||"")}</strong><br>
+        Source Location: <strong>${escapeHtml(res.sourceLocation||val("releaseSourceLocation"))}</strong><br>
+        Stock Action: <strong>NOT DEDUCTED YET</strong><br>
+        Next Step: Complete this release as a sale when the customer purchase is confirmed.
+      `;
+
+      if(
+        Array.isArray(res.results)&&
+        res.results.length
+      ){
+        releaseResultHtml+="<br><br>";
+
+        res.results.forEach(item=>{
+          releaseResultHtml+=`
+            Product: <strong>${escapeHtml(item.productName||"")}</strong><br>
+            Qty: <strong>${escapeHtml(item.qty||0)} ${escapeHtml(item.unit||"unit")}</strong><br>
+            Source Location: <strong>${escapeHtml(item.sourceLocation||res.sourceLocation||val("releaseSourceLocation"))}</strong>
+            ${
+              item.sourceLocationQty!==undefined
+                ?`<br>Current Source Qty: <strong>${escapeHtml(item.sourceLocationQty)}</strong>`
+                :""
+            }
+            ${
+              item.stockWarning
+                ?`<br>Stock Warning: <strong>${escapeHtml(item.stockWarning)}</strong>`
+                :""
+            }
+            <br><br>
+          `;
+        });
+      }
+
+      showInlinePendingReleaseFeedback_(
+        releaseResultHtml
+      );
+
+      cartItems=[];
+      currentProduct=null;
+      renderCart();
+      hide("productCard");
+      hide("formCard");
+      document.getElementById("searchValue").value="";
+      setTimeout(
+        ()=>document.getElementById("searchValue").focus(),
+        200
+      );
+
+      return;
+    }
+
     let resultHtml = `
       ${escapeHtml(res.message)}<br>
       Ticket No.: <strong>${escapeHtml(res.ticketNo || "")}</strong><br>
