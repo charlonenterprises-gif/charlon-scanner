@@ -546,7 +546,7 @@
 
 
     /* ======================================================
-       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.09
+       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.4.10
        Inspired by a classic inventory admin dashboard while
        keeping the current workflows and mobile usability.
        ====================================================== */
@@ -910,7 +910,7 @@
   
 
     /* ======================================================
-       CHARLON UI REFINEMENT — v2026.4.09
+       CHARLON UI REFINEMENT — v2026.4.10
        Cleaner lists, compact desktop actions, pagination,
        and a true mobile header navigation drawer.
        ====================================================== */
@@ -1469,7 +1469,7 @@
   
 
     /* ======================================================
-       FUNCTIONAL UI REFINEMENT — v2026.4.09
+       FUNCTIONAL UI REFINEMENT — v2026.4.10
        Keep the existing Charlon UI, improve consistency only.
        ====================================================== */
 
@@ -1664,7 +1664,7 @@
 
   
     /* ======================================================
-       POLISH UPDATE — v2026.4.09
+       POLISH UPDATE — v2026.4.10
        ====================================================== */
 
     .tool-action-button,
@@ -1731,7 +1731,7 @@
   
 
     /* ======================================================
-       SCREEN / FONT CONSISTENCY — v2026.4.09
+       SCREEN / FONT CONSISTENCY — v2026.4.10
        ====================================================== */
 
     /* One typography system throughout all clickable controls. */
@@ -1786,7 +1786,7 @@
   
 
     /* ======================================================
-       NAVIGATION / SEARCH RESET POLISH — v2026.4.09
+       NAVIGATION / SEARCH RESET POLISH — v2026.4.10
        ====================================================== */
 
     /* Quick action buttons use Charlon's dark blue action style. */
@@ -1853,7 +1853,7 @@
   
 
     /* =========================================================
-       NAVIGATION + FORM POLISH — v2026.4.09
+       NAVIGATION + FORM POLISH — v2026.4.10
        ========================================================= */
     .screen-title-row{
       display:flex;
@@ -1939,7 +1939,7 @@
   
 
     /* =========================================================
-       SPACE + TITLE POLISH — v2026.4.09
+       SPACE + TITLE POLISH — v2026.4.10
        ========================================================= */
 
     /* The blue app header belongs to the top of the page and no longer
@@ -2138,7 +2138,7 @@
     }
 
     /* =========================================================
-       CONSISTENCY POLISH — v2026.4.09
+       CONSISTENCY POLISH — v2026.4.10
        ========================================================= */
 
     /* Product Management sub-pages should begin exactly like
@@ -2218,7 +2218,7 @@
 
   
     /* =========================================================
-       FUNCTIONAL POLISH — v2026.4.09
+       FUNCTIONAL POLISH — v2026.4.10
        ========================================================= */
 
     /* Refresh icon is centered vertically and horizontally. */
@@ -2278,7 +2278,7 @@
 
   
     /* =========================================================
-       TRANSACTION / HISTORY POLISH — v2026.4.09
+       TRANSACTION / HISTORY POLISH — v2026.4.10
        ========================================================= */
 
     .transaction-feedback-banner{
@@ -2495,7 +2495,7 @@
 
   
     /* =========================================================
-       MOBILE + NOTIFICATION POLISH — v2026.4.09
+       MOBILE + NOTIFICATION POLISH — v2026.4.10
        ========================================================= */
 
     .refresh-action-button{
@@ -2634,6 +2634,78 @@
       }
     }
 
+  
+    /* =========================================================
+       SECURITY / MANAGER HEALTH — v2026.4.10
+       ========================================================= */
+
+    .manager-dashboard-warnings{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin:0 0 12px;
+    }
+
+    .manager-warning-card{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 12px;
+      border:1px solid #f0cf8d;
+      border-radius:8px;
+      background:#fff8e7;
+      color:#5c4718;
+    }
+
+    .manager-warning-card.danger{
+      border-color:#efb4ad;
+      background:#fff0ee;
+      color:#8b2419;
+    }
+
+    .manager-warning-card span{
+      display:block;
+      font-size:9px;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.35px;
+    }
+
+    .manager-warning-card strong{
+      display:block;
+      margin-top:2px;
+      font-size:13px;
+    }
+
+    .manager-warning-card small{
+      display:block;
+      margin-top:2px;
+      color:inherit;
+      opacity:.76;
+      font-size:8px;
+      line-height:1.35;
+    }
+
+    .manager-warning-count{
+      flex:0 0 auto;
+      min-width:32px;
+      height:32px;
+      padding:0 8px;
+      display:grid;
+      place-items:center;
+      border-radius:16px;
+      background:rgba(255,255,255,.72);
+      font-size:13px;
+      font-weight:800;
+    }
+
+    @media(max-width:700px){
+      .manager-dashboard-warnings{
+        grid-template-columns:1fr;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -2674,7 +2746,7 @@
   <nav id="sidebarNav" class="sidebar-nav"></nav>
 
   <div class="sidebar-footer">
-    <small>v2026.4.09</small>
+    <small>v2026.4.10</small>
   </div>
 </aside>
 
@@ -2724,7 +2796,7 @@
       </div>
     </div>
     <p class="auth-copy">Internal inventory, sales, releasing, transfer, return, and stock-management workspace.</p>
-    <span class="version-chip">v2026.4.09</span>
+    <span class="version-chip">v2026.4.10</span>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -2764,6 +2836,7 @@
           <p class="muted">Choose what you need to do.</p>
         </div>
       </div>
+      <div id="managerDashboardWarnings" class="manager-dashboard-warnings hidden"></div>
       <div id="homeButtons" class="button-grid"></div>
     </div>
     <div class="home-footer">Charlon Enterprises · Internal Inventory System</div>
@@ -3404,6 +3477,8 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbx7iFaGeikvykjRicd8kcv6NZQAFg5oYwaRTXU3m4ylM4l8mvqaS84X-iUgLrFWiNUUrw/exec";
 let currentUser = null;
 let currentPin = "";
+let currentSessionToken = "";
+let currentSessionExpiresAt = 0;
 let settings = {};
 let currentType = "";
 let currentProduct = null;
@@ -3438,7 +3513,25 @@ let pendingReleaseCount=0;
 let notificationRefreshTimer=null;
 let notificationRefreshRunning=false;
 const NOTIFICATION_REFRESH_MS=5*1000;
-const SESSION_STORAGE_KEY = "charlonMiniPosSessionV1";
+const SESSION_STORAGE_KEY = "charlonMiniPosSessionV2";
+const LEGACY_SESSION_STORAGE_KEY = "charlonMiniPosSessionV1";
+const CLIENT_REQUEST_ID_TTL_MS = 6 * 60 * 60 * 1000;
+
+const IDEMPOTENT_WRITE_ACTIONS = new Set([
+  "submitticketfollowup",
+  "submitlocationnote",
+  "submitinventoryadjustment",
+  "submitrevampreturnrequest",
+  "confirmunlistedmatch",
+  "createnewproductfromunlisted",
+  "updateinventoryproductdetails",
+  "deleteinventoryproduct",
+  "cancelreleaseandtransfer",
+  "submitrevampreturnapproval",
+  "submitrevamptransferapproval",
+  "submitcarttransaction",
+  "submittransfer"
+]);
 const SESSION_TIMEOUT_MS = 20 * 60 * 1000;
 let inactivityTimer = null;
 let inactivityPromptOpen = false;
@@ -4341,17 +4434,410 @@ function getAvailableQty(product){
   return "0";
 }
 
+function charlonStableRequestString_(params){
+  const ignored=
+    new Set([
+      "callback",
+      "pin",
+      "sessionToken",
+      "clientRequestId"
+    ]);
+
+  const clean={};
+
+  Object.keys(
+    params||{}
+  )
+    .filter(key=>
+      !ignored.has(
+        key
+      )
+    )
+    .sort()
+    .forEach(key=>{
+      clean[key]=
+        params[key];
+    });
+
+  return JSON.stringify(
+    clean
+  );
+}
+
+
+function charlonHashString_(value){
+  let hash=2166136261;
+
+  const text=
+    String(
+      value||
+      ""
+    );
+
+  for(
+    let i=0;
+    i<text.length;
+    i++
+  ){
+    hash^=
+      text.charCodeAt(
+        i
+      );
+
+    hash=
+      Math.imul(
+        hash,
+        16777619
+      );
+  }
+
+  return(
+    hash>>>0
+  ).toString(36);
+}
+
+
+function charlonRandomRequestId_(){
+  if(
+    window.crypto&&
+    typeof window.crypto.randomUUID==="function"
+  ){
+    return window.crypto.randomUUID();
+  }
+
+  return(
+    Date.now().toString(36)+
+    "-"+
+    Math.random().toString(36).slice(2)+
+    "-"+
+    Math.random().toString(36).slice(2)
+  );
+}
+
+
+function getClientRequestContext_(params){
+  const actionKey=
+    String(
+      params&&
+      params.action||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+  if(
+    !IDEMPOTENT_WRITE_ACTIONS.has(
+      actionKey
+    )
+  ){
+    return null;
+  }
+
+  const fingerprint=
+    charlonHashString_(
+      charlonStableRequestString_(
+        params
+      )
+    );
+
+  const storageKey=
+    "charlonPendingRequest:"+
+    actionKey+
+    ":"+
+    fingerprint;
+
+  let saved=null;
+
+  try{
+    saved=
+      JSON.parse(
+        sessionStorage.getItem(
+          storageKey
+        )||
+        "null"
+      );
+  }catch(err){
+    saved=null;
+  }
+
+  if(
+    saved&&
+    saved.id&&
+    Date.now()-
+      Number(
+        saved.createdAt||
+        0
+      )<
+      CLIENT_REQUEST_ID_TTL_MS
+  ){
+    return{
+      id:
+        saved.id,
+      storageKey
+    };
+  }
+
+  const id=
+    charlonRandomRequestId_();
+
+  try{
+    sessionStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        id,
+        createdAt:
+          Date.now()
+      })
+    );
+  }catch(err){}
+
+  return{
+    id,
+    storageKey
+  };
+}
+
+
+function clearClientRequestContext_(context){
+  if(
+    !context||
+    !context.storageKey
+  ){
+    return;
+  }
+
+  try{
+    sessionStorage.removeItem(
+      context.storageKey
+    );
+  }catch(err){}
+}
+
+
 function apiCall(params){
-  return new Promise((resolve, reject) => {
-    const callbackName = "cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000); params.callback = callbackName; const url = API_URL + "?" + new URLSearchParams(params).toString(); console.log("API request:",
-    url); let finished = false; let script = document.createElement("script"); const timeout = setTimeout(() => {
-      if(finished) return; finished = true; delete window[callbackName]; if(script && script.parentNode) script.parentNode.removeChild(script); reject(new Error("The transaction is taking longer than expected. " + "Do not submit it again yet. Check the transaction history first."));
-    }, 180000); window[callbackName] = function(data){
-      if(finished) return; finished = true; clearTimeout(timeout); delete window[callbackName]; if(script && script.parentNode) script.parentNode.removeChild(script); resolve(data);
-    }; script.src = url; script.onerror = function(){
-      if(finished) return; finished = true; clearTimeout(timeout); delete window[callbackName]; if(script && script.parentNode) script.parentNode.removeChild(script); reject(new Error("The API response could not be loaded. The backend may still have completed the transaction."));
-    }; document.body.appendChild(script);
-  });
+  return new Promise(
+    (resolve,reject)=>{
+      const requestParams={
+        ...(params||{})
+      };
+
+      const action=
+        String(
+          requestParams.action||
+          ""
+        ).trim();
+
+      const actionKey=
+        action.toLowerCase();
+
+      /*
+       * The real PIN is sent only during login.
+       * All authenticated calls after login use
+       * the temporary session token.
+       */
+      if(
+        currentSessionToken&&
+        ![
+          "login",
+          "resumesession",
+          "ping"
+        ].includes(
+          actionKey
+        )
+      ){
+        delete requestParams.pin;
+
+        requestParams.sessionToken=
+          currentSessionToken;
+
+        if(
+          currentUser&&
+          currentUser.staffId
+        ){
+          requestParams.staffId=
+            currentUser.staffId;
+        }
+      }
+
+      const requestContext=
+        getClientRequestContext_(
+          requestParams
+        );
+
+      if(requestContext){
+        requestParams.clientRequestId=
+          requestContext.id;
+      }
+
+      const callbackName=
+        "cb_"+
+        Date.now()+
+        "_"+
+        Math.floor(
+          Math.random()*
+          100000
+        );
+
+      requestParams.callback=
+        callbackName;
+
+      const url=
+        API_URL+
+        "?"+
+        new URLSearchParams(
+          requestParams
+        ).toString();
+
+      /*
+       * Do not log the full URL because it contains
+       * the short-lived session token.
+       */
+      console.log(
+        "API request:",
+        action
+      );
+
+      let finished=false;
+
+      let script=
+        document.createElement(
+          "script"
+        );
+
+      const timeout=
+        setTimeout(
+          ()=>{
+            if(finished){
+              return;
+            }
+
+            finished=true;
+
+            delete window[
+              callbackName
+            ];
+
+            if(
+              script&&
+              script.parentNode
+            ){
+              script.parentNode
+                .removeChild(
+                  script
+                );
+            }
+
+            /*
+             * Keep the clientRequestId on timeout.
+             * A manual retry of the same transaction
+             * will reuse it and the backend can replay
+             * the already-completed result.
+             */
+            reject(
+              new Error(
+                "The transaction is taking longer than expected. Do not submit it again immediately. You may safely retry the same transaction after checking its status."
+              )
+            );
+          },
+          180000
+        );
+
+      window[
+        callbackName
+      ]=
+        function(data){
+          if(finished){
+            return;
+          }
+
+          finished=true;
+
+          clearTimeout(
+            timeout
+          );
+
+          delete window[
+            callbackName
+          ];
+
+          if(
+            script&&
+            script.parentNode
+          ){
+            script.parentNode
+              .removeChild(
+                script
+              );
+          }
+
+          /*
+           * A normal backend response is definitive.
+           * Keep the request ID only while the server
+           * explicitly says the same request is still
+           * running.
+           */
+          if(
+            requestContext&&
+            !(
+              data&&
+              data.inProgress
+            )
+          ){
+            clearClientRequestContext_(
+              requestContext
+            );
+          }
+
+          resolve(
+            data
+          );
+        };
+
+      script.src=
+        url;
+
+      script.onerror=
+        function(){
+          if(finished){
+            return;
+          }
+
+          finished=true;
+
+          clearTimeout(
+            timeout
+          );
+
+          delete window[
+            callbackName
+          ];
+
+          if(
+            script&&
+            script.parentNode
+          ){
+            script.parentNode
+              .removeChild(
+                script
+              );
+          }
+
+          /*
+           * Keep clientRequestId after transport failure.
+           */
+          reject(
+            new Error(
+              "The API response could not be loaded. The backend may still have completed the transaction."
+            )
+          );
+        };
+
+      document.body
+        .appendChild(
+          script
+        );
+    }
+  );
 }
 
 async function login(){
@@ -4452,12 +4938,41 @@ async function login(){
     currentUser=
       res.user;
 
-    currentPin=
-      pin;
+    currentSessionToken=
+      String(
+        res.sessionToken||
+        ""
+      );
+
+    currentSessionExpiresAt=
+      Number(
+        res.sessionExpiresAt||
+        0
+      );
+
+    if(!currentSessionToken){
+      throw new Error(
+        "Login succeeded but no secure session token was returned."
+      );
+    }
+
+    /*
+     * Do not keep the PIN as the ongoing credential.
+     */
+    currentPin="";
 
     settings=
       res.settings||
       {};
+
+    const pinInput=
+      document.getElementById(
+        "pin"
+      );
+
+    if(pinInput){
+      pinInput.value="";
+    }
 
 
     hide(
@@ -4559,9 +5074,11 @@ async function changePin(){
       return;
     }
     currentUser = res.user;
-    currentPin = newPin;
+    currentPin = "";
+    currentSessionToken = String(res.sessionToken || currentSessionToken || "");
+    currentSessionExpiresAt = Number(res.sessionExpiresAt || currentSessionExpiresAt || 0);
     settings = res.settings || settings;
-    document.getElementById("pin").value = newPin;
+    document.getElementById("pin").value = "";
     document.getElementById("newPin").value = "";
     document.getElementById("confirmPin").value = "";
     saveLoginSession();
@@ -4576,34 +5093,103 @@ async function changePin(){
 }
 
 function saveLoginSession(){
-  if(!currentUser || !currentPin) return;
+  if(
+    !currentUser||
+    !currentSessionToken
+  ){
+    return;
+  }
+
   try{
-    const sessionData = {staffId: currentUser.staffId, pin: currentPin, savedAt: Date.now(), lastActiveAt: Date.now()};
-    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionData));
-  } catch(err){
-    console.log("Could not save login session:", err);
+    const sessionData={
+      staffId:
+        currentUser.staffId,
+      sessionToken:
+        currentSessionToken,
+      sessionExpiresAt:
+        currentSessionExpiresAt,
+      savedAt:
+        Date.now(),
+      lastActiveAt:
+        Date.now()
+    };
+
+    localStorage.setItem(
+      SESSION_STORAGE_KEY,
+      JSON.stringify(
+        sessionData
+      )
+    );
+
+    /*
+     * Remove the legacy version that contained PIN.
+     */
+    localStorage.removeItem(
+      LEGACY_SESSION_STORAGE_KEY
+    );
+
+  }catch(err){
+    console.log(
+      "Could not save login session:",
+      err
+    );
   }
 }
+
 
 function updateSessionActivityTime(){
   try{
-    const raw = localStorage.getItem(SESSION_STORAGE_KEY);
-    if(!raw) return;
-    const sessionData = JSON.parse(raw);
-    sessionData.lastActiveAt = Date.now();
-    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(sessionData));
-  } catch(err){
-    console.log("Could not update session activity:", err);
+    const raw=
+      localStorage.getItem(
+        SESSION_STORAGE_KEY
+      );
+
+    if(!raw){
+      return;
+    }
+
+    const sessionData=
+      JSON.parse(
+        raw
+      );
+
+    sessionData.lastActiveAt=
+      Date.now();
+
+    localStorage.setItem(
+      SESSION_STORAGE_KEY,
+      JSON.stringify(
+        sessionData
+      )
+    );
+
+  }catch(err){
+    console.log(
+      "Could not update session activity:",
+      err
+    );
   }
 }
 
+
 function clearLoginSession(){
   try{
-    localStorage.removeItem(SESSION_STORAGE_KEY);
-  } catch(err){
-    console.log("Could not clear login session:", err);
+    localStorage.removeItem(
+      SESSION_STORAGE_KEY
+    );
+
+    localStorage.removeItem(
+      LEGACY_SESSION_STORAGE_KEY
+    );
+
+  }catch(err){
+    console.log(
+      "Could not clear login session:",
+      err
+    );
   }
 }
+
 
 function startInactivityTimer(){
   clearTimeout(inactivityTimer);
@@ -4649,61 +5235,225 @@ function setupInactivityTracking(){
 }
 
 async function restoreSavedLoginSession(){
-  let sessionData = null;
+  let sessionData=null;
+
   try{
-    const raw = localStorage.getItem(SESSION_STORAGE_KEY);
-    if(!raw) return;
-    sessionData = JSON.parse(raw);
-  } catch(err){
+    /*
+     * Delete any old PIN-based saved session immediately.
+     */
+    localStorage.removeItem(
+      LEGACY_SESSION_STORAGE_KEY
+    );
+
+    const raw=
+      localStorage.getItem(
+        SESSION_STORAGE_KEY
+      );
+
+    if(!raw){
+      return;
+    }
+
+    sessionData=
+      JSON.parse(
+        raw
+      );
+
+  }catch(err){
     clearLoginSession();
     return;
   }
-  if(!sessionData || !sessionData.staffId || !sessionData.pin){
+
+  if(
+    !sessionData||
+    !sessionData.staffId||
+    !sessionData.sessionToken
+  ){
     clearLoginSession();
     return;
   }
-  const lastActiveAt = Number(sessionData.lastActiveAt || sessionData.savedAt || 0);
-  const inactiveFor = Date.now() - lastActiveAt;
-  if(inactiveFor >= SESSION_TIMEOUT_MS){
-    const continueSession = confirm("You have a saved login session, but it has been inactive for more than 20 minutes.\n\nDo you want to continue?");
+
+  if(
+    Number(
+      sessionData.sessionExpiresAt||
+      0
+    )&&
+    Number(
+      sessionData.sessionExpiresAt
+    )<=Date.now()
+  ){
+    clearLoginSession();
+    setStatus(
+      "Saved session expired. Please login again.",
+      "muted"
+    );
+    return;
+  }
+
+  const lastActiveAt=
+    Number(
+      sessionData.lastActiveAt||
+      sessionData.savedAt||
+      0
+    );
+
+  const inactiveFor=
+    Date.now()-
+    lastActiveAt;
+
+  if(
+    inactiveFor>=
+    SESSION_TIMEOUT_MS
+  ){
+    const continueSession=
+      confirm(
+        "You have a saved login session, but it has been inactive for more than 20 minutes.\n\nDo you want to continue?"
+      );
+
     if(!continueSession){
       clearLoginSession();
-      setStatus("Saved session cleared.", "muted");
+      setStatus(
+        "Saved session cleared.",
+        "muted"
+      );
       return;
     }
   }
-  setStatus("Restoring saved login...", "info");
+
+  setStatus(
+    "Restoring saved login...",
+    "info"
+  );
+
   try{
-    const res = await apiCall({action: "login", staffId: sessionData.staffId, pin: sessionData.pin});
-    console.log("Restore login response:", res);
-    if(!res || !res.success){
+    const res=
+      await apiCall({
+        action:
+          "resumeSession",
+        staffId:
+          sessionData.staffId,
+        sessionToken:
+          sessionData.sessionToken
+      });
+
+    if(
+      !res||
+      !res.success
+    ){
       clearLoginSession();
-      setStatus("Saved login expired or invalid. Please login again.", "error");
+
+      setStatus(
+        "Saved login expired or invalid. Please login again.",
+        "error"
+      );
+
       return;
     }
-    currentUser = res.user;
-    currentPin = sessionData.pin;
-    settings = res.settings || {};
-    document.getElementById("staffId").value = currentUser.staffId;
-    document.getElementById("pin").value = currentPin;
-    hide("loginCard");
-    if(currentUser.mustChangePin){
-      show("changePinCard");
-      setStatus("Temporary PIN detected. Please create your own PIN.", "info");
+
+    currentUser=
+      res.user;
+
+    currentPin="";
+
+    currentSessionToken=
+      String(
+        res.sessionToken||
+        sessionData.sessionToken||
+        ""
+      );
+
+    currentSessionExpiresAt=
+      Number(
+        res.sessionExpiresAt||
+        sessionData.sessionExpiresAt||
+        0
+      );
+
+    settings=
+      res.settings||
+      {};
+
+    document
+      .getElementById(
+        "staffId"
+      ).value=
+      currentUser.staffId;
+
+    document
+      .getElementById(
+        "pin"
+      ).value="";
+
+    hide(
+      "loginCard"
+    );
+
+    if(
+      currentUser.mustChangePin
+    ){
+      show(
+        "changePinCard"
+      );
+
+      setStatus(
+        "Temporary PIN detected. Please create your own PIN.",
+        "info"
+      );
+
       return;
     }
+
     saveLoginSession();
     openHome();
     startInactivityTimer();
-    setStatus("","muted");
-  } catch(err){
-    console.error("Restore login error:", err);
+    setStatus(
+      "",
+      "muted"
+    );
+
+  }catch(err){
+    console.error(
+      "Restore login error:",
+      err
+    );
+
     clearLoginSession();
-    setStatus("Could not restore login. Please login again.", "error");
+
+    setStatus(
+      "Could not restore login. Please login again.",
+      "error"
+    );
   }
 }
 
+
+function revokeCurrentSession_(){
+  const token=
+    currentSessionToken;
+
+  if(!token){
+    return;
+  }
+
+  /*
+   * Best-effort server revocation. The local session is cleared
+   * immediately even if the network request fails.
+   */
+  apiCall({
+    action:
+      "logoutSession",
+    sessionToken:
+      token,
+    staffId:
+      currentUser
+        ?currentUser.staffId
+        :""
+  }).catch(()=>{});
+}
+
+
 function logout(){
+  revokeCurrentSession_();
   closeMobileNav();
   clearLoginSession();
   stopInactivityTimer();
@@ -4711,6 +5461,8 @@ function logout(){
   stopCamera();
   currentUser = null;
   currentPin = "";
+  currentSessionToken = "";
+  currentSessionExpiresAt = 0;
   settings = {};
   currentType = "";
   currentProduct = null;
@@ -7221,10 +7973,138 @@ function openHome(){
   }
 
   renderHomeButtons();
+  refreshManagerDashboardWarnings_();
   refreshPendingUnlistedCount();
   refreshHomeNotifications();
   startNotificationRefresh();
 }
+
+function canViewManagerDashboardWarnings_(){
+  if(!currentUser){
+    return false;
+  }
+
+  return[
+    "MANAGER",
+    "ADMIN",
+    "WEB DEVELOPER"
+  ].includes(
+    String(
+      currentUser.role||
+      ""
+    )
+      .trim()
+      .toUpperCase()
+  );
+}
+
+
+async function refreshManagerDashboardWarnings_(){
+  const container=
+    document.getElementById(
+      "managerDashboardWarnings"
+    );
+
+  if(!container){
+    return;
+  }
+
+  if(
+    !canViewManagerDashboardWarnings_()
+  ){
+    container.innerHTML="";
+    container.classList.add(
+      "hidden"
+    );
+    return;
+  }
+
+  try{
+    const res=
+      await apiCall({
+        action:
+          "getManagerDashboardWarnings",
+        staffId:
+          currentUser.staffId
+      });
+
+    if(
+      !res||
+      !res.success
+    ){
+      container.innerHTML="";
+      container.classList.add(
+        "hidden"
+      );
+      return;
+    }
+
+    const negative=
+      Number(
+        res.negativeStockCount||
+        0
+      );
+
+    const auditIssues=
+      Number(
+        res.auditIssueCount||
+        0
+      );
+
+    if(
+      negative<=0&&
+      auditIssues<=0
+    ){
+      container.innerHTML="";
+      container.classList.add(
+        "hidden"
+      );
+      return;
+    }
+
+    const cards=[];
+
+    if(negative>0){
+      cards.push(`
+        <div class="manager-warning-card danger">
+          <div>
+            <span>Negative Stock</span>
+            <strong>${negative.toLocaleString()} product${negative===1?"":"s"}</strong>
+            <small>Review products with location or total quantity below zero.</small>
+          </div>
+          <div class="manager-warning-count">${negative>99?"99+":negative}</div>
+        </div>
+      `);
+    }
+
+    if(auditIssues>0){
+      cards.push(`
+        <div class="manager-warning-card">
+          <div>
+            <span>Inventory Audit Issues</span>
+            <strong>${auditIssues.toLocaleString()} item${auditIssues===1?"":"s"} need review</strong>
+            <small>${res.auditLastRun?`Last audit: ${escapeHtml(res.auditLastRun)}`:"Run Inventory Consistency Audit to refresh this count."}</small>
+          </div>
+          <div class="manager-warning-count">${auditIssues>99?"99+":auditIssues}</div>
+        </div>
+      `);
+    }
+
+    container.innerHTML=
+      cards.join("");
+
+    container.classList.remove(
+      "hidden"
+    );
+
+  }catch(err){
+    console.log(
+      "Manager dashboard warning check skipped:",
+      err
+    );
+  }
+}
+
 
 function canViewMyApprovals(){
   if(!currentUser){
@@ -12365,10 +13245,14 @@ function renderRecentTransactions_(res){
   const container=document.getElementById("recentTransactionsResults");
 
   if(meta){
+    const scanned=Number(res.scannedRows||0);
+
     meta.textContent=
       rows.length
-        ?rows.length+" recent transaction"+(rows.length===1?"":"s")+" shown."
-        :"No matching transactions found.";
+        ?rows.length+" recent transaction"+(rows.length===1?"":"s")+" shown."+
+          (scanned?` Searched ${scanned.toLocaleString()} history row${scanned===1?"":"s"}.`:"")
+        :"No matching transactions found."+
+          (scanned?` Searched ${scanned.toLocaleString()} history row${scanned===1?"":"s"}.`:"");
   }
 
   if(!container){
