@@ -546,7 +546,7 @@
 
 
     /* ======================================================
-       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.08.25.2
+       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.08.25.3
        Inspired by a classic inventory admin dashboard while
        keeping the current workflows and mobile usability.
        ====================================================== */
@@ -910,7 +910,7 @@
   
 
     /* ======================================================
-       CHARLON UI REFINEMENT — v2026.08.25.2
+       CHARLON UI REFINEMENT — v2026.08.25.3
        Cleaner lists, compact desktop actions, pagination,
        and a true mobile header navigation drawer.
        ====================================================== */
@@ -1469,7 +1469,7 @@
   
 
     /* ======================================================
-       FUNCTIONAL UI REFINEMENT — v2026.08.25.2
+       FUNCTIONAL UI REFINEMENT — v2026.08.25.3
        Keep the existing Charlon UI, improve consistency only.
        ====================================================== */
 
@@ -1664,7 +1664,7 @@
 
   
     /* ======================================================
-       POLISH UPDATE — v2026.08.25.2
+       POLISH UPDATE — v2026.08.25.3
        ====================================================== */
 
     .tool-action-button,
@@ -1731,7 +1731,7 @@
   
 
     /* ======================================================
-       SCREEN / FONT CONSISTENCY — v2026.08.25.2
+       SCREEN / FONT CONSISTENCY — v2026.08.25.3
        ====================================================== */
 
     /* One typography system throughout all clickable controls. */
@@ -1786,7 +1786,7 @@
   
 
     /* ======================================================
-       NAVIGATION / SEARCH RESET POLISH — v2026.08.25.2
+       NAVIGATION / SEARCH RESET POLISH — v2026.08.25.3
        ====================================================== */
 
     /* Quick action buttons use Charlon's dark blue action style. */
@@ -1853,7 +1853,7 @@
   
 
     /* =========================================================
-       NAVIGATION + FORM POLISH — v2026.08.25.2
+       NAVIGATION + FORM POLISH — v2026.08.25.3
        ========================================================= */
     .screen-title-row{
       display:flex;
@@ -1939,7 +1939,7 @@
   
 
     /* =========================================================
-       SPACE + TITLE POLISH — v2026.08.25.2
+       SPACE + TITLE POLISH — v2026.08.25.3
        ========================================================= */
 
     /* The blue app header belongs to the top of the page and no longer
@@ -2114,6 +2114,17 @@
       border-radius:8px!important;
     }
 
+    /* Check Stock -> Sold Immediately shortcut. */
+    .product-continue-sale-button{
+      flex:0 0 auto!important;
+      width:auto!important;
+      min-width:145px!important;
+      min-height:40px!important;
+      margin:0!important;
+      padding:9px 16px!important;
+      white-space:nowrap;
+    }
+
     @media(max-width:900px){
       .compact-cart-list{
         grid-template-columns:1fr;
@@ -2134,11 +2145,16 @@
 
       .product-found-footer{
         align-items:center;
+        flex-wrap:wrap;
+      }
+
+      .product-continue-sale-button{
+        flex:1 1 170px!important;
       }
     }
 
     /* =========================================================
-       CONSISTENCY POLISH — v2026.08.25.2
+       CONSISTENCY POLISH — v2026.08.25.3
        ========================================================= */
 
     /* Product Management sub-pages should begin exactly like
@@ -2218,7 +2234,7 @@
 
   
     /* =========================================================
-       FUNCTIONAL POLISH — v2026.08.25.2
+       FUNCTIONAL POLISH — v2026.08.25.3
        ========================================================= */
 
     /* Refresh icon is centered vertically and horizontally. */
@@ -2278,7 +2294,7 @@
 
   
     /* =========================================================
-       TRANSACTION / HISTORY POLISH — v2026.08.25.2
+       TRANSACTION / HISTORY POLISH — v2026.08.25.3
        ========================================================= */
 
     .transaction-feedback-banner{
@@ -2528,7 +2544,7 @@
 
   
     /* =========================================================
-       MOBILE + NOTIFICATION POLISH — v2026.08.25.2
+       MOBILE + NOTIFICATION POLISH — v2026.08.25.3
        ========================================================= */
 
     .refresh-action-button{
@@ -2669,7 +2685,7 @@
 
   
     /* =========================================================
-       SECURITY / MANAGER HEALTH — v2026.08.25.2
+       SECURITY / MANAGER HEALTH — v2026.08.25.3
        ========================================================= */
 
     .manager-dashboard-warnings{
@@ -2779,7 +2795,7 @@
   <nav id="sidebarNav" class="sidebar-nav"></nav>
 
   <div class="sidebar-footer">
-    <small>v2026.08.25.2</small>
+    <small>v2026.08.25.3</small>
   </div>
 </aside>
 
@@ -2829,7 +2845,7 @@
       </div>
     </div>
     <p class="auth-copy">Internal inventory, sales, releasing, transfer, return, and stock-management workspace.</p>
-    <span class="version-chip">v2026.08.25.2</span>
+    <span class="version-chip">v2026.08.25.3</span>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -3507,7 +3523,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = "2026.08.25.2";
+const APP_VERSION = "2026.08.25.3";
 const EXPECTED_API_VERSION = APP_VERSION;
 const API_URL = "https://script.google.com/macros/s/AKfycbx7iFaGeikvykjRicd8kcv6NZQAFg5oYwaRTXU3m4ylM4l8mvqaS84X-iUgLrFWiNUUrw/exec";
 let currentUser = null;
@@ -9343,6 +9359,15 @@ function renderProduct(){
           Cost Per Unit: <strong>₱${Number(p.averageCost||0).toLocaleString()}</strong>
         </div>
 
+        ${currentType==="CHECK_STOCK"&&canAccess("SALES")?`
+          <button
+            type="button"
+            class="success product-continue-sale-button"
+            onclick="continueSelectedProductToSale()"
+            title="Add this product to Sold Immediately"
+          >Continue to Sale</button>
+        `:""}
+
         ${keywordSearchResults.length?`
           <button type="button" class="icon-back-button product-found-back-button" onclick="backToKeywordResults()" aria-label="Back to search results" title="Back to search results">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m10 17-5-5 5-5"/></svg>
@@ -9353,6 +9378,53 @@ function renderProduct(){
   `;
 
   show("productCard");
+}
+
+function continueSelectedProductToSale(){
+  if(!currentUser){
+    setStatus("Please login again.","error");
+    return;
+  }
+
+  if(!canAccess("SALES")){
+    setStatus("Your role does not have permission to record a sale.","error");
+    return;
+  }
+
+  if(currentType!=="CHECK_STOCK"){
+    setStatus("Continue to Sale is available from Check Stock.","error");
+    return;
+  }
+
+  if(!currentProduct){
+    setStatus("Please select a product first.","error");
+    return;
+  }
+
+  /*
+   * chooseType() intentionally resets the current workspace/cart.
+   * Keep a copy of the selected Check Stock product before switching.
+   */
+  const selectedProduct={...currentProduct};
+
+  chooseType("SALE");
+
+  currentProduct=selectedProduct;
+  renderProduct();
+  addProductToCart(selectedProduct);
+  renderForm();
+
+  document.getElementById("searchValue").value="";
+
+  setStatus(
+    "Product added to Sold Immediately cart. Complete the sale details below.",
+    "success-text"
+  );
+
+  const cartCard=document.getElementById("cartCard");
+  if(cartCard){
+    cartCard.scrollIntoView({behavior:"smooth",block:"start"});
+  }
 }
 
 function isCartTransactionType(type){
