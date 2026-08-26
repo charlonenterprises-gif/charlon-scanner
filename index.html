@@ -546,7 +546,7 @@
 
 
     /* ======================================================
-       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.08.26.1
+       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.08.26.2
        Inspired by a classic inventory admin dashboard while
        keeping the current workflows and mobile usability.
        ====================================================== */
@@ -910,7 +910,7 @@
   
 
     /* ======================================================
-       CHARLON UI REFINEMENT — v2026.08.26.1
+       CHARLON UI REFINEMENT — v2026.08.26.2
        Cleaner lists, compact desktop actions, pagination,
        and a true mobile header navigation drawer.
        ====================================================== */
@@ -1469,7 +1469,7 @@
   
 
     /* ======================================================
-       FUNCTIONAL UI REFINEMENT — v2026.08.26.1
+       FUNCTIONAL UI REFINEMENT — v2026.08.26.2
        Keep the existing Charlon UI, improve consistency only.
        ====================================================== */
 
@@ -1664,7 +1664,7 @@
 
   
     /* ======================================================
-       POLISH UPDATE — v2026.08.26.1
+       POLISH UPDATE — v2026.08.26.2
        ====================================================== */
 
     .tool-action-button,
@@ -1731,7 +1731,7 @@
   
 
     /* ======================================================
-       SCREEN / FONT CONSISTENCY — v2026.08.26.1
+       SCREEN / FONT CONSISTENCY — v2026.08.26.2
        ====================================================== */
 
     /* One typography system throughout all clickable controls. */
@@ -1786,7 +1786,7 @@
   
 
     /* ======================================================
-       NAVIGATION / SEARCH RESET POLISH — v2026.08.26.1
+       NAVIGATION / SEARCH RESET POLISH — v2026.08.26.2
        ====================================================== */
 
     /* Quick action buttons use Charlon's dark blue action style. */
@@ -1853,7 +1853,7 @@
   
 
     /* =========================================================
-       NAVIGATION + FORM POLISH — v2026.08.26.1
+       NAVIGATION + FORM POLISH — v2026.08.26.2
        ========================================================= */
     .screen-title-row{
       display:flex;
@@ -1939,7 +1939,7 @@
   
 
     /* =========================================================
-       SPACE + TITLE POLISH — v2026.08.26.1
+       SPACE + TITLE POLISH — v2026.08.26.2
        ========================================================= */
 
     /* The blue app header belongs to the top of the page and no longer
@@ -2154,7 +2154,7 @@
     }
 
     /* =========================================================
-       CONSISTENCY POLISH — v2026.08.26.1
+       CONSISTENCY POLISH — v2026.08.26.2
        ========================================================= */
 
     /* Product Management sub-pages should begin exactly like
@@ -2234,7 +2234,7 @@
 
   
     /* =========================================================
-       FUNCTIONAL POLISH — v2026.08.26.1
+       FUNCTIONAL POLISH — v2026.08.26.2
        ========================================================= */
 
     /* Refresh icon is centered vertically and horizontally. */
@@ -2294,7 +2294,7 @@
 
   
     /* =========================================================
-       TRANSACTION / HISTORY POLISH — v2026.08.26.1
+       TRANSACTION / HISTORY POLISH — v2026.08.26.2
        ========================================================= */
 
     .transaction-feedback-banner{
@@ -2544,7 +2544,7 @@
 
   
     /* =========================================================
-       MOBILE + NOTIFICATION POLISH — v2026.08.26.1
+       MOBILE + NOTIFICATION POLISH — v2026.08.26.2
        ========================================================= */
 
     .refresh-action-button{
@@ -2685,7 +2685,7 @@
 
   
     /* =========================================================
-       SECURITY / MANAGER HEALTH — v2026.08.26.1
+       SECURITY / MANAGER HEALTH — v2026.08.26.2
        ========================================================= */
 
     .manager-dashboard-warnings{
@@ -2797,6 +2797,64 @@
     @media(max-width:560px){.approval-detail-grid,.match-compare-grid,.return-detail-grid{grid-template-columns:1fr;}.approval-action-row button,.return-submit-row button{width:100%;}}
   </style>
 
+
+  <style id="charlon-v20260826-2-ui">
+    .transfer-form-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px 14px;max-width:1080px;align-items:end;}
+    .transfer-form-grid>div{min-width:0;}
+    .transfer-row1-date{grid-column:span 2}.transfer-row1-id{grid-column:span 4}
+    .transfer-row2-from,.transfer-row2-to{grid-column:span 2}.transfer-row2-qty{grid-column:span 2}
+    .transfer-row3-sent,.transfer-row3-received{grid-column:span 3}
+    .transfer-row4-notes{grid-column:1/-1}
+    .transfer-form-grid label{margin-top:0}.transfer-form-grid textarea{min-height:78px}
+    .transaction-success-result{max-width:980px;margin:4px 0 2px;}
+
+    .approval-transfer-item-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;grid-column:1/-1;}
+    .approval-transfer-item{background:#f4f7f9;border-radius:8px;padding:9px 10px;min-width:0;}
+    .approval-transfer-item span{display:block;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#718394;margin-bottom:3px;}
+    .approval-transfer-item strong{display:block;color:#123b55;overflow-wrap:anywhere;}
+
+    .receipt-copy-wrap{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;width:100%!important;}
+    .receipt-copy-wrap>strong{min-width:0;overflow-wrap:anywhere;}
+    .copy-receipt-button{margin-left:auto!important;width:28px!important;min-width:28px!important;max-width:28px!important;height:28px!important;border-radius:5px!important;flex:0 0 28px!important;}
+
+    .release-request-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:14px;margin-top:12px;}
+    .release-request-card{border:1px solid #cfe0ea;border-left:4px solid #0879b8;border-radius:12px;background:#fff;padding:16px;min-width:0;}
+    .release-request-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid #e1e9ef;}
+    .release-request-head strong{display:block;color:#0b3551;font-size:15px;margin-top:4px;}
+    .release-detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+    .release-detail-grid>div{background:#f4f7f9;border-radius:8px;padding:9px 10px;min-width:0;}
+    .release-detail-grid span{display:block;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#718394;margin-bottom:3px;}
+    .release-detail-grid strong{display:block;color:#123b55;overflow-wrap:anywhere;}
+    .release-items-list{display:grid;gap:8px;margin-top:12px;}
+    .release-item-row{display:grid;grid-template-columns:minmax(0,1fr) 150px 120px;gap:8px;background:#f6f9fb;border-radius:8px;padding:10px;align-items:center;}
+    .release-item-row small{display:block;color:#718394;font-weight:700;}
+    .release-request-actions,.release-form-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+    .release-request-actions button,.release-form-actions button{width:auto!important;min-width:150px!important;margin:0!important;}
+    .release-inline-form{margin-top:14px;padding-top:14px;border-top:1px solid #e1e9ef;}
+    .release-sale-grid,.release-transfer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 14px;max-width:980px;}
+    .release-sale-grid .span-2,.release-transfer-grid .span-2{grid-column:span 2}.release-sale-grid .span-all,.release-transfer-grid .span-all{grid-column:1/-1}
+    .release-sale-grid label,.release-transfer-grid label{margin-top:0}
+    .release-price-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;grid-column:1/-1;}
+    .release-price-card{background:#f4f7f9;border-radius:8px;padding:10px;}
+
+    .edit-product-name-preview{background:#f4f7f9!important;font-weight:800;color:#0b3551!important;}
+    .role-hidden-cost{display:none!important;}
+
+    @media(max-width:900px){
+      .transfer-form-grid,.release-sale-grid,.release-transfer-grid{grid-template-columns:1fr 1fr;}
+      .transfer-form-grid>div,.transfer-row1-date,.transfer-row1-id,.transfer-row2-from,.transfer-row2-to,.transfer-row2-qty,.transfer-row3-sent,.transfer-row3-received{grid-column:span 1;}
+      .transfer-row4-notes,.release-sale-grid .span-all,.release-transfer-grid .span-all{grid-column:1/-1;}
+      .release-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+      .release-item-row{grid-template-columns:1fr;}
+    }
+    @media(max-width:600px){
+      .transfer-form-grid,.release-sale-grid,.release-transfer-grid,.release-price-grid,.release-detail-grid,.approval-transfer-item-list{grid-template-columns:1fr;}
+      .release-sale-grid .span-2,.release-transfer-grid .span-2{grid-column:span 1;}
+      .release-request-grid{grid-template-columns:1fr;}
+      .release-request-actions button,.release-form-actions button{width:100%!important;}
+    }
+  </style>
+
 </head>
 <body>
   <div
@@ -2836,7 +2894,7 @@
   <nav id="sidebarNav" class="sidebar-nav"></nav>
 
   <div class="sidebar-footer">
-    <small>v2026.08.26.1</small>
+    <small>v2026.08.26.2</small>
   </div>
 </aside>
 
@@ -2886,7 +2944,7 @@
       </div>
     </div>
     <p class="auth-copy">Internal inventory, sales, releasing, transfer, return, and stock-management workspace.</p>
-    <span class="version-chip">v2026.08.26.1</span>
+    <span class="version-chip">v2026.08.26.2</span>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -3564,7 +3622,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = "2026.08.26.1";
+const APP_VERSION = "2026.08.26.2";
 const EXPECTED_API_VERSION = APP_VERSION;
 const API_URL = "https://script.google.com/macros/s/AKfycbx7iFaGeikvykjRicd8kcv6NZQAFg5oYwaRTXU3m4ylM4l8mvqaS84X-iUgLrFWiNUUrw/exec";
 let currentUser = null;
@@ -11590,12 +11648,34 @@ async function submitTransaction(){
     if(res.negativeStockWarning){
       extra += `<br><span class="error">${escapeHtml(res.negativeStockWarning)}</span>`;
     }
-    setStatus(`${escapeHtml(res.message)}<br>Product: ${escapeHtml(res.productName || "")}${extra}`, "success-text");
-    hide("formCard");
-    hide("productCard");
+    const completedType=currentType;
+    const successHtml=`${escapeHtml(res.message)}<br>Product: ${escapeHtml(res.productName || "")}${extra}`;
+    setStatus(successHtml, "success-text");
+
+    if(completedType==="TRANSFER"||completedType==="INVENTORY_ADJUSTMENT"){
+      const formTitle=document.getElementById("formTitle");
+      const formFields=document.getElementById("formFields");
+      if(formTitle){
+        formTitle.innerText=completedType==="TRANSFER"?"Transfer Stock Location":"Manager Inventory Adjustment";
+      }
+      if(formFields){
+        formFields.innerHTML=`
+          <div class="notice-panel success-panel inline-result transaction-success-result">
+            <strong>${completedType==="TRANSFER"?"Transfer request submitted successfully.":"Inventory adjustment submitted successfully."}</strong><br>
+            ${successHtml}
+          </div>
+        `;
+      }
+      show("formCard");
+      hide("productCard");
+    }else{
+      hide("formCard");
+      hide("productCard");
+    }
+
     currentProduct = null;
     document.getElementById("searchValue").value = "";
-    const statusPanel=document.getElementById("status");
+    const statusPanel=document.getElementById(completedType==="TRANSFER"||completedType==="INVENTORY_ADJUSTMENT"?"formCard":"status");
     if(statusPanel){
       statusPanel.scrollIntoView({behavior:"smooth",block:"center"});
     }
@@ -12106,7 +12186,7 @@ function toggleReleaseTransferForm(index){
   form.classList.toggle("hidden");
 }
 
-async function submitCancelReleaseTransfer(index){
+async function submitCancelReleaseTransferBase_(index){
   if(isSubmitting)return;
 
   const row=releaseRequestRows[index];
@@ -13590,6 +13670,7 @@ async function deleteSelectedInventoryProduct(){
       </div>
     `;
     show("productDeletePanel");
+    panel.scrollIntoView({behavior:"smooth",block:"center"});
 
     setStatus("Product deleted successfully.","success-text");
   }catch(err){
@@ -14004,8 +14085,296 @@ async function stopCamera(){
   }
 }
 
+
+
+/* ================================================================
+ * CHARLON INVENTORY SYSTEM UI v2026.08.26.2
+ * ================================================================ */
+
+function canViewCostPerUnit_(){
+  if(!currentUser)return false;
+  const role=String(currentUser.role||"").trim().toUpperCase();
+  return ["MANAGER","ADMIN","SALES"].includes(role);
+}
+
+function applyCostVisibilityToRoot_(root){
+  if(!root||canViewCostPerUnit_())return;
+  const labels=[];
+  if(root.matches&&root.matches("label"))labels.push(root);
+  if(root.querySelectorAll)labels.push(...root.querySelectorAll("label"));
+  labels.forEach(label=>{
+    const text=String(label.textContent||"").trim().toUpperCase();
+    if(text==="COST PER UNIT"||text==="COST / UNIT"){
+      const holder=label.parentElement||label;
+      holder.classList.add("role-hidden-cost");
+    }
+  });
+  const candidates=[];
+  if(root.matches&&root.matches("div,p,span"))candidates.push(root);
+  if(root.querySelectorAll)candidates.push(...root.querySelectorAll("div,p,span"));
+  candidates.forEach(el=>{
+    if(el.classList&&el.classList.contains("role-hidden-cost"))return;
+    const ownText=[...el.childNodes].filter(n=>n.nodeType===Node.TEXT_NODE).map(n=>n.textContent).join(" ").trim().toUpperCase();
+    if((ownText.startsWith("COST PER UNIT")||ownText.startsWith("COST / UNIT"))&&el.children.length<=2){
+      el.classList.add("role-hidden-cost");
+    }
+  });
+}
+
+function applyRoleSensitiveVisibility_(){
+  if(!document.body)return;
+  document.querySelectorAll(".role-hidden-cost").forEach(el=>{
+    if(canViewCostPerUnit_())el.classList.remove("role-hidden-cost");
+  });
+  if(!canViewCostPerUnit_())applyCostVisibilityToRoot_(document.body);
+}
+
+function renderSidebarNav_(){
+  const nav=document.getElementById("sidebarNav");
+  if(!nav||!currentUser)return;
+  nav.innerHTML="";
+  nav.appendChild(makeSidebarNavButton_("home","Home",backHome));
+
+  if(canAccess("CHECKSTOCK"))nav.appendChild(makeSidebarNavButton_("stock","Check Stock",()=>chooseType("CHECK_STOCK")));
+  if(canUseReleaseItem())nav.appendChild(makeSidebarNavButton_("releaseitem","Customer Order / Release Item",()=>chooseType("RELEASING")));
+  if(canAccess("SALES"))nav.appendChild(makeSidebarNavButton_("sale","Sold Immediately",()=>chooseType("SALE")));
+  if(canAccess("TRANSFER"))nav.appendChild(makeSidebarNavButton_("transfer","Transfer Stock Location",()=>chooseType("TRANSFER")));
+  if(canAccess("RETURNCANCELRELEASE"))nav.appendChild(makeSidebarNavButton_("return","Return Stock-In",openRevampReturnLookup));
+  if(canViewMyReleaseRequests())nav.appendChild(makeSidebarNavButton_("releases","My Release Requests",openMyReleaseRequests,pendingReleaseCount,"RELEASES"));
+  if(canViewMyApprovals())nav.appendChild(makeSidebarNavButton_("approvals","My Approvals",openMyApprovals,pendingApprovalCount,"APPROVALS"));
+  if(canReviewUnlistedProducts()){
+    nav.appendChild(makeSidebarNavButton_("unlisted","Unlisted Product Review",openUnlistedProductReview,pendingUnlistedReviewCount,"UNLISTED"));
+    nav.appendChild(makeSidebarNavButton_("products","Product Management",openProductManagement));
+  }
+  nav.appendChild(makeSidebarNavButton_("recent","Recent Transactions",openRecentTransactions));
+  setSidebarActive_("home");
+  applyRoleSensitiveVisibility_();
+}
+
+function renderHomeButtons(){
+  const container=document.getElementById("homeButtons");if(!container)return;
+  container.innerHTML="";container.className="button-grid main-home-grid";
+  const add=(slot,label,helper,onClick,count=0,key="")=>{const b=makeMenuButton(label,helper,onClick,true,count,key);b.dataset.homeSlot=slot;container.appendChild(b);};
+
+  if(canAccess("CHECKSTOCK"))add("check","Check Stock","Search products and view physical stock, pending releases, and available quantity.",()=>chooseType("CHECK_STOCK"));
+  if(canUseReleaseItem())add("releaseitem","Customer Order / Release Item","Create a customer release request. Stock is deducted only when the ticket is completed as a sale.",()=>chooseType("RELEASING"));
+  if(canAccess("SALES"))add("sale","Sold Immediately","Record a completed sale and deduct stock from the selected source.",()=>chooseType("SALE"));
+  if(canAccess("TRANSFER"))add("transfer","Transfer Stock Location","Move stock from one inventory location to another through approval.",()=>chooseType("TRANSFER"));
+  if(canAccess("RETURNCANCELRELEASE"))add("return","Return Stock-In","Search a receipt and submit returned stock for approval.",openRevampReturnLookup);
+  if(canViewMyReleaseRequests())add("releases","My Release Requests","Review released items assigned to you and continue them to sale.",openMyReleaseRequests,pendingReleaseCount,"RELEASES");
+  if(canViewMyApprovals())add("approvals","My Approvals","Review pending returns, transfers, and inventory adjustments.",openMyApprovals,pendingApprovalCount,"APPROVALS");
+  if(canReviewUnlistedProducts()){
+    add("unlisted","Unlisted Product Review","Review sold products that are not yet part of the inventory master.",openUnlistedProductReview,pendingUnlistedReviewCount,"UNLISTED");
+    add("products","Product Management","Inventory adjustment, delete product, or correct active product details.",openProductManagement);
+  }
+  add("recent","Recent Transactions",canFilterAllRecentTransactions_()?"Review recent transactions and filter by user or transaction type.":"Review the transactions you recently processed.",openRecentTransactions);
+  applyRoleSensitiveVisibility_();
+}
+
+async function refreshHomeNotifications(){
+  if(!currentUser||notificationRefreshRunning||isSubmitting||document.visibilityState!=="visible")return;
+  notificationRefreshRunning=true;
+  try{
+    if(canViewMyReleaseRequests()){
+      try{const res=await apiCall({action:"getMyReleaseRequests",staffId:currentUser.staffId,pin:currentPin});if(res&&res.success)pendingReleaseCount=Array.isArray(res.rows)?res.rows.length:Number(res.count||pendingReleaseCount);}catch(err){console.log("Release notification check failed:",err);}
+    }
+    if(canViewMyApprovals()){
+      try{const res=await apiCall({action:"getMyRevampApprovals",staffId:currentUser.staffId,pin:currentPin});if(res&&res.success)pendingApprovalCount=Array.isArray(res.rows)?res.rows.length:Number(res.count||pendingApprovalCount);}catch(err){console.log("Approval notification check failed:",err);}
+    }
+    updateHomeNotificationBadge("RELEASES",pendingReleaseCount);
+    updateHomeNotificationBadge("APPROVALS",pendingApprovalCount);
+    updateNotificationTitle();
+  }finally{notificationRefreshRunning=false;}
+}
+
+function renderTransferForm(){
+  document.getElementById("formTitle").innerText="Transfer Form";
+  document.getElementById("formFields").innerHTML=`
+    <p class="muted">Submit a stock transfer request. Stock will move only after the destination approver approves it.</p>
+    <div class="transfer-form-grid">
+      <div class="transfer-row1-date"><label>Transfer Date</label><input type="date" id="transferDate" value="${today()}"></div>
+      <div class="transfer-row1-id"><label>Transfer ID</label><input type="text" id="transferId" value="Generating..." disabled></div>
+      <div class="transfer-row2-from"><label>From Location</label>${inventoryLocationSelectHtml("fromLocation",currentUser.location)}</div>
+      <div class="transfer-row2-to"><label>To Location</label>${inventoryLocationSelectHtml("toLocation","","updateTransferReceivedBy()")}</div>
+      <div class="transfer-row2-qty"><label>Quantity</label><input type="number" id="quantity" min="1" value="1"></div>
+      <div class="transfer-row3-sent"><label>Sent By</label><input type="text" id="sentBy" value="${escapeHtml(currentUser.name||"")}" disabled></div>
+      <div class="transfer-row3-received"><label>Received By</label><input type="text" id="receivedBy" value="Select To Location" disabled></div>
+      <div class="transfer-row4-notes"><label>Notes</label><textarea id="notes" placeholder="Optional transfer notes"></textarea></div>
+    </div>
+    <p class="muted">Received By is automatically assigned based on the destination location.</p>
+  `;
+  loadTicketPreview("TRANSFER","transferId");
+  updateTransferReceivedBy();
+  applyRoleSensitiveVisibility_();
+}
+
+function approvalFieldHtml_(label,value,wide=false){
+  if(value===undefined||value===null||value==="")return"";
+  return`<div class="${wide?"approval-wide":""}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+}
+
+function renderMyApprovals(res){
+  const rows=res.rows||[];const canOverride=Boolean(res.canOverride||window.currentApprovalCanOverride);const container=document.getElementById("approvalList");
+  let html=`<div class="approval-list-summary"><div><strong>Pending Approvals: ${escapeHtml(rows.length)}</strong><div class="muted">Assigned approvals are shown here${canOverride?". Manager/Admin override is available when the assigned approver is unavailable.":"."}</div></div>${canOverride?`<span class="badge">MANAGER / ADMIN OVERRIDE</span>`:""}</div>`;
+  if(!rows.length){container.innerHTML=html+`<div class="empty-state compact-empty-state">No pending approvals available.</div>`;return;}
+  html+=`<div class="approval-list-grid">`;
+  rows.forEach((row,index)=>{
+    const type=String(row.type||"").toUpperCase(),isTransfer=type==="TRANSFER",isAdjustment=type==="INVENTORY_ADJUSTMENT";
+    const assignedApprover=String(isTransfer?row.receivedBy||"":row.requiredApprover||"").trim();
+    const isAssigned=String(currentUser&&currentUser.name||"").trim().toUpperCase()===assignedApprover.toUpperCase();
+    const isOverride=canOverride&&!isAssigned&&Boolean(assignedApprover);
+    let reference="",title="",fields="",itemsHtml="";
+    if(isAdjustment){
+      reference=row.adjustmentId||"";title=row.productName||"Inventory Adjustment";
+      fields=[approvalFieldHtml_("Adjustment ID",row.adjustmentId),approvalFieldHtml_("Date Adjusted",formatDateTime(row.dateAdjusted)),approvalFieldHtml_("SKU",row.sku),approvalFieldHtml_("Location",row.location),approvalFieldHtml_("Adjustment Type",row.adjustmentType),approvalFieldHtml_("Change Qty",row.adjustmentQty),approvalFieldHtml_("Location Qty",(row.oldLocationQty||0)+" → "+(row.newLocationQty||0)),approvalFieldHtml_("Total Qty",(row.oldTotalQty||0)+" → "+(row.newTotalQty||0)),approvalFieldHtml_("Reason",row.reason),approvalFieldHtml_("Requested By",row.adjustedBy),approvalFieldHtml_("Required Approver",row.requiredApprover),approvalFieldHtml_("Notes",row.notes,true)].join("");
+    }else if(isTransfer){
+      reference=row.transferId||"";title=row.productName||"Stock Transfer";
+      fields=[approvalFieldHtml_("Transfer ID",row.transferId),approvalFieldHtml_("Date / Time Submitted",formatDateTime(row.dateTransferred)),approvalFieldHtml_("From",row.fromLocation),approvalFieldHtml_("To",row.toLocation),approvalFieldHtml_("Total Qty",row.qty||0),approvalFieldHtml_("Sent By",row.sentBy),approvalFieldHtml_("Required Approver",row.receivedBy)].join("");
+      const items=Array.isArray(row.items)?row.items:[];
+      if(items.length)itemsHtml=`<div class="approval-transfer-item-list">${items.map(item=>`<div class="approval-transfer-item"><span>Item</span><strong>${escapeHtml(item.productName||"")}</strong><small>SKU: ${escapeHtml(item.sku||"")} · Qty: ${escapeHtml(item.qty||0)}</small></div>`).join("")}</div>`;
+    }else{
+      reference=row.returnId||"";title=row.productName||"Return Stock-In";
+      fields=[approvalFieldHtml_("Return ID",row.returnId),approvalFieldHtml_("Receipt No.",row.receiptNo),approvalFieldHtml_("SKU",row.sku),approvalFieldHtml_("Qty",row.qty||0),approvalFieldHtml_("Return Location",row.returnLocation),approvalFieldHtml_("Handled By",row.handledBy),approvalFieldHtml_("Required Approver",row.requiredApprover)].join("");
+    }
+    html+=`<article class="approval-item-card"><div class="approval-item-head"><div><span class="recent-transaction-action">${escapeHtml(row.type||"Approval")}</span><strong>${escapeHtml(title)}</strong><div class="muted">${escapeHtml(reference)}</div></div><div class="approval-badge-row"><span class="badge">${escapeHtml(row.approvalStatus||"PENDING")}</span>${isOverride?`<span class="badge">OVERRIDE AVAILABLE</span>`:""}</div></div><div class="approval-detail-grid">${fields}${itemsHtml}</div><div class="approval-action-row"><button id="approvalApproveBtn_${index}" class="success" type="button" onclick="submitRevampApprovalByIndex(${index},'APPROVE')">${isOverride?"Override & Approve":"Approve"}</button><button id="approvalRejectBtn_${index}" class="danger" type="button" onclick="submitRevampApprovalByIndex(${index},'REJECT')">${isOverride?"Override & Reject":"Reject"}</button></div></article>`;
+  });
+  html+=`</div>`;container.innerHTML=html;
+}
+
+function buildRecentActionOptions_(){
+  const admin=canFilterAllRecentTransactions_();
+  const options=[
+    ["SALE_STOCK_OUT","Sale / Stock Out","SALES"],
+    ["RELEASING_REQUEST","Release Request","RELEASING"],
+    ["TRANSFER_REQUEST","Transfer Request","TRANSFER"],
+    ["TRANSFER_APPROVED","Transfer Approved","TRANSFER"],
+    ["TRANSFER_REJECTED","Transfer Rejected","TRANSFER"],
+    ["RETURN_REQUEST","Return Request","RETURNCANCELRELEASE"],
+    ["RETURN_APPROVED","Return Approved","RETURNCANCELRELEASE"],
+    ["RETURN_REJECTED","Return Rejected","RETURNCANCELRELEASE"],
+    ["INVENTORY_ADJUSTMENT_REQUEST","Inventory Adjustment Request","INVENTORYADJUSTMENT"],
+    ["INVENTORY_ADJUSTMENT","Inventory Adjustment","INVENTORYADJUSTMENT"],
+    ["PURCHASE_STOCK_IN","Purchase Stock-In","PURCHASES"]
+  ];
+  if(admin){
+    options.push(["UNLISTED_MATCH_EXISTING","Unlisted → Match Existing",""],["UNLISTED_NEW_PRODUCT_CREATED","Unlisted → New Product",""],["PRODUCT_DETAILS_UPDATED","Product Details Updated",""],["PRODUCT_DELETED","Product Deleted",""]);
+  }
+  return options.filter(item=>admin||!item[2]||canAccess(item[2]));
+}
+
+function populateRecentTransactionActions_(){
+  const select=document.getElementById("recentTransactionsAction");if(!select)return;
+  const admin=canFilterAllRecentTransactions_();
+  select.innerHTML=`<option value="">${admin?"All Transactions":"All My Transactions"}</option>`+buildRecentActionOptions_().map(item=>`<option value="${escapeHtml(item[0])}">${escapeHtml(item[1])}</option>`).join("");
+}
+
+function openRecentTransactions(){
+  if(!currentUser){setStatus("Please login first.","error");return;}
+  currentType="RECENT_TRANSACTIONS";currentProduct=null;currentTicket=null;currentTicketLines=[];cartItems=[];
+  hideAllWorkspaceCards_();closeMobileNav();setSidebarActive_("recent");show("recentTransactionsCard");
+  document.getElementById("recentTransactionsSearch").value="";document.getElementById("recentTransactionsFrom").value="";document.getElementById("recentTransactionsTo").value="";document.getElementById("recentTransactionsResults").innerHTML="";document.getElementById("recentTransactionsMeta").textContent="";
+  populateRecentTransactionUsers_();populateRecentTransactionActions_();document.getElementById("recentTransactionsAction").value="";
+  const help=document.getElementById("recentTransactionsHelp");if(help)help.textContent=canFilterAllRecentTransactions_()?"Review recent transactions. Managers/Admins can filter by user and transaction type.":"Showing only your permitted transaction types and transactions performed by "+(currentUser.name||"you")+".";
+  loadRecentTransactions();
+}
+
+function renderProductEditPanel_(product){
+  const panel=document.getElementById("productDeletePanel");if(!panel)return;
+  panel.innerHTML=`
+    <div class="section-heading"><div><h3>Edit Product Details</h3><p class="muted">SKU is locked. Product Name is rebuilt automatically from the descriptive fields.</p></div><span class="sku-chip">${escapeHtml(product.sku||"")}</span></div>
+    <div class="edit-product-form">
+      <div class="grid-span-full"><label>Product Name (Automatic)</label><input class="edit-product-name-preview" type="text" id="editProductName" value="${escapeHtml(product.productName||"")}" readonly></div>
+      <div class="suggestion-field"><label>Brand *</label><input type="text" id="editProductBrand" value="${escapeHtml(product.brand||"")}" autocomplete="off" oninput="handleCatalogInput(this,'editProductBrandSuggestions','brands');updateEditProductNamePreview_()" onfocus="handleCatalogInput(this,'editProductBrandSuggestions','brands')"><div id="editProductBrandSuggestions" class="suggestion-list hidden"></div></div>
+      <div><label>Model</label><input type="text" id="editProductModel" value="${escapeHtml(product.model||"")}" oninput="updateEditProductNamePreview_()"></div>
+      <div class="suggestion-field"><label>Item Type *</label><input type="text" id="editProductItemType" value="${escapeHtml(product.itemType||"")}" autocomplete="off" oninput="handleCatalogInput(this,'editProductItemTypeSuggestions','itemTypes');updateEditProductNamePreview_()" onfocus="handleCatalogInput(this,'editProductItemTypeSuggestions','itemTypes')"><div id="editProductItemTypeSuggestions" class="suggestion-list hidden"></div></div>
+      <div><label>Description</label><input type="text" id="editProductDescription" value="${escapeHtml(product.description||"")}" oninput="updateEditProductNamePreview_()"></div>
+      <div><label>Specifications</label><input type="text" id="editProductSpecifications" value="${escapeHtml(product.specifications||"")}" oninput="updateEditProductNamePreview_()"></div>
+      <div class="grid-span-full"><label>For / With</label><input type="text" id="editProductForWith" value="${escapeHtml(product.forWith||"")}" placeholder="Example: for Metal / with Battery" oninput="updateEditProductNamePreview_()"></div>
+      <div class="grid-span-full"><label>Reason / Notes</label><textarea id="editProductReason" rows="2" placeholder="Example: Corrected wrong model and specifications"></textarea></div>
+    </div>
+    <button id="saveProductDetailsBtn" class="success" type="button" onclick="saveSelectedProductDetails()">Save Product Details</button>`;
+  show("productDeletePanel");updateEditProductNamePreview_();panel.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function buildEditProductName_(){
+  const brandInput=properUnlistedText(val("editProductBrand"));const brand=brandInput.toUpperCase()==="NO BRAND"?"":brandInput;
+  return [brand,val("editProductModel").trim().toUpperCase(),formatUnlistedSpecifications(val("editProductSpecifications")),properUnlistedText(val("editProductDescription")),properUnlistedText(val("editProductItemType")),formatUnlistedForWith(val("editProductForWith"))].filter(Boolean).join(" ").replace(/\s+/g," ").trim();
+}
+function updateEditProductNamePreview_(){const field=document.getElementById("editProductName");if(field)field.value=buildEditProductName_();}
+
+async function saveSelectedProductDetails(){
+  if(isSubmitting)return;const product=productManagementResults[selectedProductManagementIndex];if(!product){setStatus("Please select the product again.","error");return;}
+  const brand=val("editProductBrand").trim(),itemType=val("editProductItemType").trim(),productName=buildEditProductName_(),button=document.getElementById("saveProductDetailsBtn");
+  if(!brand){setStatus('Brand is required. If the product has no brand, enter "No Brand".',"error");return;}if(!itemType){setStatus("Item Type is required.","error");return;}if(!productName){setStatus("Product Name could not be generated.","error");return;}
+  if(!confirm("Save these corrected product details?\n\nSKU: "+product.sku+"\nNew Product Name: "+productName))return;
+  isSubmitting=true;if(button){button.disabled=true;button.textContent="Saving Details...";}setStatus("Saving product details...","info");
+  try{
+    const res=await apiCall({action:"updateInventoryProductDetails",staffId:currentUser.staffId,pin:currentPin,sku:product.sku,brand,model:val("editProductModel"),itemType,description:val("editProductDescription"),specifications:val("editProductSpecifications"),forWith:val("editProductForWith"),reason:val("editProductReason")});
+    if(!res||!res.success)throw new Error(res&&res.message?res.message:"Product details update failed.");
+    Object.assign(product,{productName:res.productName||productName,brand:res.brand||brand,model:res.model||val("editProductModel").trim(),itemType:res.itemType||itemType,description:res.description||val("editProductDescription").trim(),specifications:res.specifications||val("editProductSpecifications").trim(),forWith:res.forWith||val("editProductForWith").trim()});
+    renderProductManagementResults(productManagementTotalCount);
+    const panel=document.getElementById("productDeletePanel");panel.innerHTML=`<div class="notice-panel success-panel inline-result"><strong>Product details updated.</strong><br>${escapeHtml(product.productName||"")}<br>SKU: <strong>${escapeHtml(product.sku||"")}</strong><br>Inventory Dashboard and Product Location Log names were synchronized.<br>Audit ID: <strong>${escapeHtml(res.transactionId||"")}</strong></div>`;show("productDeletePanel");panel.scrollIntoView({behavior:"smooth",block:"center"});setStatus("Product details updated successfully.","success-text");
+  }catch(err){setStatus("Update Product Details failed: "+escapeHtml(err.message||err),"error");}
+  finally{isSubmitting=false;if(button&&button.isConnected){button.disabled=false;button.textContent="Save Product Details";}}
+}
+
+function renderMyReleaseRequests(res){
+  const rows=res.rows||[];const container=document.getElementById("releaseRequestsList");
+  let html=`<div class="approval-list-summary"><div><strong>Pending Requests: ${escapeHtml(rows.length)}</strong><div class="muted">Review released items assigned to you. Open only one follow-up form at a time.</div></div></div>`;
+  if(!rows.length){container.innerHTML=html+`<div class="empty-state compact-empty-state">No pending release requests assigned to you.</div>`;return;}
+  html+=`<div class="release-request-grid">`;
+  rows.forEach((row,index)=>{
+    const items=Array.isArray(row.items)?row.items:[];
+    html+=`<article class="release-request-card"><div class="release-request-head"><div><span class="recent-transaction-action">Customer Release</span><strong>${escapeHtml(row.ticketNo||"")}</strong><div class="muted">${escapeHtml(formatDateTime(row.date||row.createdAt||""))}</div></div><span class="badge">${escapeHtml(row.status||"PENDING SALE")}</span></div>
+      <div class="release-detail-grid"><div><span>Released By</span><strong>${escapeHtml(row.releasedBy||"")}</strong></div><div><span>Requested By</span><strong>${escapeHtml(row.requestedBy||"")}</strong></div><div><span>Source Location</span><strong>${escapeHtml(row.sourceLocation||"")}</strong></div>${row.notes?`<div style="grid-column:1/-1"><span>Notes</span><strong>${escapeHtml(row.notes||"")}</strong></div>`:""}</div>
+      <div class="release-items-list">${items.map(item=>`<div class="release-item-row"><div><strong>${escapeHtml(item.productName||"")}</strong><small>SKU: ${escapeHtml(item.sku||"")}</small></div><div><small>Quantity</small><strong>${escapeHtml(item.quantity)} ${escapeHtml(item.unit||"")}</strong></div><div><small>Details</small><strong>${escapeHtml(item.unitDetails||"—")}</strong></div></div>`).join("")}</div>
+      <div class="release-request-actions"><button class="success" type="button" onclick="toggleReleaseSaleForm(${index})">Continue to Sale</button><button class="danger" type="button" onclick="toggleReleaseTransferForm(${index})">Cancel and Transfer Location</button></div>
+      <div id="releaseSaleForm_${index}" class="hidden release-inline-form"><h3>Complete Sale</h3><div class="release-sale-grid">
+        <div><label>Sold By</label><input type="text" value="${escapeHtml(currentUser.name||"")}" disabled></div><div><label>Released By</label><input type="text" value="${escapeHtml(row.releasedBy||"")}" disabled></div><div><label>Stock Source</label><input type="text" value="${escapeHtml(row.sourceLocation||"")}" disabled></div>
+        <div><label>Sales Channel</label>${selectHtml("releaseSalesChannel_"+index,settings.salesChannels,"")}</div><div><label>Payment Status</label>${salePaymentStatusSelectHtml("releasePaymentStatus_"+index,"updatePaymentTermsFields('releasePaymentStatus_"+index+"','releasePaymentTermsFields_"+index+"','releasePaymentTerms_"+index+"')")}</div><div><label>Receipt Type</label><select id="releaseReceiptType_${index}"><option value="Sales Invoice">Sales Invoice</option><option value="Delivery Receipt">Delivery Receipt</option><option value="No Receipt">No Receipt</option></select></div>
+        <div id="releasePaymentTermsFields_${index}" class="hidden"><label>Payment Terms</label>${paymentTermsSelectHtml("releasePaymentTerms_"+index)}</div><div><label>Receipt No.</label><input type="text" id="releaseReceiptNo_${index}" placeholder="Enter receipt number"></div><div><label>Customer Name</label><input type="text" id="releaseCustomerName_${index}"></div>
+        <div class="release-price-grid">${items.map((item,itemIndex)=>`<div class="release-price-card"><strong>${escapeHtml(item.productName||"")}</strong><small>Qty: ${escapeHtml(item.quantity)} ${escapeHtml(item.unit||"")}</small><label>Price Per Unit</label><input type="number" id="releaseSalePrice_${index}_${itemIndex}" min="0" step="0.01" value="${Number(item.unitPrice||0)>0?Number(item.unitPrice||0):""}"></div>`).join("")}</div>
+        <div class="span-all"><label>Notes</label><textarea id="releaseSaleNotes_${index}" placeholder="Optional sale notes"></textarea></div>
+      </div><div class="release-form-actions"><button id="releaseSubmitSaleBtn_${index}" class="success" type="button" onclick="submitReleaseSale(${index})">Submit Sale</button><button class="secondary" type="button" onclick="toggleReleaseSaleForm(${index})">Close</button></div></div>
+      <div id="releaseTransferForm_${index}" class="hidden release-inline-form"><h3>Cancel and Transfer Location</h3><p class="muted">The release will be cancelled and the item quantities will be moved to another stock location after approval.</p><div class="release-transfer-grid"><div><label>From Location</label><input type="text" value="${escapeHtml(row.sourceLocation||"")}" disabled></div><div><label>To Location</label>${inventoryLocationSelectHtml("releaseTransferTo_"+index,"")}</div><div><label>Sent By</label><input type="text" value="${escapeHtml(currentUser.name||"")}" disabled></div><div class="span-2"><label>Received By</label><input type="text" value="Destination location approver — automatic" disabled></div><div class="span-all"><label>Notes</label><textarea id="releaseTransferNotes_${index}" placeholder="Optional reason for cancellation or transfer"></textarea></div></div><div class="release-form-actions"><button id="releaseTransferConfirmBtn_${index}" class="danger" type="button" onclick="submitCancelReleaseTransfer(${index})">Confirm Cancel and Transfer</button><button class="secondary" type="button" onclick="toggleReleaseTransferForm(${index})">Close</button></div></div>
+    </article>`;
+  });
+  html+=`</div>`;container.innerHTML=html;applyRoleSensitiveVisibility_();
+}
+
+function toggleReleaseSaleForm(index){
+  const sale=document.getElementById("releaseSaleForm_"+index),transfer=document.getElementById("releaseTransferForm_"+index);if(!sale)return;
+  if(transfer)transfer.classList.add("hidden");sale.classList.toggle("hidden");
+  if(!sale.classList.contains("hidden"))sale.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+function toggleReleaseTransferForm(index){
+  const sale=document.getElementById("releaseSaleForm_"+index),transfer=document.getElementById("releaseTransferForm_"+index);if(!transfer)return;
+  if(sale)sale.classList.add("hidden");transfer.classList.toggle("hidden");
+  if(!transfer.classList.contains("hidden"))transfer.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+async function submitCancelReleaseTransfer(index){
+  const button=document.getElementById("releaseTransferConfirmBtn_"+index);const original=button?button.textContent:"Confirm Cancel and Transfer";
+  if(button){button.disabled=true;button.textContent="Confirming Transfer...";}
+  try{await submitCancelReleaseTransferBase_(index);}finally{if(button&&button.isConnected){button.disabled=false;button.textContent=original;}}
+}
+
+function renderRecentTransactions_(res){
+  const rows=Array.isArray(res.rows)?res.rows:[],meta=document.getElementById("recentTransactionsMeta"),container=document.getElementById("recentTransactionsResults");
+  if(meta){const scanned=Number(res.scannedRows||0);meta.textContent=rows.length?rows.length+" recent transaction"+(rows.length===1?"":"s")+" shown."+(scanned?` Searched ${scanned.toLocaleString()} history row${scanned===1?"":"s"}.`:""):"No matching transactions found."+(scanned?` Searched ${scanned.toLocaleString()} history row${scanned===1?"":"s"}.`:"");}
+  if(!container)return;if(!rows.length){container.innerHTML=`<div class="empty-state compact-empty-state">No matching transactions found.</div>`;return;}
+  container.innerHTML=rows.map(row=>{const locationText=row.fromLocation||row.toLocation?[row.fromLocation?"From "+row.fromLocation:"",row.toLocation?"To "+row.toLocation:""].filter(Boolean).join(" → "):(row.location||"");return`<article class="recent-transaction-card"><div class="recent-transaction-head"><div><span class="recent-transaction-action">${escapeHtml(recentTransactionActionLabel_(row.action))}</span><strong>${escapeHtml(row.productName||row.transactionId||"Transaction")}</strong></div><span class="badge">${escapeHtml(row.status||"")}</span></div><div class="recent-transaction-grid"><div><span>Date / Time</span><strong>${escapeHtml(formatDateTime(row.dateTime))}</strong></div><div><span>Transaction ID</span><strong>${escapeHtml(row.transactionId||"—")}</strong></div><div><span>SKU</span><strong>${escapeHtml(row.sku||"—")}</strong></div><div><span>Qty</span><strong>${escapeHtml(row.qty||0)}</strong></div><div><span>User</span><strong>${escapeHtml(row.user||"—")}</strong></div><div><span>Location</span><strong>${escapeHtml(locationText||"—")}</strong></div>${row.receiptNo?`<div><span>Receipt No.</span><div class="receipt-copy-wrap"><strong>${escapeHtml(row.receiptNo)}</strong><button class="copy-receipt-button" type="button" title="Copy receipt number" aria-label="Copy receipt number" data-copy-value="${escapeHtml(row.receiptNo)}" onclick="copyRecentReceiptNo_(this)">⧉</button></div></div>`:""}</div>${row.notes?`<div class="recent-transaction-note">${escapeHtml(row.notes)}</div>`:""}</article>`;}).join("");
+}
+
+
 window.addEventListener("DOMContentLoaded", function(){
   applyVersionUi_();
+
+  const roleVisibilityObserver=new MutationObserver(mutations=>{
+    if(canViewCostPerUnit_())return;
+    mutations.forEach(mutation=>mutation.addedNodes.forEach(node=>{if(node.nodeType===Node.ELEMENT_NODE)applyCostVisibilityToRoot_(node);}));
+  });
+  roleVisibilityObserver.observe(document.body,{childList:true,subtree:true});
 
   document.getElementById("loginBtn").addEventListener("click", login); document.getElementById("changePinBtn").addEventListener("click", changePin); document.getElementById("staffId").addEventListener("keydown",
   function(e){
