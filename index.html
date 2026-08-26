@@ -2799,7 +2799,7 @@
 
 
   <style id="charlon-v20260826-2-ui">
-    .transfer-form-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px 14px;max-width:1080px;align-items:end;}
+    .transfer-form-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px 14px;width:100%;max-width:none;align-items:end;}
     .transfer-form-grid>div{min-width:0;}
     .transfer-row1-date{grid-column:span 2}.transfer-row1-id{grid-column:span 4}
     .transfer-row2-from,.transfer-row2-to{grid-column:span 2}.transfer-row2-qty{grid-column:span 2}
@@ -2817,8 +2817,8 @@
     .receipt-copy-wrap>strong{min-width:0;overflow-wrap:anywhere;}
     .copy-receipt-button{margin-left:auto!important;width:28px!important;min-width:28px!important;max-width:28px!important;height:28px!important;border-radius:5px!important;flex:0 0 28px!important;}
 
-    .release-request-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:14px;margin-top:12px;}
-    .release-request-card{border:1px solid #cfe0ea;border-left:4px solid #0879b8;border-radius:12px;background:#fff;padding:16px;min-width:0;}
+    .release-request-grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:12px;width:100%;}
+    .release-request-card{border:1px solid #cfe0ea;border-left:4px solid #0879b8;border-radius:12px;background:#fff;padding:16px;min-width:0;width:100%;}
     .release-request-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid #e1e9ef;}
     .release-request-head strong{display:block;color:#0b3551;font-size:15px;margin-top:4px;}
     .release-detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
@@ -2826,12 +2826,12 @@
     .release-detail-grid span{display:block;font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#718394;margin-bottom:3px;}
     .release-detail-grid strong{display:block;color:#123b55;overflow-wrap:anywhere;}
     .release-items-list{display:grid;gap:8px;margin-top:12px;}
-    .release-item-row{display:grid;grid-template-columns:minmax(0,1fr) 150px 120px;gap:8px;background:#f6f9fb;border-radius:8px;padding:10px;align-items:center;}
+    .release-item-row{display:grid;grid-template-columns:minmax(0,1fr) 150px;gap:12px;background:#f6f9fb;border-radius:8px;padding:12px;align-items:center;}.release-item-main{min-width:0}.release-item-main strong{display:block}.release-item-main small{margin-top:3px}.release-item-qty{text-align:right}.release-item-qty span{display:block;color:#718394;font-size:11px;font-weight:800;text-transform:uppercase}.release-item-qty strong{display:block;margin-top:3px}
     .release-item-row small{display:block;color:#718394;font-weight:700;}
     .release-request-actions,.release-form-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
     .release-request-actions button,.release-form-actions button{width:auto!important;min-width:150px!important;margin:0!important;}
     .release-inline-form{margin-top:14px;padding-top:14px;border-top:1px solid #e1e9ef;}
-    .release-sale-grid,.release-transfer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 14px;max-width:980px;}
+    .release-sale-grid,.release-transfer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 14px;width:100%;max-width:none;}
     .release-sale-grid .span-2,.release-transfer-grid .span-2{grid-column:span 2}.release-sale-grid .span-all,.release-transfer-grid .span-all{grid-column:1/-1}
     .release-sale-grid label,.release-transfer-grid label{margin-top:0}
     .release-price-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;grid-column:1/-1;}
@@ -2852,6 +2852,46 @@
       .release-sale-grid .span-2,.release-transfer-grid .span-2{grid-column:span 1;}
       .release-request-grid{grid-template-columns:1fr;}
       .release-request-actions button,.release-form-actions button{width:100%!important;}
+    }
+  </style>
+
+
+  <style id="charlon-v20260826-4-ui">
+    /* Full-width transaction workspaces: remove unused desktop gutter. */
+    #formCard #formFields{width:100%!important;max-width:none!important;}
+    #formCard .transfer-form-grid{
+      width:100%!important;max-width:none!important;
+      grid-template-columns:repeat(12,minmax(0,1fr))!important;
+    }
+    #formCard .transfer-row1-date{grid-column:span 3!important;}
+    #formCard .transfer-row1-id{grid-column:span 9!important;}
+    #formCard .transfer-row2-from,#formCard .transfer-row2-to,#formCard .transfer-row2-qty{grid-column:span 4!important;}
+    #formCard .transfer-row3-sent,#formCard .transfer-row3-received{grid-column:span 6!important;}
+    #formCard .transfer-row4-notes{grid-column:1/-1!important;}
+
+    /* My Release Requests uses the whole card width with a balanced layout. */
+    #releaseRequestsCard,#releaseRequestsList,.release-request-grid,.release-request-card{width:100%!important;max-width:none!important;box-sizing:border-box;}
+    .release-detail-grid,.release-items-list,.release-inline-form{width:100%!important;max-width:none!important;}
+    .release-transfer-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;width:100%!important;max-width:none!important;}
+    .release-transfer-grid .span-all{grid-column:1/-1!important;}
+    .release-item-row{grid-template-columns:minmax(0,1fr) 170px!important;}
+    .release-item-qty{text-align:right!important;}
+
+    /* Keep buttons compact and consistent. */
+    .release-request-actions button,.release-form-actions button{width:auto!important;min-width:145px!important;max-width:260px!important;}
+
+    @media(max-width:900px){
+      #formCard .transfer-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+      #formCard .transfer-row1-date,#formCard .transfer-row1-id,#formCard .transfer-row2-from,#formCard .transfer-row2-to,#formCard .transfer-row2-qty,#formCard .transfer-row3-sent,#formCard .transfer-row3-received{grid-column:span 1!important;}
+      #formCard .transfer-row4-notes{grid-column:1/-1!important;}
+      .release-transfer-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+    }
+    @media(max-width:600px){
+      #formCard .transfer-form-grid,.release-transfer-grid{grid-template-columns:1fr!important;}
+      #formCard .transfer-form-grid>div,.release-transfer-grid>div{grid-column:1/-1!important;}
+      .release-item-row{grid-template-columns:1fr!important;}
+      .release-item-qty{text-align:left!important;}
+      .release-request-actions button,.release-form-actions button{width:auto!important;min-width:0!important;max-width:100%!important;}
     }
   </style>
 
@@ -3622,7 +3662,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = "2026.08.26.2";
+const APP_VERSION = "2026.08.26.4";
 const EXPECTED_API_VERSION = APP_VERSION;
 const API_URL = "https://script.google.com/macros/s/AKfycbx7iFaGeikvykjRicd8kcv6NZQAFg5oYwaRTXU3m4ylM4l8mvqaS84X-iUgLrFWiNUUrw/exec";
 let currentUser = null;
@@ -3637,6 +3677,7 @@ let audioCtx = null;
 let isSubmitting = false;
 let keywordSearchResults = [];
 let cartItems = [];
+let activeReleaseSaleContext = null;
 let currentTicket = null;
 let currentTicketLines = [];
 let revampReturnLines = [];
@@ -3662,7 +3703,7 @@ let pendingApprovalCount=0;
 let pendingReleaseCount=0;
 let notificationRefreshTimer=null;
 let notificationRefreshRunning=false;
-const NOTIFICATION_REFRESH_MS=5*1000;
+const NOTIFICATION_REFRESH_MS=8*1000;
 const SESSION_STORAGE_KEY = "charlonMiniPosSessionV3";
 const LEGACY_SESSION_STORAGE_KEYS = [
   "charlonMiniPosSessionV1",
@@ -3673,6 +3714,7 @@ const CLIENT_REQUEST_ID_TTL_MS = 6 * 60 * 60 * 1000;
 
 const IDEMPOTENT_WRITE_ACTIONS = new Set([
   "submitticketfollowup",
+  "completereleasecartsale",
   "submitlocationnote",
   "submitinventoryadjustment",
   "submitinventoryadjustmentapproval",
@@ -4852,6 +4894,9 @@ function apiCall(params){
         ...(params||{})
       };
 
+      const transportRetryCount=Math.max(0,Number(requestParams.__transportRetry||0));
+      delete requestParams.__transportRetry;
+
       const action=
         String(
           requestParams.action||
@@ -5056,11 +5101,57 @@ function apiCall(params){
           }
 
           /*
-           * Keep clientRequestId after transport failure.
+           * A transient Apps Script/JSONP load failure should not immediately
+           * fail the user's action. Retry once with the same clientRequestId.
+           * Idempotency on write actions prevents a duplicate transaction.
            */
+          const maxTransportRetries=3;
+          if(transportRetryCount<maxTransportRetries){
+            const retryDelays=[700,1400,2600];
+            const retryDelay=retryDelays[Math.min(transportRetryCount,retryDelays.length-1)];
+            setTimeout(()=>{
+              apiCall({...(params||{}),__transportRetry:transportRetryCount+1})
+                .then(resolve)
+                .catch(reject);
+            },retryDelay);
+            return;
+          }
+
+          /*
+           * For write actions, a JSONP response can occasionally be lost even
+           * though Apps Script already committed the transaction. Check the
+           * persistent request ledger before showing an error. This keeps phone
+           * users from re-submitting and accidentally creating duplicates.
+           */
+          if(requestContext&&IDEMPOTENT_WRITE_ACTIONS.has(actionKey)){
+            apiCall({
+              action:"getRequestStatus",
+              originalAction:action,
+              originalRequestId:requestContext.id,
+              staffId:currentUser&&currentUser.staffId?currentUser.staffId:requestParams.staffId
+            }).then(statusRes=>{
+              if(statusRes&&statusRes.success&&statusRes.completed&&statusRes.result){
+                clearClientRequestContext_(requestContext);
+                checkApiVersion_(statusRes.result);
+                resolve(statusRes.result);
+                return;
+              }
+              reject(new Error(
+                statusRes&&statusRes.inProgress
+                  ?"The transaction is still processing. Please wait a few seconds; do not submit it again yet."
+                  :"The API response could not be loaded after several retries. No confirmed completion was found, so please refresh the page before trying again."
+              ));
+            }).catch(()=>{
+              reject(new Error(
+                "The API response could not be loaded after several retries. Please refresh the page and check the transaction status before trying again."
+              ));
+            });
+            return;
+          }
+
           reject(
             new Error(
-              "The API response could not be loaded. The backend may still have completed the transaction."
+              "The API could not be reached after several retries. Please refresh the page and try again."
             )
           );
         };
@@ -5756,6 +5847,7 @@ async function refreshPendingUnlistedCount(){
       "UNLISTED",
       pendingUnlistedReviewCount
     );
+    updateNotificationTitle();
 
   }catch(err){
 
@@ -8415,7 +8507,8 @@ function updateHomeNotificationBadge(
 function updateNotificationTitle(){
   const total=
     pendingApprovalCount+
-    pendingReleaseCount;
+    pendingReleaseCount+
+    pendingUnlistedReviewCount;
 
   document.title=total>0
     ?"("+total+") Charlon Enterprises Inventory System"
@@ -8737,6 +8830,7 @@ function updateGoTopButton_(){
 }
 
 function chooseType(type){
+  activeReleaseSaleContext=null;
   currentType=type;
 
   hideAllWorkspaceCards_();
@@ -10010,13 +10104,13 @@ function renderCart(){
               }
             </div>
           </div>
-          <button class="danger compact-remove-button" type="button" onclick="removeCartItem(${index})" aria-label="Remove item" title="Remove item">Remove</button>
+          ${item.lockedReleaseItem?`<span class="badge">FROM RELEASE</span>`:`<button class="danger compact-remove-button" type="button" onclick="removeCartItem(${index})" aria-label="Remove item" title="Remove item">Remove</button>`}
         </div>
 
         <div class="compact-cart-fields">
           <div class="compact-form-field">
             <label>Quantity</label>
-            <input type="number" min="1" value="${item.quantity}" onchange="updateCartQty(${index}, this.value)">
+            <input type="number" min="${Number(item.minimumQuantity||1)}" value="${item.quantity}" onchange="updateCartQty(${index}, this.value)">
           </div>
 
           <div class="compact-form-field">
@@ -10072,13 +10166,11 @@ function updateCartUnitDetails(index, value){
   cartItems[index].unitDetails = value || "";
 }
 
-function updateCartQty(index, value){
-  const qty = Number(value || 0);
-  if(qty <= 0){
-    cartItems[index].quantity = 1;
-  } else{
-    cartItems[index].quantity = qty;
-  }
+function updateCartQty(index,value){
+  if(!cartItems[index])return;
+  const minimum=Math.max(1,Number(cartItems[index].minimumQuantity||1));
+  const qty=Number(value||0);
+  cartItems[index].quantity=Number.isFinite(qty)&&qty>=minimum?qty:minimum;
   renderCart();
 }
 
@@ -10091,7 +10183,12 @@ function updateCartCost(index, value){
 }
 
 function removeCartItem(index){
-  cartItems.splice(index, 1);
+  if(!cartItems[index])return;
+  if(cartItems[index].lockedReleaseItem){
+    setStatus("Items from the original release must remain in the sale cart.","error");
+    return;
+  }
+  cartItems.splice(index,1);
   renderCart();
 }
 
@@ -10242,7 +10339,12 @@ function renderCartForm(){
         </div>
       </div>
     `;
-    loadTicketPreview("SALE", "autoTicketNo");
+    if(activeReleaseSaleContext){
+      const ticketField=document.getElementById("autoTicketNo");
+      if(ticketField)ticketField.value=activeReleaseSaleContext.releaseId;
+    }else{
+      loadTicketPreview("SALE","autoTicketNo");
+    }
   }
   if(currentType === "PURCHASE"){
     document.getElementById("formTitle").innerText = "Stock In / New Arrival - Cart";
@@ -10870,6 +10972,9 @@ async function verifySavedSaleAfterResponseError_(params,originalError){
 
 async function submitCartTransaction(){
   if(isSubmitting) return;
+  if(currentType==="SALE"&&activeReleaseSaleContext){
+    return submitReleaseCartSale_();
+  }
   if(!cartItems.length){
     setStatus("Please scan at least one item before submitting.", "error");
     return;
@@ -11768,294 +11873,188 @@ async function loadMyReleaseRequests(){
 }
 
 function renderMyReleaseRequests(res){
-  const rows = res.rows || [];
-  const container = document.getElementById("releaseRequestsList");
-  let html = `
-    <hr>
-    <strong>Pending Requests:</strong>
-    ${escapeHtml(rows.length)}
-    <br>
-  `;
+  const rows=res.rows||[];
+  const container=document.getElementById("releaseRequestsList");
+  let html=`<div class="approval-list-summary"><div><strong>Pending Requests: ${escapeHtml(rows.length)}</strong><div class="muted">Review released items assigned to you. Continue to Sale opens the normal Sold Immediately cart so you can add more products before submitting.</div></div></div>`;
   if(!rows.length){
-    html += `
-      <p class="muted">
-        No pending release requests assigned to you.
-      </p>
-    `;
-    container.innerHTML = html;
+    container.innerHTML=html+`<div class="empty-state compact-empty-state">No pending release requests assigned to you.</div>`;
     return;
   }
-  rows.forEach((row, index) => {
-    const items = Array.isArray(row.items) ? row.items: []; html += `
-      <div class="cart-line">
-        <span class="badge">
-          ${escapeHtml(row.status||"")}
-        </span>
-        <br><br>
 
-        Release Ticket ID:
-        <strong>
-          ${escapeHtml(row.ticketNo||"")}
-        </strong>
-
-        Date:
-        ${escapeHtml(
-          formatDateTime(
-            row.date||
-            row.createdAt||
-            ""
-          )
-        )}<br>
-
-        Released By:
-        ${escapeHtml(row.releasedBy||"")}<br>
-
-        Requested By:
-        ${escapeHtml(row.requestedBy||"")}<br>
-
-        Source Location:
-        <strong>
-          ${escapeHtml(row.sourceLocation||"")}
-        </strong><br>
-
-        Notes:
-        ${escapeHtml(row.notes||"")}<br><br>
-
-        <strong>Items:</strong>
-    `; items.forEach(item => {
-      html += `
-        <div class="cart-line">
-          <strong>
-            ${escapeHtml(item.productName||"")}
-          </strong>
-
-          SKU:
-          ${escapeHtml(item.sku||"")}<br>
-
-          Qty:
-          <strong>
-            ${escapeHtml(item.quantity)}
-            ${escapeHtml(item.unit||"")}
-          </strong><br>
-
-          ${
-            item.unitDetails
-              ?`Unit Details: ${escapeHtml(
-                  item.unitDetails
-                )}<br>`
-              :""
-          }
+  html+=`<div class="release-request-grid">`;
+  rows.forEach((row,index)=>{
+    const items=Array.isArray(row.items)?row.items:[];
+    html+=`<article class="release-request-card">
+      <div class="release-request-head">
+        <div>
+          <span class="recent-transaction-action">Customer Release</span>
+          <strong>${escapeHtml(row.ticketNo||"")}</strong>
+          <div class="muted">${escapeHtml(formatDateTime(row.date||row.createdAt||""))}</div>
         </div>
-      `;
-    }); html += `
-      <button
-        class="success"
-        type="button"
-        onclick="toggleReleaseSaleForm(${index})"
-      >
-        Continue to Sale
-      </button>
-
-      <div
-        id="releaseSaleForm_${index}"
-        class="hidden"
-      >
-        <hr>
-        <h3>Complete Sale</h3>
-
-        <label>Sold By</label>
-        <input
-          type="text"
-          value="${escapeHtml(currentUser.name||"")}"
-          disabled
-        >
-
-        <label>Released By</label>
-        <input
-          type="text"
-          value="${escapeHtml(row.releasedBy||"")}"
-          disabled
-        >
-
-        <label>Stock Source</label>
-        <input
-          type="text"
-          value="${escapeHtml(row.sourceLocation||"")}"
-          disabled
-        >
-
-        <label>Sales Channel</label>
-        ${selectHtml(
-          "releaseSalesChannel_"+index,
-          settings.salesChannels,
-          ""
-        )}
-
-        <label>Payment Status</label>
-        ${salePaymentStatusSelectHtml(
-          "releasePaymentStatus_"+index,
-          "updatePaymentTermsFields('releasePaymentStatus_"+index+"','releasePaymentTermsFields_"+index+"','releasePaymentTerms_"+index+"')"
-        )}
-
-        <div
-          id="releasePaymentTermsFields_${index}"
-          class="hidden"
-        >
-          <label>Payment Terms</label>
-          ${paymentTermsSelectHtml(
-            "releasePaymentTerms_"+index
-          )}
+        <span class="badge">${escapeHtml(row.status||"PENDING SALE")}</span>
+      </div>
+      <div class="release-detail-grid">
+        <div><span>Released By</span><strong>${escapeHtml(row.releasedBy||"")}</strong></div>
+        <div><span>Requested By</span><strong>${escapeHtml(row.requestedBy||"")}</strong></div>
+        <div><span>Source Location</span><strong>${escapeHtml(row.sourceLocation||"")}</strong></div>
+        ${row.notes?`<div style="grid-column:1/-1"><span>Notes</span><strong>${escapeHtml(row.notes||"")}</strong></div>`:""}
+      </div>
+      <div class="release-items-list">
+        ${items.map(item=>`<div class="release-item-row">
+          <div class="release-item-main">
+            <strong>${escapeHtml(item.productName||"")}</strong>
+            <small>SKU: ${escapeHtml(item.sku||"")}${item.unitDetails?` · ${escapeHtml(item.unitDetails)}`:""}</small>
+          </div>
+          <div class="release-item-qty"><span>Quantity</span><strong>${escapeHtml(item.quantity)} ${escapeHtml(item.unit||"unit")}</strong></div>
+        </div>`).join("")}
+      </div>
+      <div class="release-request-actions">
+        <button class="success" type="button" onclick="continueReleaseRequestToSale(${index})">Continue to Sale</button>
+        <button class="danger" type="button" onclick="toggleReleaseTransferForm(${index})">Cancel and Transfer Location</button>
+      </div>
+      <div id="releaseTransferForm_${index}" class="hidden release-inline-form">
+        <h3>Cancel and Transfer Location</h3>
+        <p class="muted">The release will be cancelled and the item quantities will be moved to another stock location after approval.</p>
+        <div class="release-transfer-grid">
+          <div><label>From Location</label><input type="text" value="${escapeHtml(row.sourceLocation||"")}" disabled></div>
+          <div><label>To Location</label>${inventoryLocationSelectHtml("releaseTransferTo_"+index,"")}</div>
+          <div><label>Sent By</label><input type="text" value="${escapeHtml(currentUser.name||"")}" disabled></div>
+          <div class="span-2"><label>Received By</label><input type="text" value="Destination location approver — automatic" disabled></div>
+          <div class="span-all"><label>Notes</label><textarea id="releaseTransferNotes_${index}" placeholder="Optional reason for cancellation or transfer"></textarea></div>
         </div>
-
-        <label>Receipt Type</label>
-        <select id="releaseReceiptType_${index}">
-          <option value="Sales Invoice">
-            Sales Invoice
-          </option>
-          <option value="Delivery Receipt">
-            Delivery Receipt
-          </option>
-          <option value="No Receipt">
-            No Receipt
-          </option>
-        </select>
-
-        <label>Receipt No.</label>
-        <input
-          type="text"
-          id="releaseReceiptNo_${index}"
-          placeholder="Enter receipt number"
-        >
-
-        <label>Customer Name</label>
-        <input
-          type="text"
-          id="releaseCustomerName_${index}"
-        >
-
-        <h3>Sale Prices</h3>
-    `; items.forEach((item,
-    itemIndex) => {
-      const savedPrice = Number(item.unitPrice || 0); html += `
-        <div class="cart-line">
-          <strong>
-            ${escapeHtml(item.productName||"")}
-          </strong>
-
-          Qty:
-          ${escapeHtml(item.quantity)}
-          ${escapeHtml(item.unit||"")}<br>
-
-          <label>Price Per Unit</label>
-          <input
-            type="number"
-            id="releaseSalePrice_${index}_${itemIndex}"
-            min="0"
-            step="0.01"
-            value="${
-              savedPrice>0
-                ?savedPrice
-                :""
-            }"
-          >
+        <div class="release-form-actions">
+          <button id="releaseTransferConfirmBtn_${index}" class="danger" type="button" onclick="submitCancelReleaseTransfer(${index})">Confirm Cancel and Transfer</button>
+          <button class="secondary" type="button" onclick="toggleReleaseTransferForm(${index})">Close</button>
         </div>
-      `;
-    }); html += `
-        <label>Notes</label>
-        <textarea
-          id="releaseSaleNotes_${index}"
-          placeholder="Optional sale notes"
-        ></textarea>
-
-        <button
-          class="success"
-          type="button"
-          onclick="submitReleaseSale(${index})"
-        >
-          Submit Sale
-        </button>
-
-        <button
-          class="secondary"
-          type="button"
-          onclick="toggleReleaseSaleForm(${index})"
-        >
-          Close
-        </button>
-        </div>
-        
-        <button
-          class="danger"
-          type="button"
-          onclick="toggleReleaseTransferForm(${index})"
-        >
-          Cancel and Transfer Location
-        </button>
-        
-        <div
-          id="releaseTransferForm_${index}"
-          class="hidden"
-        >
-          <hr>
-          <h3>Cancel and Transfer Location</h3>
-        
-          <p class="muted">
-            The release will be cancelled and the item quantities will be moved to another stock location.
-          </p>
-        
-          <label>From Location</label>
-          <input
-            type="text"
-            value="${escapeHtml(row.sourceLocation||"")}"
-            disabled
-          >
-        
-          <label>To Location</label>
-          ${inventoryLocationSelectHtml(
-            "releaseTransferTo_"+index,
-            ""
-          )}
-        
-          <label>Sent By</label>
-          <input
-            type="text"
-            value="${escapeHtml(currentUser.name||"")}"
-            disabled
-          >
-        
-          <label>Received By</label>
-          <input
-            type="text"
-            value="Destination location approver — automatic"
-            disabled
-          >
-        
-          <label>Notes</label>
-          <textarea
-            id="releaseTransferNotes_${index}"
-            placeholder="Optional reason for cancellation or transfer"
-          ></textarea>
-        
-          <button
-            class="danger"
-            type="button"
-            onclick="submitCancelReleaseTransfer(${index})"
-          >
-            Confirm Cancel and Transfer
-          </button>
-        
-          <button
-            class="secondary"
-            type="button"
-            onclick="toggleReleaseTransferForm(${index})"
-          >
-            Close
-          </button>
-        </div>
-        </div>
-    `;
+      </div>
+    </article>`;
   });
-  container.innerHTML = html;
+  html+=`</div>`;
+  container.innerHTML=html;
+  applyRoleSensitiveVisibility_();
+}
+
+function continueReleaseRequestToSale(index){
+  const row=releaseRequestRows[index];
+  if(!row){setStatus("Release request not found. Refresh My Release Requests.","error");return;}
+  if(!canAccess("SALES")){setStatus("Your role does not have permission to complete a sale.","error");return;}
+
+  const items=Array.isArray(row.items)?row.items:[];
+  chooseType("SALE");
+  activeReleaseSaleContext={releaseId:row.ticketNo,sourceLocation:row.sourceLocation,releasedBy:row.releasedBy,requestedBy:row.requestedBy};
+
+  cartItems=items.map(item=>{
+    const product={
+      sku:item.sku||"",
+      barcodeValue:item.qrValue||item.sku||"",
+      qrValue:item.qrValue||item.sku||"",
+      drNumber:item.drNumber||"",
+      productName:item.productName||"",
+      sellingPrice:Number(item.unitPrice||0),
+      averageCost:0,
+      availableQty:0,
+      currentQty:0
+    };
+    const qty=Math.max(1,Number(item.quantity||1));
+    return{
+      key:getProductCartKey(product),
+      product,
+      quantity:qty,
+      minimumQuantity:qty,
+      lockedReleaseItem:true,
+      releaseLineNo:item.lineNo||"",
+      unit:item.unit||"unit",
+      unitDetails:item.unitDetails||"",
+      pricePerUnit:Number(item.unitPrice||0),
+      costPerUnit:0
+    };
+  });
+
+  currentProduct=null;
+  renderCart();
+  renderForm();
+
+  const location=document.getElementById("saleLocation");
+  if(location&&row.sourceLocation){location.value=row.sourceLocation;location.disabled=true;}
+  const releasedBy=document.getElementById("releasedBy");
+  if(releasedBy&&row.releasedBy){releasedBy.value=row.releasedBy;releasedBy.disabled=true;}
+  const ticket=document.getElementById("autoTicketNo");
+  if(ticket)ticket.value=row.ticketNo||"";
+
+  document.getElementById("searchValue").value="";
+  setStatus("Release items were added to Sold Immediately. You can search and add more products before submitting the sale.","success-text");
+  const cartCard=document.getElementById("cartCard");
+  if(cartCard)cartCard.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+async function submitReleaseCartSale_(){
+  if(isSubmitting)return;
+  const ctx=activeReleaseSaleContext;
+  if(!ctx||!ctx.releaseId){setStatus("Release sale context was lost. Reopen the release request.","error");return;}
+  if(!cartItems.length){setStatus("Please keep the released items in the sale cart.","error");return;}
+
+  const paymentStatus=val("paymentStatus").trim().toUpperCase();
+  const paymentTerms=val("paymentTerms").trim();
+  if(!paymentStatus){setStatus("Please select Payment Status.","error");return;}
+  if(paymentStatus==="PAYMENT TERMS"){
+    if(!paymentTerms){setStatus("Please select Payment Terms.","error");return;}
+    if(!val("receiptNo").trim()){setStatus("Please enter the Receipt No.","error");return;}
+    if(!val("customerName").trim()){setStatus("Please enter the Customer Name.","error");return;}
+  }
+
+  const cleanItems=cartItems.map(item=>{
+    const p=item.product||{};
+    if(item.isUnlisted===true){
+      return{isUnlisted:true,sku:"",barcodeValue:"",qrValue:"",productName:item.productName||p.productName||"",brand:item.brand||"",model:item.model||"",description:item.description||"",specifications:item.specifications||"",itemType:item.itemType||"",forWith:item.forWith||"",quantity:Number(item.quantity||0),unit:item.unit||"unit",unitDetails:item.unitDetails||"",sourceLocation:ctx.sourceLocation,pricePerUnit:Number(item.pricePerUnit||0),costPerUnit:Number(item.costPerUnit||0),notes:item.notes||""};
+    }
+    return{isUnlisted:false,sku:p.sku||"",barcodeValue:p.barcodeValue||"",qrValue:p.qrValue||p.barcodeValue||p.sku||"",productName:p.productName||"",quantity:Number(item.quantity||0),unit:item.unit||"unit",unitDetails:item.unitDetails||"",pricePerUnit:Number(item.pricePerUnit||0),costPerUnit:Number(item.costPerUnit||0)};
+  });
+
+  const confirmText="Complete release "+ctx.releaseId+" as a sale with "+cleanItems.length+" cart item(s)?";
+  if(!confirm(confirmText))return;
+
+  isSubmitting=true;
+  const button=document.getElementById("mainSubmitTransactionBtn");
+  const original=button?button.textContent:"✓ Submit";
+  if(button){button.disabled=true;button.textContent="Submitting Sale...";}
+  setStatus("Submitting sale from release...","info");
+
+  try{
+    const res=await apiCall({
+      action:"completeReleaseCartSale",
+      staffId:currentUser.staffId,
+      pin:currentPin,
+      releaseId:ctx.releaseId,
+      cartItems:JSON.stringify(cleanItems),
+      dateSold:val("dateSold"),
+      salesChannel:val("salesChannel"),
+      saleLocation:ctx.sourceLocation||val("saleLocation"),
+      soldBy:currentUser.name,
+      releasedBy:ctx.releasedBy||val("releasedBy"),
+      receiptType:val("receiptType"),
+      receiptNo:val("receiptNo"),
+      customerName:val("customerName"),
+      paymentStatus:paymentStatus,
+      paymentTerms:paymentTerms,
+      notes:val("notes")
+    });
+    if(!res||!res.success)throw new Error(res&&res.message?res.message:"Sale could not be completed.");
+
+    const successHtml=`<strong>Sale completed successfully.</strong><br>Release ID: <strong>${escapeHtml(ctx.releaseId)}</strong><br>Items Saved: <strong>${escapeHtml(res.itemCount||cleanItems.length)}</strong>${res.receiptNo?`<br>Receipt No.: <strong>${escapeHtml(res.receiptNo)}</strong>`:""}`;
+    setStatus(successHtml,"success-text");
+    cartItems=[];
+    activeReleaseSaleContext=null;
+    currentProduct=null;
+    renderCart();
+    hide("productCard");
+    hide("formCard");
+    refreshHomeNotifications();
+  }catch(err){
+    setStatus("Sale submit error: "+escapeHtml(err.message||err),"error");
+  }finally{
+    isSubmitting=false;
+    if(button&&button.isConnected){button.disabled=false;button.textContent=original;}
+  }
 }
 
 function toggleReleaseSaleForm(index){
@@ -14171,6 +14170,15 @@ function renderHomeButtons(){
   applyRoleSensitiveVisibility_();
 }
 
+function updateNotificationTitle(){
+  /* Browser-tab count follows the two management notification badges the
+     user expects to aggregate: My Approvals + Unlisted Product Review. */
+  const total=Math.max(0,Number(pendingApprovalCount||0))+Math.max(0,Number(pendingUnlistedReviewCount||0));
+  document.title=total>0
+    ?"("+total+") Charlon Enterprises Inventory System"
+    :"Charlon Enterprises Inventory System";
+}
+
 async function refreshHomeNotifications(){
   if(!currentUser||notificationRefreshRunning||isSubmitting||document.visibilityState!=="visible")return;
   notificationRefreshRunning=true;
@@ -14343,13 +14351,12 @@ function renderMyReleaseRequests(res){
 }
 
 function toggleReleaseSaleForm(index){
-  const sale=document.getElementById("releaseSaleForm_"+index),transfer=document.getElementById("releaseTransferForm_"+index);if(!sale)return;
-  if(transfer)transfer.classList.add("hidden");sale.classList.toggle("hidden");
-  if(!sale.classList.contains("hidden"))sale.scrollIntoView({behavior:"smooth",block:"nearest"});
+  continueReleaseRequestToSale(index);
 }
 function toggleReleaseTransferForm(index){
-  const sale=document.getElementById("releaseSaleForm_"+index),transfer=document.getElementById("releaseTransferForm_"+index);if(!transfer)return;
-  if(sale)sale.classList.add("hidden");transfer.classList.toggle("hidden");
+  const transfer=document.getElementById("releaseTransferForm_"+index);
+  if(!transfer)return;
+  transfer.classList.toggle("hidden");
   if(!transfer.classList.contains("hidden"))transfer.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
 
@@ -14366,6 +14373,165 @@ function renderRecentTransactions_(res){
   container.innerHTML=rows.map(row=>{const locationText=row.fromLocation||row.toLocation?[row.fromLocation?"From "+row.fromLocation:"",row.toLocation?"To "+row.toLocation:""].filter(Boolean).join(" → "):(row.location||"");return`<article class="recent-transaction-card"><div class="recent-transaction-head"><div><span class="recent-transaction-action">${escapeHtml(recentTransactionActionLabel_(row.action))}</span><strong>${escapeHtml(row.productName||row.transactionId||"Transaction")}</strong></div><span class="badge">${escapeHtml(row.status||"")}</span></div><div class="recent-transaction-grid"><div><span>Date / Time</span><strong>${escapeHtml(formatDateTime(row.dateTime))}</strong></div><div><span>Transaction ID</span><strong>${escapeHtml(row.transactionId||"—")}</strong></div><div><span>SKU</span><strong>${escapeHtml(row.sku||"—")}</strong></div><div><span>Qty</span><strong>${escapeHtml(row.qty||0)}</strong></div><div><span>User</span><strong>${escapeHtml(row.user||"—")}</strong></div><div><span>Location</span><strong>${escapeHtml(locationText||"—")}</strong></div>${row.receiptNo?`<div><span>Receipt No.</span><div class="receipt-copy-wrap"><strong>${escapeHtml(row.receiptNo)}</strong><button class="copy-receipt-button" type="button" title="Copy receipt number" aria-label="Copy receipt number" data-copy-value="${escapeHtml(row.receiptNo)}" onclick="copyRecentReceiptNo_(this)">⧉</button></div></div>`:""}</div>${row.notes?`<div class="recent-transaction-note">${escapeHtml(row.notes)}</div>`:""}</article>`;}).join("");
 }
 
+
+
+/* =========================================================
+   CHARLON v2026.08.26.4 — REAL-TIME / MULTI-USER STABILIZATION
+   ========================================================= */
+
+async function refreshHomeNotifications(){
+  if(!currentUser||notificationRefreshRunning||isSubmitting||document.visibilityState!=="visible")return;
+  notificationRefreshRunning=true;
+  try{
+    const res=await apiCall({
+      action:"getNotificationCounts",
+      staffId:currentUser.staffId,
+      pin:currentPin
+    });
+
+    if(res&&res.success){
+      /* Keep the last known counts until a successful response arrives. */
+      pendingApprovalCount=Math.max(0,Number(res.approvals||0));
+      pendingReleaseCount=Math.max(0,Number(res.releases||0));
+      pendingUnlistedReviewCount=Math.max(0,Number(res.unlisted||0));
+
+      updateHomeNotificationBadge("APPROVALS",pendingApprovalCount);
+      updateHomeNotificationBadge("RELEASES",pendingReleaseCount);
+      updateHomeNotificationBadge("UNLISTED",pendingUnlistedReviewCount);
+      updateNotificationTitle();
+    }
+  }catch(err){
+    /* Never erase a badge merely because one refresh failed. */
+    console.log("Notification refresh skipped:",err);
+  }finally{
+    notificationRefreshRunning=false;
+  }
+}
+
+function renderMyReleaseRequests(res){
+  const rows=Array.isArray(res&&res.rows)?res.rows:[];
+  const container=document.getElementById("releaseRequestsList");
+  if(!container)return;
+
+  let html=`<div class="approval-list-summary"><div><strong>Pending Requests: ${escapeHtml(rows.length)}</strong><div class="muted">Review released items assigned to you. Continue to Sale opens Sold Immediately with the released items already in the cart so you can add more products.</div></div></div>`;
+
+  if(!rows.length){
+    container.innerHTML=html+`<div class="empty-state compact-empty-state">No pending release requests assigned to you.</div>`;
+    return;
+  }
+
+  html+=`<div class="release-request-grid">`;
+  rows.forEach((row,index)=>{
+    const items=Array.isArray(row.items)?row.items:[];
+    html+=`<article class="release-request-card">
+      <div class="release-request-head">
+        <div>
+          <span class="recent-transaction-action">Customer Release</span>
+          <strong>${escapeHtml(row.ticketNo||"")}</strong>
+          <div class="muted">${escapeHtml(formatDateTime(row.createdAt||row.date||""))}</div>
+        </div>
+        <span class="badge">${escapeHtml(row.status||"PENDING SALE")}</span>
+      </div>
+
+      <div class="release-detail-grid">
+        <div><span>Released By</span><strong>${escapeHtml(row.releasedBy||"")}</strong></div>
+        <div><span>Requested By</span><strong>${escapeHtml(row.requestedBy||"")}</strong></div>
+        <div><span>Source Location</span><strong>${escapeHtml(row.sourceLocation||"")}</strong></div>
+        ${row.notes?`<div style="grid-column:1/-1"><span>Notes</span><strong>${escapeHtml(row.notes||"")}</strong></div>`:""}
+      </div>
+
+      <div class="release-items-list">
+        ${items.map(item=>`<div class="release-item-row">
+          <div class="release-item-main">
+            <strong>${escapeHtml(item.productName||"")}</strong>
+            <small>SKU: ${escapeHtml(item.sku||"")}${item.unitDetails?` · ${escapeHtml(item.unitDetails)}`:""}</small>
+          </div>
+          <div class="release-item-qty"><span>Quantity</span><strong>${escapeHtml(item.quantity)} ${escapeHtml(item.unit||"unit")}</strong></div>
+        </div>`).join("")}
+      </div>
+
+      <div class="release-request-actions">
+        <button class="success" type="button" onclick="continueReleaseRequestToSale(${index})">Continue to Sale</button>
+        <button class="danger" type="button" onclick="toggleReleaseTransferForm(${index})">Cancel and Transfer Location</button>
+      </div>
+
+      <div id="releaseTransferForm_${index}" class="hidden release-inline-form">
+        <h3>Cancel and Transfer Location</h3>
+        <p class="muted">The release will be cancelled and the item quantities will move only after the destination approver approves the transfer.</p>
+        <div class="release-transfer-grid">
+          <div><label>From Location</label><input type="text" value="${escapeHtml(row.sourceLocation||"")}" disabled></div>
+          <div><label>To Location</label>${inventoryLocationSelectHtml("releaseTransferTo_"+index,"")}</div>
+          <div><label>Sent By</label><input type="text" value="${escapeHtml(currentUser.name||"")}" disabled></div>
+          <div><label>Received By</label><input type="text" id="releaseTransferApprover_${index}" value="Destination approver — automatic" disabled></div>
+          <div class="span-all"><label>Notes</label><textarea id="releaseTransferNotes_${index}" placeholder="Optional reason for cancellation or transfer"></textarea></div>
+        </div>
+        <div class="release-form-actions">
+          <button id="releaseTransferConfirmBtn_${index}" class="danger" type="button" onclick="submitCancelReleaseTransfer(${index})">Confirm Cancel and Transfer</button>
+          <button class="secondary" type="button" onclick="toggleReleaseTransferForm(${index})">Close</button>
+        </div>
+      </div>
+    </article>`;
+  });
+  html+=`</div>`;
+  container.innerHTML=html;
+  applyRoleSensitiveVisibility_();
+}
+
+function toggleReleaseTransferForm(index){
+  const form=document.getElementById("releaseTransferForm_"+index);
+  if(!form)return;
+  form.classList.toggle("hidden");
+  if(!form.classList.contains("hidden")){
+    const select=document.getElementById("releaseTransferTo_"+index);
+    const approver=document.getElementById("releaseTransferApprover_"+index);
+    const update=()=>{
+      const loc=String(select&&select.value||"").trim().toUpperCase();
+      const name=String((settings.locationApproverMap||{})[loc]||"").trim();
+      if(approver)approver.value=name||"No approver assigned";
+    };
+    if(select){select.onchange=update;update();}
+    form.scrollIntoView({behavior:"smooth",block:"nearest"});
+  }
+}
+
+/* Continue to Sale intentionally leaves My Release Requests and opens the
+   standard Sold Immediately cart. The released lines become minimum quantities;
+   staff can search/scan additional products before the final sale is submitted. */
+function continueReleaseRequestToSale(index){
+  const row=releaseRequestRows[index];
+  if(!row){setStatus("Release request not found. Refresh My Release Requests.","error");return;}
+  if(!canAccess("SALES")){setStatus("Your role does not have permission to complete a sale.","error");return;}
+
+  const items=Array.isArray(row.items)?row.items:[];
+  chooseType("SALE");
+  activeReleaseSaleContext={releaseId:row.ticketNo,sourceLocation:row.sourceLocation,releasedBy:row.releasedBy,requestedBy:row.requestedBy};
+
+  cartItems=items.map(item=>{
+    const product={
+      sku:item.sku||"",barcodeValue:item.qrValue||item.sku||"",qrValue:item.qrValue||item.sku||"",drNumber:item.drNumber||"",
+      productName:item.productName||"",sellingPrice:Number(item.unitPrice||0),averageCost:0,availableQty:0,currentQty:0
+    };
+    const qty=Math.max(1,Number(item.quantity||1));
+    return{key:getProductCartKey(product),product,quantity:qty,minimumQuantity:qty,lockedReleaseItem:true,releaseLineNo:item.lineNo||"",unit:item.unit||"unit",unitDetails:item.unitDetails||"",pricePerUnit:Number(item.unitPrice||0),costPerUnit:0};
+  });
+
+  currentProduct=null;
+  renderCart();
+  renderForm();
+
+  const location=document.getElementById("saleLocation");
+  if(location&&row.sourceLocation){location.value=row.sourceLocation;location.disabled=true;}
+  const releasedBy=document.getElementById("releasedBy");
+  if(releasedBy&&row.releasedBy){releasedBy.value=row.releasedBy;releasedBy.disabled=true;}
+  const ticket=document.getElementById("autoTicketNo");
+  if(ticket)ticket.value=row.ticketNo||"";
+
+  const search=document.getElementById("searchValue");
+  if(search){search.value="";setTimeout(()=>search.focus(),120);}
+  setStatus("Release items were added to Sold Immediately. You can now search or scan additional products before submitting the sale.","success-text");
+  const searchCard=document.getElementById("searchCard")||document.getElementById("transactionCard")||document.getElementById("cartCard");
+  if(searchCard)searchCard.scrollIntoView({behavior:"smooth",block:"start"});
+}
 
 window.addEventListener("DOMContentLoaded", function(){
   applyVersionUi_();
