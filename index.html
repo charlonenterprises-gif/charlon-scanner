@@ -546,7 +546,7 @@
 
 
     /* ======================================================
-       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.08.25.3
+       CHARLON ENTERPRISES DESKTOP DASHBOARD UI — v2026.08.26.1
        Inspired by a classic inventory admin dashboard while
        keeping the current workflows and mobile usability.
        ====================================================== */
@@ -910,7 +910,7 @@
   
 
     /* ======================================================
-       CHARLON UI REFINEMENT — v2026.08.25.3
+       CHARLON UI REFINEMENT — v2026.08.26.1
        Cleaner lists, compact desktop actions, pagination,
        and a true mobile header navigation drawer.
        ====================================================== */
@@ -1469,7 +1469,7 @@
   
 
     /* ======================================================
-       FUNCTIONAL UI REFINEMENT — v2026.08.25.3
+       FUNCTIONAL UI REFINEMENT — v2026.08.26.1
        Keep the existing Charlon UI, improve consistency only.
        ====================================================== */
 
@@ -1664,7 +1664,7 @@
 
   
     /* ======================================================
-       POLISH UPDATE — v2026.08.25.3
+       POLISH UPDATE — v2026.08.26.1
        ====================================================== */
 
     .tool-action-button,
@@ -1731,7 +1731,7 @@
   
 
     /* ======================================================
-       SCREEN / FONT CONSISTENCY — v2026.08.25.3
+       SCREEN / FONT CONSISTENCY — v2026.08.26.1
        ====================================================== */
 
     /* One typography system throughout all clickable controls. */
@@ -1786,7 +1786,7 @@
   
 
     /* ======================================================
-       NAVIGATION / SEARCH RESET POLISH — v2026.08.25.3
+       NAVIGATION / SEARCH RESET POLISH — v2026.08.26.1
        ====================================================== */
 
     /* Quick action buttons use Charlon's dark blue action style. */
@@ -1853,7 +1853,7 @@
   
 
     /* =========================================================
-       NAVIGATION + FORM POLISH — v2026.08.25.3
+       NAVIGATION + FORM POLISH — v2026.08.26.1
        ========================================================= */
     .screen-title-row{
       display:flex;
@@ -1939,7 +1939,7 @@
   
 
     /* =========================================================
-       SPACE + TITLE POLISH — v2026.08.25.3
+       SPACE + TITLE POLISH — v2026.08.26.1
        ========================================================= */
 
     /* The blue app header belongs to the top of the page and no longer
@@ -2154,7 +2154,7 @@
     }
 
     /* =========================================================
-       CONSISTENCY POLISH — v2026.08.25.3
+       CONSISTENCY POLISH — v2026.08.26.1
        ========================================================= */
 
     /* Product Management sub-pages should begin exactly like
@@ -2234,7 +2234,7 @@
 
   
     /* =========================================================
-       FUNCTIONAL POLISH — v2026.08.25.3
+       FUNCTIONAL POLISH — v2026.08.26.1
        ========================================================= */
 
     /* Refresh icon is centered vertically and horizontally. */
@@ -2294,7 +2294,7 @@
 
   
     /* =========================================================
-       TRANSACTION / HISTORY POLISH — v2026.08.25.3
+       TRANSACTION / HISTORY POLISH — v2026.08.26.1
        ========================================================= */
 
     .transaction-feedback-banner{
@@ -2544,7 +2544,7 @@
 
   
     /* =========================================================
-       MOBILE + NOTIFICATION POLISH — v2026.08.25.3
+       MOBILE + NOTIFICATION POLISH — v2026.08.26.1
        ========================================================= */
 
     .refresh-action-button{
@@ -2685,7 +2685,7 @@
 
   
     /* =========================================================
-       SECURITY / MANAGER HEALTH — v2026.08.25.3
+       SECURITY / MANAGER HEALTH — v2026.08.26.1
        ========================================================= */
 
     .manager-dashboard-warnings{
@@ -2756,6 +2756,47 @@
     }
 
   </style>
+
+  <style id="charlon-v20260826-ui">
+    .approval-list-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 0 12px;padding:12px 14px;border:1px solid #d8e4ec;border-radius:12px;background:#f7fafc;}
+    .approval-list-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));gap:14px;margin-top:12px;}
+    .approval-item-card{border:1px solid #cfe0ea;border-left:4px solid #0879b8;border-radius:12px;background:#fff;padding:16px;min-width:0;box-shadow:0 1px 2px rgba(15,45,65,.04);}
+    .approval-item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid #e1e9ef;}
+    .approval-item-head strong{display:block;font-size:15px;color:#0b3551;margin-top:4px;overflow-wrap:anywhere;}
+    .approval-badge-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;}
+    .approval-detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+    .approval-detail-grid>div,.match-compare-grid>div,.return-detail-grid>div{background:#f4f7f9;border-radius:8px;padding:9px 10px;min-width:0;}
+    .approval-detail-grid span,.match-compare-grid span,.return-detail-grid span{display:block;font-size:10px;line-height:1.2;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#718394;margin-bottom:3px;}
+    .approval-detail-grid strong,.match-compare-grid strong,.return-detail-grid strong{display:block;color:#123b55;overflow-wrap:anywhere;}
+    .approval-wide{grid-column:1/-1;}
+    .approval-action-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;}
+    .approval-action-row button{width:auto;min-width:130px;margin:0;}
+    .approval-transfer-items{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px;}
+    .approval-transfer-items th,.approval-transfer-items td{border:1px solid #dde6ec;padding:7px 8px;text-align:left;}
+    .approval-transfer-items th{background:#eef4f7;color:#536a79;text-transform:uppercase;font-size:10px;letter-spacing:.03em;}
+    .unlisted-review-summary{border:1px solid #cfe0ea;border-left:4px solid #0879b8;border-radius:12px;padding:14px;background:#fff;margin-bottom:12px;}
+    .unlisted-review-summary .match-compare-grid{margin-top:10px;}
+    .match-confirm-card{border:1px solid #cfe0ea;border-left:4px solid #0879b8;border-radius:12px;padding:16px;background:#fff;}
+    .match-side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0;}
+    .match-panel{border:1px solid #d8e4ec;border-radius:10px;padding:12px;background:#fbfdfe;}
+    .match-panel h4{margin:0 0 10px;color:#0b3551;font-size:13px;}
+    .match-compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+    .return-result-wrap{max-width:1120px;}
+    .return-item-card{border:1px solid #cfe0ea;border-left:4px solid #0879b8;border-radius:12px;padding:14px;background:#fff;margin-top:12px;}
+    .return-item-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px;}
+    .return-detail-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+    .return-qty-field{max-width:220px;margin-top:10px;}
+    .return-form-grid{display:grid;grid-template-columns:repeat(2,minmax(260px,1fr));gap:12px 16px;margin-top:16px;max-width:900px;}
+    .return-form-grid label{margin-top:0;}
+    .return-submit-row{margin-top:14px;max-width:900px;}
+    .return-submit-row button{width:auto;min-width:240px;}
+    .receipt-copy-wrap{display:flex;align-items:center;gap:7px;}
+    .copy-receipt-button{width:28px!important;min-width:28px!important;height:28px;padding:0!important;margin:0!important;display:inline-flex;align-items:center;justify-content:center;border-radius:7px;background:#fff!important;color:#0879b8!important;border:1px solid #c9dce8!important;box-shadow:none!important;font-size:13px;}
+    .copy-receipt-button:hover{background:#edf7fc!important;}
+    @media(max-width:900px){.approval-list-grid{grid-template-columns:1fr;}.approval-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.match-side-by-side{grid-template-columns:1fr;}.return-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.return-form-grid{grid-template-columns:1fr;}}
+    @media(max-width:560px){.approval-detail-grid,.match-compare-grid,.return-detail-grid{grid-template-columns:1fr;}.approval-action-row button,.return-submit-row button{width:100%;}}
+  </style>
+
 </head>
 <body>
   <div
@@ -2795,7 +2836,7 @@
   <nav id="sidebarNav" class="sidebar-nav"></nav>
 
   <div class="sidebar-footer">
-    <small>v2026.08.25.3</small>
+    <small>v2026.08.26.1</small>
   </div>
 </aside>
 
@@ -2845,7 +2886,7 @@
       </div>
     </div>
     <p class="auth-copy">Internal inventory, sales, releasing, transfer, return, and stock-management workspace.</p>
-    <span class="version-chip">v2026.08.25.3</span>
+    <span class="version-chip">v2026.08.26.1</span>
 
     <label>Staff ID</label>
     <input type="text" id="staffId" placeholder="Example: CE001" autocomplete="off">
@@ -3285,7 +3326,7 @@
   <div class="card hidden" id="approvalCard">
     <div class="screen-title-row"><button class="icon-back-button" type="button" onclick="backHome()" aria-label="Back" title="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m10 17-5-5 5-5"/></svg></button><h3>My Approvals</h3></div>
     <p class="muted">
-      Review pending returns and stock transfers assigned to you. Stock changes only after approval.
+      Review pending inventory adjustments, returns, and stock transfers. Managers/Admins can override an assigned approver when that approver is unavailable.
     </p>
 
     <button id="refreshApprovalsBtn" class="compact-primary-action refresh-action-button" type="button" onclick="loadMyApprovals()">
@@ -3523,7 +3564,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = "2026.08.25.3";
+const APP_VERSION = "2026.08.26.1";
 const EXPECTED_API_VERSION = APP_VERSION;
 const API_URL = "https://script.google.com/macros/s/AKfycbx7iFaGeikvykjRicd8kcv6NZQAFg5oYwaRTXU3m4ylM4l8mvqaS84X-iUgLrFWiNUUrw/exec";
 let currentUser = null;
@@ -4350,10 +4391,6 @@ function renderSidebarNav_(){
 
   if(canViewMyApprovals()){
     nav.appendChild(makeSidebarNavButton_("approvals","My Approvals",openMyApprovals,pendingApprovalCount,"APPROVALS"));
-  }
-
-  if(canAccess("REPORTSHISTORY")){
-    nav.appendChild(makeSidebarNavButton_("reports","Reports / History",openReportsView));
   }
 
   setSidebarActive_("home");
@@ -5882,41 +5919,15 @@ function startUnlistedMatch(index){
     );
 
   if(selected){
-
     selected.innerHTML=`
-      <div class="cart-line">
-
-        <strong>
-          Product being reviewed:
-        </strong>
-
-        ${escapeHtml(
-          item.productName||""
-        )}
-
-        <br><br>
-
-        Temporary SKU:
-        ${escapeHtml(
-          item.unlistedId||""
-        )}
-
-        <br>
-
-        Qty:
-        ${Number(
-          item.qty||0
-        ).toLocaleString()}
-
-        <br>
-
-        Source Location:
-        <strong>
-          ${escapeHtml(
-            item.sourceLocation||""
-          )}
-        </strong>
-
+      <div class="unlisted-review-summary">
+        <strong>Product Being Reviewed</strong>
+        <div class="match-compare-grid">
+          <div><span>Product</span><strong>${escapeHtml(item.productName||"")}</strong></div>
+          <div><span>Temporary SKU</span><strong>${escapeHtml(item.unlistedId||"")}</strong></div>
+          <div><span>Qty Sold</span><strong>${Number(item.qty||0).toLocaleString()}</strong></div>
+          <div><span>Source Location</span><strong>${escapeHtml(item.sourceLocation||"")}</strong></div>
+        </div>
       </div>
     `;
   }
@@ -7729,129 +7740,79 @@ function renderUnlistedMatchResults(totalCount){
 }
 
 function canUseReleaseItem(){
-  return canAccess("RELEASING");
+  if(!currentUser){
+    return false;
+  }
+
+  const roleKey=String(currentUser.role||"")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g,"");
+
+  return roleKey==="RELEASING"&&canAccess("RELEASING");
 }
 function selectExistingProductForUnlisted(index){
-
-  const product=
-    unlistedMatchSearchResults[index];
-
-  const unlisted=
-    unlistedReviewRows[
-      selectedUnlistedReviewIndex
-    ];
+  const product=unlistedMatchSearchResults[index];
+  const unlisted=unlistedReviewRows[selectedUnlistedReviewIndex];
 
   if(!product||!unlisted){
-    setStatus(
-      "The selected product could not be found.",
-      "error"
-    );
+    setStatus("The selected product could not be found.","error");
     return;
   }
 
-  /*
-   * Save the selected existing product.
-   */
-  window.selectedExistingUnlistedProduct=
-    product;
+  window.selectedExistingUnlistedProduct=product;
 
-  const container=
-    document.getElementById(
-      "unlistedMatchResults"
-    );
-
-  if(!container){
-    return;
-  }
+  const container=document.getElementById("unlistedMatchResults");
+  if(!container)return;
 
   container.innerHTML=`
-    <div class="cart-line">
+    <div class="match-confirm-card">
+      <div class="section-heading compact-section-heading">
+        <div>
+          <h3>Confirm Product Match</h3>
+          <p class="muted">Compare the unlisted sale against the existing inventory product before confirming.</p>
+        </div>
+      </div>
 
-      <h3>Confirm Product Match</h3>
+      <div class="match-side-by-side">
+        <section class="match-panel">
+          <h4>Unlisted Sale Product</h4>
+          <div class="match-compare-grid">
+            <div><span>Product</span><strong>${escapeHtml(unlisted.productName||"")}</strong></div>
+            <div><span>Temporary SKU</span><strong>${escapeHtml(unlisted.unlistedId||"")}</strong></div>
+            <div><span>Qty Sold</span><strong>${Number(unlisted.qty||0).toLocaleString()}</strong></div>
+            <div><span>Source Location</span><strong>${escapeHtml(unlisted.sourceLocation||"")}</strong></div>
+          </div>
+        </section>
 
-      <strong>Unlisted Sale Product</strong>
+        <section class="match-panel">
+          <h4>Existing Inventory Product</h4>
+          <div class="match-compare-grid">
+            <div><span>Product</span><strong>${escapeHtml(product.productName||"")}</strong></div>
+            <div><span>SKU</span><strong>${escapeHtml(product.sku||"")}</strong></div>
+            <div><span>Brand</span><strong>${escapeHtml(product.brand||"-")}</strong></div>
+            <div><span>Model</span><strong>${escapeHtml(product.model||"-")}</strong></div>
+            <div><span>Item Type</span><strong>${escapeHtml(product.itemType||"-")}</strong></div>
+            <div><span>Available / Total</span><strong>${Number(product.availableQty||product.posTotalQty||0).toLocaleString()}</strong></div>
+          </div>
+        </section>
+      </div>
 
-      ${escapeHtml(
-        unlisted.productName||""
-      )}
+      <div class="notice-panel">
+        Confirming this connects the Sale to <strong>${escapeHtml(product.sku||"")}</strong>
+        and deducts the sold quantity from that inventory SKU.
+      </div>
 
-      <br>
-
-      Temporary SKU:
-      <strong>
-        ${escapeHtml(
-          unlisted.unlistedId||""
-        )}
-      </strong>
-
-      <br>
-
-      Qty Sold:
-      ${Number(
-        unlisted.qty||0
-      ).toLocaleString()}
-
-      <br>
-
-      Source Location:
-      <strong>
-        ${escapeHtml(
-          unlisted.sourceLocation||""
-        )}
-      </strong>
-
-
-      <hr>
-
-
-      <strong>Match To Existing Product</strong>
-
-      ${escapeHtml(
-        product.productName||""
-      )}
-
-      <br>
-
-      SKU:
-      <strong>
-        ${escapeHtml(
-          product.sku||""
-        )}
-      </strong>
-
-      <br><br>
-
-      <p class="info">
-        Confirming this will connect the Sale to this SKU
-        and deduct the sold quantity from inventory.
-      </p>
-
-
-      <button
-        id="confirmUnlistedMatchBtn"
-        class="success"
-        type="button"
-        onclick="confirmSelectedUnlistedMatch()"
-      >
-        Confirm Match
-      </button>
-
-
-      <button
-        class="secondary"
-        type="button"
-        onclick="searchExistingProductForUnlisted()"
-      >
-        Choose Another Product
-      </button>
-
+      <div class="compact-action-row">
+        <button id="confirmUnlistedMatchBtn" class="success" type="button" onclick="confirmSelectedUnlistedMatch()">
+          Confirm Match
+        </button>
+        <button class="secondary" type="button" onclick="searchExistingProductForUnlisted()">
+          Choose Another Product
+        </button>
+      </div>
     </div>
   `;
-
-  setStatus(
-    "Review the match, then click Confirm Match.",
-    "info"
-  );
 }
 
 async function confirmSelectedUnlistedMatch(){
@@ -8228,7 +8189,7 @@ function canViewMyApprovals(){
     .toUpperCase()
     .replace(/[^A-Z0-9]/g,"");
 
-  if(["MANAGER","ADMIN","WEBDEVELOPER"].includes(roleKey)){
+  if(["MANAGER","ADMIN"].includes(roleKey)){
     return true;
   }
 
@@ -10348,85 +10309,94 @@ function renderInventoryAdjustmentForm(){
       :p.currentQty||0
   );
 
-  const adjustmentApprovers=
-    settings.inventoryAdjustmentApproverNames||[];
-
-  const defaultAdjustmentApprover=
-    adjustmentApprovers.includes(currentUser.name)
-      ?currentUser.name
-      :"";
-
   document.getElementById("formTitle").innerText=
     "Manager Inventory Adjustment";
 
   document.getElementById("formFields").innerHTML=`
     <p class="muted">
       Manager/Admin inventory correction. Submitting this form creates a
-      <strong>pending approval request</strong>. Stock will not change until
-      the assigned approver approves it in My Approvals.
+      <strong>pending approval request</strong>. The required approver is
+      assigned automatically from the selected inventory location.
     </p>
 
-    <label>Date Adjusted</label>
-    <input type="date" id="dateAdjusted" value="${today()}">
+    <div class="compact-form-grid">
+      <div class="compact-form-field">
+        <label>Date Adjusted</label>
+        <input type="date" id="dateAdjusted" value="${today()}">
+      </div>
 
-    <label>Inventory Location</label>
-    ${inventoryLocationSelectHtml(
-      "adjustmentLocation",
-      currentUser.location,
-      "updateAdjustmentLocationQty()"
-    )}
+      <div class="compact-form-field">
+        <label>Inventory Location</label>
+        ${inventoryLocationSelectHtml(
+          "adjustmentLocation",
+          currentUser.location,
+          "updateAdjustmentLocationDetails()"
+        )}
+      </div>
 
-    <label>Current Qty in Selected Location</label>
-    <input type="number" id="currentAdjustmentLocationQty" value="0" disabled>
+      <div class="compact-form-field">
+        <label>Current Qty in Selected Location</label>
+        <input type="number" id="currentAdjustmentLocationQty" value="0" disabled>
+      </div>
 
-    <label>Current Total Qty - All Locations</label>
-    <input type="number" value="${totalQty}" disabled>
+      <div class="compact-form-field">
+        <label>Required Approver</label>
+        <input type="text" id="adjustmentRequiredApprover" value="" disabled>
+      </div>
 
-    <label>Reserved / Released Qty</label>
-    <input type="number" value="${reservedQty}" disabled>
+      <div class="compact-form-field">
+        <label>Current Total Qty - All Locations</label>
+        <input type="number" value="${totalQty}" disabled>
+      </div>
 
-    <label>Current Available Qty</label>
-    <input type="number" value="${availableQty}" disabled>
+      <div class="compact-form-field">
+        <label>Reserved / Released Qty</label>
+        <input type="number" value="${reservedQty}" disabled>
+      </div>
 
-    <label>Adjustment Type</label>
-    <select id="adjustmentType" onchange="renderAdjustmentQtyField()">
-      <option value="">Select</option>
-      <option value="SET_AVAILABLE_QTY">Set Actual Location Qty</option>
-      <option value="ADD_QTY">Add Qty</option>
-      <option value="REMOVE_QTY">Remove Qty</option>
-    </select>
+      <div class="compact-form-field">
+        <label>Current Available Qty</label>
+        <input type="number" value="${availableQty}" disabled>
+      </div>
 
-    <div id="adjustmentQtyField"></div>
+      <div class="compact-form-field">
+        <label>Adjustment Type</label>
+        <select id="adjustmentType" onchange="renderAdjustmentQtyField()">
+          <option value="">Select</option>
+          <option value="SET_AVAILABLE_QTY">Set Actual Location Qty</option>
+          <option value="ADD_QTY">Add Qty</option>
+          <option value="REMOVE_QTY">Remove Qty</option>
+        </select>
+      </div>
 
-    <label>Reason</label>
-    <select id="reason">
-      <option value="">Select</option>
-      <option value="Count correction">Count correction</option>
-      <option value="Missing stock">Missing stock</option>
-      <option value="Found stock">Found stock</option>
-      <option value="Damaged item">Damaged item</option>
-      <option value="Wrong previous transaction">Wrong previous transaction</option>
-      <option value="Manual correction">Manual correction</option>
-      <option value="Other">Other</option>
-    </select>
+      <div id="adjustmentQtyField" class="compact-form-field"></div>
 
-    <label>Send For Approval To</label>
-    ${selectHtml(
-      "approvedBy",
-      adjustmentApprovers,
-      defaultAdjustmentApprover
-    )}
+      <div class="compact-form-field">
+        <label>Reason</label>
+        <select id="reason">
+          <option value="">Select</option>
+          <option value="Count correction">Count correction</option>
+          <option value="Missing stock">Missing stock</option>
+          <option value="Found stock">Found stock</option>
+          <option value="Damaged item">Damaged item</option>
+          <option value="Wrong previous transaction">Wrong previous transaction</option>
+          <option value="Manual correction">Manual correction</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
 
-    <p class="muted" style="margin-top:-4px;">
-      The selected person must approve this request in My Approvals before
-      inventory is changed.
+      <div class="compact-form-field grid-span-full">
+        <label>Notes</label>
+        <textarea id="notes" rows="2" placeholder="Explain why this adjustment is needed."></textarea>
+      </div>
+    </div>
+
+    <p class="muted">
+      Stock will not change until the assigned approver—or a Manager/Admin override—approves the request in My Approvals.
     </p>
-
-    <label>Notes</label>
-    <textarea id="notes" placeholder="Explain why this adjustment is needed."></textarea>
   `;
 
-  updateAdjustmentLocationQty();
+  updateAdjustmentLocationDetails();
 }
 
 function renderAdjustmentQtyField(){
@@ -10455,10 +10425,31 @@ function getCurrentProductLocationQty(location){
   return field ? Number(p[field] || 0): 0;
 }
 
+function getLocationApproverForUi_(location){
+  const key=String(location||"").trim().toUpperCase();
+  return String((settings.locationApproverMap||{})[key]||"").trim();
+}
+
+function updateAdjustmentLocationDetails(){
+  const location=val("adjustmentLocation");
+  const qtyInput=document.getElementById("currentAdjustmentLocationQty");
+  const approverInput=document.getElementById("adjustmentRequiredApprover");
+
+  if(qtyInput){
+    qtyInput.value=getCurrentProductLocationQty(location);
+  }
+
+  if(approverInput){
+    approverInput.value=getLocationApproverForUi_(location)||(
+      location
+        ?"No approver assigned"
+        :"Select Location"
+    );
+  }
+}
+
 function updateAdjustmentLocationQty(){
-  const input = document.getElementById("currentAdjustmentLocationQty");
-  if(!input) return;
-  input.value = getCurrentProductLocationQty(val("adjustmentLocation"));
+  updateAdjustmentLocationDetails();
 }
 
 function renderCountCheckForm(){
@@ -10752,7 +10743,7 @@ function buildConfirmMessage(){
     } else{
       qtyText = "Adjustment Qty: " + val("adjustmentQty");
     }
-    details = "Inventory Location: " + val("adjustmentLocation") + "\n" + "Adjustment Type: " + val("adjustmentType") + "\n" + qtyText + "\n" + "Reason: " + val("reason") + "\n" + "Required Approver: " + val("approvedBy");
+    details = "Inventory Location: " + val("adjustmentLocation") + "\n" + "Adjustment Type: " + val("adjustmentType") + "\n" + qtyText + "\n" + "Reason: " + val("reason") + "\n" + "Required Approver: " + val("adjustmentRequiredApprover");
   }
   return("Please confirm before saving:\n\n" + "Action: " + actionName + "\n" + "Product: " + productName + "\n" + "SKU: " + sku + "\n\n" + details + "\n\n" + "Continue?");
 }
@@ -11461,8 +11452,14 @@ async function submitTransaction(){
       setStatus("Please select the inventory location.", "error");
       return;
     }
+    const requiredApprover=val("adjustmentRequiredApprover");
+    if(!requiredApprover||requiredApprover==="No approver assigned"||requiredApprover==="Select Location"){
+      isSubmitting=false;
+      setStatus("No approver is assigned to the selected inventory location.","error");
+      return;
+    }
     params = {...params, action: "submitInventoryAdjustment", dateAdjusted: val("dateAdjusted"), adjustmentLocation, adjustmentType: val("adjustmentType"), adjustmentQty: val("adjustmentQty"),
-    newAvailableQty: val("newAvailableQty"), reason: val("reason"), approvedBy: val("approvedBy"), adjustedBy: currentUser.name, notes: val("notes")};
+    newAvailableQty: val("newAvailableQty"), reason: val("reason"), adjustedBy: currentUser.name, notes: val("notes")};
   } else if(currentType === "RELEASING"){
     params = {...params, action: "submitReleasing", dateReleased: val("dateReleased"), referenceNo: val("referenceNo"), customerName: val("customerName"), quantity: val("quantity"), releasedBy: val("releasedBy"),
     releaseToLocation: val("releaseToLocation"), notes: val("notes")};
@@ -11595,8 +11592,13 @@ async function submitTransaction(){
     }
     setStatus(`${escapeHtml(res.message)}<br>Product: ${escapeHtml(res.productName || "")}${extra}`, "success-text");
     hide("formCard");
+    hide("productCard");
     currentProduct = null;
     document.getElementById("searchValue").value = "";
+    const statusPanel=document.getElementById("status");
+    if(statusPanel){
+      statusPanel.scrollIntoView({behavior:"smooth",block:"center"});
+    }
   } catch(err){
     console.error("Submit error:", err);
     setStatus("Submit error: " + escapeHtml(err.message || err), "error");
@@ -12412,61 +12414,121 @@ async function findRevampSaleByReceipt(){
   }
 }
 
+function updateReturnRequiredApprover(){
+  const location=val("revampReturnLocation");
+  const field=document.getElementById("revampReturnRequiredApprover");
+  if(!field)return;
+
+  field.value=getLocationApproverForUi_(location)||(
+    location
+      ?"No approver assigned"
+      :"Select Location"
+  );
+}
+
 function renderRevampReturnItems(res){
-  const receiptNo = res.receiptNo || "";
-  const items = res.items || [];
-  let html = `
-    <hr>
-    <strong>Receipt No.: ${escapeHtml(receiptNo)}</strong><br>
-    <span class="muted">Enter only the qty that is actually returned.</span><br><br>
+  const receiptNo=res.receiptNo||"";
+  const items=res.items||[];
+  let html=`
+    <div class="return-result-wrap">
+      <div class="section-heading compact-section-heading">
+        <div>
+          <h3>Receipt No.: ${escapeHtml(receiptNo)}</h3>
+          <p class="muted">Enter only the quantity actually returned.</p>
+        </div>
+      </div>
   `;
+
   if(!items.length){
-    html += `<p class="muted">No returnable items found.</p>`;
-    document.getElementById("revampReturnItems").innerHTML = html;
+    html+=`<div class="empty-state compact-empty-state">No returnable items found.</div></div>`;
+    document.getElementById("revampReturnItems").innerHTML=html;
     return;
   }
-  items.forEach((item, index) => {
-    html += `
-      <div class="cart-line">
-        <strong>${escapeHtml(item.productName || "")}</strong>
-        SKU: ${escapeHtml(item.sku || "")}<br>
-        ${item.drNumber ? `DR Number: ${escapeHtml(item.drNumber)}<br>` : ""}
-        ${item.qrValue ? `QR Value: ${escapeHtml(item.qrValue)}<br>` : ""}
-        Sold Qty: ${escapeHtml(item.soldQty || 0)}<br>
-        Returned/Pending Qty: ${escapeHtml(item.returnedQty || 0)}<br>
-        Remaining Returnable: <strong>${escapeHtml(item.remainingQty || 0)}</strong><br>
 
-        <label>Return Qty</label>
-        <input
-          type="number"
-          id="revampReturnQty_${index}"
-          min="0"
-          max="${escapeHtml(item.remainingQty || 0)}"
-          value="0"
-        >
-      </div>
+  items.forEach((item,index)=>{
+    html+=`
+      <article class="return-item-card">
+        <div class="return-item-head">
+          <div>
+            <strong>${escapeHtml(item.productName||"")}</strong>
+            <div class="muted">SKU: ${escapeHtml(item.sku||"")}</div>
+          </div>
+          <span class="badge">${escapeHtml(item.remainingQty||0)} RETURNABLE</span>
+        </div>
+
+        <div class="return-detail-grid">
+          ${item.drNumber?`<div><span>DR Number</span><strong>${escapeHtml(item.drNumber)}</strong></div>`:""}
+          ${item.qrValue?`<div><span>QR Value</span><strong>${escapeHtml(item.qrValue)}</strong></div>`:""}
+          <div><span>Sold Qty</span><strong>${escapeHtml(item.soldQty||0)}</strong></div>
+          <div><span>Returned / Pending</span><strong>${escapeHtml(item.returnedQty||0)}</strong></div>
+          <div><span>Remaining Returnable</span><strong>${escapeHtml(item.remainingQty||0)}</strong></div>
+        </div>
+
+        <div class="return-qty-field">
+          <label>Return Qty</label>
+          <input
+            type="number"
+            id="revampReturnQty_${index}"
+            min="0"
+            max="${escapeHtml(item.remainingQty||0)}"
+            value="0"
+          >
+        </div>
+      </article>
     `;
   });
-  html += `
-    <label>Date Returned</label>
-    <input type="date" id="revampDateReturned" value="${today()}">
 
-    <label>Return Location</label>
-    ${inventoryLocationSelectHtml("revampReturnLocation", currentUser.location)}
+  html+=`
+      <div class="return-form-grid">
+        <div>
+          <label>Date Returned</label>
+          <input type="date" id="revampDateReturned" value="${today()}">
+        </div>
 
-    <label>Handled By</label>
-    <input
-      type="text"
-      id="revampHandledBy"
-      value="${escapeHtml(currentUser.name||"")}"
-      disabled
-    >
+        <div>
+          <label>Return Location</label>
+          ${inventoryLocationSelectHtml(
+            "revampReturnLocation",
+            currentUser.location,
+            "updateReturnRequiredApprover()"
+          )}
+        </div>
 
-    <button id="submitReturnRequestBtn" class="success" type="button" onclick="submitRevampReturnRequest()">
-      Submit Return for Approval
-    </button>
+        <div>
+          <label>Handled By</label>
+          <input
+            type="text"
+            id="revampHandledBy"
+            value="${escapeHtml(currentUser.name||"")}"
+            disabled
+          >
+        </div>
+
+        <div>
+          <label>Required Approver</label>
+          <input
+            type="text"
+            id="revampReturnRequiredApprover"
+            value=""
+            disabled
+          >
+        </div>
+      </div>
+
+      <p class="muted" style="margin-top:10px;">
+        Required Approver is assigned automatically from the selected Return Location.
+      </p>
+
+      <div class="return-submit-row">
+        <button id="submitReturnRequestBtn" class="success" type="button" onclick="submitRevampReturnRequest()">
+          Submit Return for Approval
+        </button>
+      </div>
+    </div>
   `;
-  document.getElementById("revampReturnItems").innerHTML = html;
+
+  document.getElementById("revampReturnItems").innerHTML=html;
+  updateReturnRequiredApprover();
 }
 
 async function submitRevampReturnRequest(){
@@ -12490,8 +12552,13 @@ async function submitRevampReturnRequest(){
     setStatus("Please select the return inventory location.", "error");
     return;
   }
+  const requiredApprover=val("revampReturnRequiredApprover");
+  if(!requiredApprover||requiredApprover==="No approver assigned"||requiredApprover==="Select Location"){
+    setStatus("No approver is assigned to the selected return location.","error");
+    return;
+  }
   const itemSummary = returnItems.map(item => `- ${item.productName} | Qty: ${item.quantity}`).join("\n");
-  const confirmMessage = "Please confirm return request:\n\n" + "Receipt No.: " + receiptNo + "\n" + "Return Location: " + val("revampReturnLocation") + "\n" + "Handled By: " + currentUser.name + "\n\n" + "Items:\n" + itemSummary + "\n\n" + "Stock will NOT be added yet. It will wait for approval.\n\n" + "Continue?";
+  const confirmMessage = "Please confirm return request:\n\n" + "Receipt No.: " + receiptNo + "\n" + "Return Location: " + val("revampReturnLocation") + "\n" + "Handled By: " + currentUser.name + "\n" + "Required Approver: " + requiredApprover + "\n\n" + "Items:\n" + itemSummary + "\n\n" + "Stock will NOT be added yet. It will wait for approval.\n\n" + "Continue?";
   if(!confirm(confirmMessage)){
     setStatus("Return request cancelled.", "muted");
     return;
@@ -12585,6 +12652,7 @@ async function loadMyApprovals(){
 
     revampApprovalRows=Array.isArray(res.rows)?res.rows:[];
     pendingApprovalCount=revampApprovalRows.length;
+    window.currentApprovalCanOverride=Boolean(res.canOverride);
 
     renderMyApprovals(res);
     updateHomeNotificationBadge("APPROVALS",pendingApprovalCount);
@@ -12603,95 +12671,154 @@ async function loadMyApprovals(){
   }
 }
 
+function approvalFieldHtml_(label,value,wide=false){
+  if(value===undefined||value===null||value==="")return"";
+  return`<div class="${wide?"approval-wide":""}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`;
+}
+
 function renderMyApprovals(res){
   const rows=res.rows||[];
+  const canOverride=Boolean(res.canOverride||window.currentApprovalCanOverride);
   const container=document.getElementById("approvalList");
-  let html=`<hr><strong>Pending Approvals:</strong> ${escapeHtml(rows.length)}<br>`;
+
+  let html=`
+    <div class="approval-list-summary">
+      <div>
+        <strong>Pending Approvals: ${escapeHtml(rows.length)}</strong>
+        <div class="muted">Assigned approvals are shown here${canOverride?". Override controls appear when the assigned approver is unavailable.":"."}</div>
+      </div>
+      ${canOverride?`<span class="badge">MANAGER / ADMIN OVERRIDE</span>`:""}
+    </div>
+  `;
 
   if(!rows.length){
     container.innerHTML=
-      html+`<p class="muted">No pending approvals assigned to you.</p>`;
+      html+`<div class="empty-state compact-empty-state">No pending approvals available.</div>`;
     return;
   }
+
+  html+=`<div class="approval-list-grid">`;
 
   rows.forEach((row,index)=>{
     const type=String(row.type||"").toUpperCase();
     const isTransfer=type==="TRANSFER";
     const isAdjustment=type==="INVENTORY_ADJUSTMENT";
-    let details="";
+    const assignedApprover=String(
+      isTransfer
+        ?row.receivedBy||""
+        :row.requiredApprover||""
+    ).trim();
+    const isAssigned=
+      String(currentUser&&currentUser.name||"").trim().toUpperCase()===
+      assignedApprover.toUpperCase();
+    const isOverride=canOverride&&!isAssigned&&Boolean(assignedApprover);
+
+    let reference="";
+    let title="";
+    let fields="";
+    let itemsHtml="";
 
     if(isAdjustment){
-      details=`
-        Adjustment ID: <strong>${escapeHtml(row.adjustmentId||"")}</strong><br>
-        Date Adjusted: ${escapeHtml(row.dateAdjusted||"")}<br>
-        Product: <strong>${escapeHtml(row.productName||"")}</strong><br>
-        SKU: ${escapeHtml(row.sku||"")}<br>
-        Location: <strong>${escapeHtml(row.location||"")}</strong><br>
-        Adjustment Type: ${escapeHtml(row.adjustmentType||"")}<br>
-        Change Qty: <strong>${escapeHtml(row.adjustmentQty||0)}</strong><br>
-        Location Qty: <strong>${escapeHtml(row.oldLocationQty||0)} → ${escapeHtml(row.newLocationQty||0)}</strong><br>
-        Total Qty: <strong>${escapeHtml(row.oldTotalQty||0)} → ${escapeHtml(row.newTotalQty||0)}</strong><br>
-        Reason: ${escapeHtml(row.reason||"")}<br>
-        Requested By: ${escapeHtml(row.adjustedBy||"")}<br>
-        Required Approver: ${escapeHtml(row.requiredApprover||"")}
-        ${row.notes?`<br>Notes: ${escapeHtml(row.notes)}`:""}
-      `;
+      reference=row.adjustmentId||"";
+      title=row.productName||"Inventory Adjustment";
+      fields=[
+        approvalFieldHtml_("Adjustment ID",row.adjustmentId),
+        approvalFieldHtml_("Date Adjusted",formatDateTime(row.dateAdjusted)),
+        approvalFieldHtml_("SKU",row.sku),
+        approvalFieldHtml_("Location",row.location),
+        approvalFieldHtml_("Adjustment Type",row.adjustmentType),
+        approvalFieldHtml_("Change Qty",row.adjustmentQty),
+        approvalFieldHtml_("Location Qty",(row.oldLocationQty||0)+" → "+(row.newLocationQty||0)),
+        approvalFieldHtml_("Total Qty",(row.oldTotalQty||0)+" → "+(row.newTotalQty||0)),
+        approvalFieldHtml_("Reason",row.reason),
+        approvalFieldHtml_("Requested By",row.adjustedBy),
+        approvalFieldHtml_("Required Approver",row.requiredApprover),
+        approvalFieldHtml_("Notes",row.notes,true)
+      ].join("");
 
     }else if(isTransfer){
-      const items=Array.isArray(row.items)?row.items:[];
-      const itemsHtml=items.length
-        ?items.map(item=>`
-          <div style="margin:8px 0;padding:8px;border:1px solid #ddd;border-radius:8px;">
-            <strong>${escapeHtml(item.productName||"")}</strong>
-            SKU: ${escapeHtml(item.sku||"")}<br>
-            Qty: <strong>${escapeHtml(item.qty||0)}</strong>
-          </div>
-        `).join("")
-        :`<strong>${escapeHtml(row.productName||"")}</strong><br>SKU: ${escapeHtml(row.sku||"")}<br>`;
+      reference=row.transferId||"";
+      title=row.productName||"Stock Transfer";
+      fields=[
+        approvalFieldHtml_("Transfer ID",row.transferId),
+        approvalFieldHtml_("Date Transferred",formatDateTime(row.dateTransferred)),
+        approvalFieldHtml_("From",row.fromLocation),
+        approvalFieldHtml_("To",row.toLocation),
+        approvalFieldHtml_("Total Qty",row.qty||0),
+        approvalFieldHtml_("Sent By",row.sentBy),
+        approvalFieldHtml_("Required Approver",row.receivedBy)
+      ].join("");
 
-      details=`
-        Transfer ID: <strong>${escapeHtml(row.transferId||"")}</strong><br>
-        Date Transferred: ${escapeHtml(row.dateTransferred||"")}<br>
-        From Location: <strong>${escapeHtml(row.fromLocation||"")}</strong><br>
-        To Location: <strong>${escapeHtml(row.toLocation||"")}</strong><br>
-        Sent By: ${escapeHtml(row.sentBy||"")}<br>
-        Received By: ${escapeHtml(row.receivedBy||"")}<br>
-        Total Qty: <strong>${escapeHtml(row.qty||0)}</strong><br><br>
-        <strong>Items:</strong>
-        ${itemsHtml}
-      `;
+      const items=Array.isArray(row.items)?row.items:[];
+      if(items.length){
+        itemsHtml=`
+          <div class="approval-wide">
+            <table class="approval-transfer-items">
+              <thead><tr><th>Product</th><th>SKU</th><th>Qty</th></tr></thead>
+              <tbody>
+                ${items.map(item=>`
+                  <tr>
+                    <td>${escapeHtml(item.productName||"")}</td>
+                    <td>${escapeHtml(item.sku||"")}</td>
+                    <td>${escapeHtml(item.qty||0)}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
 
     }else{
-      details=`
-        Return ID: <strong>${escapeHtml(row.returnId||"")}</strong><br>
-        Receipt No.: ${escapeHtml(row.receiptNo||"")}<br>
-        Product: <strong>${escapeHtml(row.productName||"")}</strong><br>
-        SKU: ${escapeHtml(row.sku||"")}<br>
-        Qty: <strong>${escapeHtml(row.qty||0)}</strong><br>
-        Return Location: <strong>${escapeHtml(row.returnLocation||"")}</strong><br>
-        Handled By: ${escapeHtml(row.handledBy||"")}<br>
-        Required Approver: ${escapeHtml(row.requiredApprover||"")}
-      `;
+      reference=row.returnId||"";
+      title=row.productName||"Return Stock-In";
+      fields=[
+        approvalFieldHtml_("Return ID",row.returnId),
+        approvalFieldHtml_("Receipt No.",row.receiptNo),
+        approvalFieldHtml_("SKU",row.sku),
+        approvalFieldHtml_("Qty",row.qty||0),
+        approvalFieldHtml_("Return Location",row.returnLocation),
+        approvalFieldHtml_("Handled By",row.handledBy),
+        approvalFieldHtml_("Required Approver",row.requiredApprover)
+      ].join("");
     }
 
+    const approveText=isOverride?"Override & Approve":"Approve";
+    const rejectText=isOverride?"Override & Reject":"Reject";
+
     html+=`
-      <div class="cart-line">
-        <span class="badge">${escapeHtml(row.type||"")}</span>
-        <span class="badge">${escapeHtml(row.approvalStatus||"")}</span><br><br>
+      <article class="approval-item-card">
+        <div class="approval-item-head">
+          <div>
+            <span class="recent-transaction-action">${escapeHtml(row.type||"Approval")}</span>
+            <strong>${escapeHtml(title)}</strong>
+            <div class="muted">${escapeHtml(reference)}</div>
+          </div>
+          <div class="approval-badge-row">
+            <span class="badge">${escapeHtml(row.approvalStatus||"PENDING")}</span>
+            ${isOverride?`<span class="badge">OVERRIDE AVAILABLE</span>`:""}
+          </div>
+        </div>
 
-        ${details}<br><br>
+        <div class="approval-detail-grid">
+          ${fields}
+          ${itemsHtml}
+        </div>
 
-        <button id="approvalApproveBtn_${index}" class="success" type="button" onclick="submitRevampApprovalByIndex(${index},'APPROVE')">
-          Approve
-        </button>
+        <div class="approval-action-row">
+          <button id="approvalApproveBtn_${index}" class="success" type="button" onclick="submitRevampApprovalByIndex(${index},'APPROVE')">
+            ${approveText}
+          </button>
 
-        <button id="approvalRejectBtn_${index}" class="danger" type="button" onclick="submitRevampApprovalByIndex(${index},'REJECT')">
-          Reject
-        </button>
-      </div>
+          <button id="approvalRejectBtn_${index}" class="danger" type="button" onclick="submitRevampApprovalByIndex(${index},'REJECT')">
+            ${rejectText}
+          </button>
+        </div>
+      </article>
     `;
   });
 
+  html+=`</div>`;
   container.innerHTML=html;
 }
 
@@ -12733,9 +12860,21 @@ async function submitRevampApproval(row,decision,index){
       ?"transfer"
       :"return";
 
+  const assignedApprover=String(
+    isTransfer
+      ?row.receivedBy||""
+      :row.requiredApprover||""
+  ).trim();
+  const isOverride=Boolean(
+    window.currentApprovalCanOverride&&
+    assignedApprover&&
+    String(currentUser.name||"").trim().toUpperCase()!==assignedApprover.toUpperCase()
+  );
+
   if(!confirm(
     "Are you sure you want to "+label+" this "+transactionLabel+
-    "?\n\nReference: "+reference
+    "?\n\nReference: "+reference+
+    (isOverride?"\nAssigned Approver: "+assignedApprover+"\nYou are using Manager/Admin override.":"")
   )){
     setStatus("Approval cancelled.","muted");
     return;
@@ -13593,6 +13732,38 @@ async function loadRecentTransactions(){
 }
 
 
+async function copyRecentReceiptNo_(button){
+  const value=String(button&&button.dataset?button.dataset.copyValue||"":"");
+  if(!value)return;
+
+  try{
+    if(navigator.clipboard&&window.isSecureContext){
+      await navigator.clipboard.writeText(value);
+    }else{
+      const textarea=document.createElement("textarea");
+      textarea.value=value;
+      textarea.style.position="fixed";
+      textarea.style.opacity="0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      document.execCommand("copy");
+      textarea.remove();
+    }
+
+    const oldText=button.textContent;
+    button.textContent="✓";
+    button.title="Copied";
+    setTimeout(()=>{
+      button.textContent=oldText||"⧉";
+      button.title="Copy receipt number";
+    },1200);
+
+  }catch(err){
+    setStatus("Could not copy receipt number. Please copy it manually.","error");
+  }
+}
+
 function recentTransactionActionLabel_(value){
   const action=String(value||"").trim();
 
@@ -13669,7 +13840,22 @@ function renderRecentTransactions_(res){
           <div><span>Qty</span><strong>${escapeHtml(row.qty||0)}</strong></div>
           <div><span>User</span><strong>${escapeHtml(row.user||"—")}</strong></div>
           <div><span>Location</span><strong>${escapeHtml(locationText||"—")}</strong></div>
-          ${row.receiptNo?`<div><span>Receipt No.</span><strong>${escapeHtml(row.receiptNo)}</strong></div>`:""}
+          ${row.receiptNo?`
+            <div>
+              <span>Receipt No.</span>
+              <div class="receipt-copy-wrap">
+                <strong>${escapeHtml(row.receiptNo)}</strong>
+                <button
+                  class="copy-receipt-button"
+                  type="button"
+                  title="Copy receipt number"
+                  aria-label="Copy receipt number"
+                  data-copy-value="${escapeHtml(row.receiptNo)}"
+                  onclick="copyRecentReceiptNo_(this)"
+                >⧉</button>
+              </div>
+            </div>
+          `:""}
         </div>
 
         ${row.notes?`<div class="recent-transaction-note">${escapeHtml(row.notes)}</div>`:""}
