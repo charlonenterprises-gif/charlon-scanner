@@ -2945,6 +2945,11 @@
   }
 </style>
 
+
+<style>
+#releaseSourceLocation:disabled{background:#eef3f7;color:#12324a;font-weight:600;}
+.transaction-feedback-cell small{display:block;margin-top:4px;font-size:12px;line-height:1.35;color:#476273;font-weight:500;}
+</style>
 </head>
 <body>
   <div
@@ -3712,7 +3717,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = "2026.08.26.5";
+const APP_VERSION = "2026.08.27.2";
 const EXPECTED_API_VERSION = APP_VERSION;
 const API_URL = "https://script.google.com/macros/s/AKfycbx7iFaGeikvykjRicd8kcv6NZQAFg5oYwaRTXU3m4ylM4l8mvqaS84X-iUgLrFWiNUUrw/exec";
 let currentUser = null;
@@ -11203,6 +11208,11 @@ async function submitCartTransaction(){
           )
       };
     });
+  if(currentType==="SALE"&&!val("salesChannel")){
+    setStatus("Please select Sales Channel.","error");
+    return;
+  }
+
   let params = {action: "submitCartTransaction", staffId: currentUser.staffId, pin: currentPin, transactionType: currentType, cartItems: JSON.stringify(cleanItems), notes: val("notes")};
   if(currentType === "SALE" && !val("releasedBy")){
     setStatus("Please select who released the item.", "error");
@@ -12060,6 +12070,11 @@ async function submitReleaseCartSale_(){
   setStatus("Submitting sale from release...","info");
 
   try{
+    if(!val("salesChannel")){
+      setStatus("Please select Sales Channel.","error");
+      return;
+    }
+
     const res=await apiCall({
       action:"completeReleaseCartSale",
       staffId:currentUser.staffId,
@@ -12080,8 +12095,20 @@ async function submitReleaseCartSale_(){
     });
     if(!res||!res.success)throw new Error(res&&res.message?res.message:"Sale could not be completed.");
 
-    const successHtml=`<strong>Sale completed successfully.</strong><br>Release ID: <strong>${escapeHtml(ctx.releaseId)}</strong><br>Items Saved: <strong>${escapeHtml(res.itemCount||cleanItems.length)}</strong>${res.receiptNo?`<br>Receipt No.: <strong>${escapeHtml(res.receiptNo)}</strong>`:""}`;
-    setStatus(successHtml,"success-text");
+    const savedResults=Array.isArray(res.results)?res.results:[];
+    const detailCells=[];
+    detailCells.push(`<div class="transaction-feedback-cell"><span>Release ID</span><strong>${escapeHtml(res.releaseId||activeReleaseSaleContext.releaseId||"")}</strong></div>`);
+    detailCells.push(`<div class="transaction-feedback-cell"><span>Receipt Type</span><strong>${escapeHtml(val("receiptType")||"")}</strong></div>`);
+    detailCells.push(`<div class="transaction-feedback-cell"><span>Receipt No.</span><strong>${escapeHtml(val("receiptNo")||"")}</strong></div>`);
+    detailCells.push(`<div class="transaction-feedback-cell"><span>Items Saved</span><strong>${escapeHtml(res.itemCount||savedResults.length||cartItems.length)}</strong></div>`);
+    const itemDetails=savedResults.map(item=>{
+      if(item.isUnlisted===true||item.unlisted===true||String(item.status||"").toUpperCase().includes("UNLISTED")){
+        return `<div class="transaction-feedback-cell is-wide"><span>Unlisted Product</span><strong>${escapeHtml(item.productName||"")}</strong><small>Temporary ID: ${escapeHtml(item.unlistedId||item.temporaryId||item.sku||"")} · Qty: ${escapeHtml(item.qty||"")} ${escapeHtml(item.unit||"unit")} · Source: ${escapeHtml(item.location||item.sourceLocation||activeReleaseSaleContext.sourceLocation||"")} · Status: ${escapeHtml(item.reviewStatus||"PENDING REVIEW")}</small></div>`;
+      }
+      return `<div class="transaction-feedback-cell is-wide"><span>Product</span><strong>${escapeHtml(item.productName||item.sku||"")}</strong><small>SKU: ${escapeHtml(item.sku||"")} · Qty: ${escapeHtml(item.qty||"")} ${escapeHtml(item.unit||"")} · Location: ${escapeHtml(item.location||item.sourceLocation||activeReleaseSaleContext.sourceLocation||"")}${item.oldLocationQty!==undefined?` · Location Qty: ${escapeHtml(item.oldLocationQty)} → ${escapeHtml(item.newLocationQty)}`:""}${item.oldTotalQty!==undefined?` · Total Qty: ${escapeHtml(item.oldTotalQty)} → ${escapeHtml(item.newTotalQty)}`:""}${Number(item.unknownFallbackQty||0)>0?` · UNKNOWN used: ${escapeHtml(item.unknownFallbackQty)}`:""}</small></div>`;
+    }).join("");
+    const successHtml=`<div class="transaction-feedback-title"><span class="transaction-feedback-check">✓</span><strong>Sale / Stock Out saved.</strong></div><div class="transaction-feedback-grid">${detailCells.join("")}${itemDetails}</div>${savedResults.some(item=>item.isUnlisted===true||item.unlisted===true||String(item.status||"").toUpperCase().includes("UNLISTED"))?`<div class="transaction-feedback-note">Inventory Dashboard and Product Location Log are not changed for unlisted products until Admin reviews them.</div>`:""}`;
+    setStatus(successHtml,"success-text")
     cartItems=[];
     activeReleaseSaleContext=null;
     currentProduct=null;
@@ -14770,6 +14797,66 @@ function showUnlistedCreateSuccess_(res){
     </div>`;
   panel.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
+
+
+
+/* ================================================================
+ * CHARLON INVENTORY SYSTEM UI v2026.08.27.1
+ * ================================================================ */
+function canCreateReturnStockIn_(){
+  if(!currentUser)return false;
+  const role=String(currentUser.role||"").trim().toUpperCase();
+  return role==="MANAGER"||role==="ADMIN";
+}
+
+function renderSidebarNav_(){
+  const nav=document.getElementById("sidebarNav");if(!nav||!currentUser)return;nav.innerHTML="";
+  nav.appendChild(makeSidebarNavButton_("home","Home",backHome));
+  if(canAccess("CHECKSTOCK"))nav.appendChild(makeSidebarNavButton_("stock","Check Stock",()=>chooseType("CHECK_STOCK")));
+  if(canUseReleaseItem())nav.appendChild(makeSidebarNavButton_("releaseitem","Customer Order / Release Item",()=>chooseType("RELEASING")));
+  if(canAccess("SALES"))nav.appendChild(makeSidebarNavButton_("sale","Sold Immediately",()=>chooseType("SALE")));
+  if(canAccess("TRANSFER"))nav.appendChild(makeSidebarNavButton_("transfer","Transfer Stock Location",()=>chooseType("TRANSFER")));
+  if(canCreateReturnStockIn_())nav.appendChild(makeSidebarNavButton_("return","Return Stock-In",openRevampReturnLookup));
+  if(canViewMyReleaseRequests())nav.appendChild(makeSidebarNavButton_("releases","My Release Requests",openMyReleaseRequests,pendingReleaseCount,"RELEASES"));
+  if(canViewMyApprovals())nav.appendChild(makeSidebarNavButton_("approvals","My Approvals",openMyApprovals,pendingApprovalCount,"APPROVALS"));
+  if(canReviewUnlistedProducts()){nav.appendChild(makeSidebarNavButton_("unlisted","Unlisted Product Review",openUnlistedProductReview,pendingUnlistedReviewCount,"UNLISTED"));nav.appendChild(makeSidebarNavButton_("products","Product Management",openProductManagement));}
+  nav.appendChild(makeSidebarNavButton_("recent","Recent Transactions",openRecentTransactions));setSidebarActive_("home");applyRoleSensitiveVisibility_();
+}
+
+function renderHomeButtons(){
+  const container=document.getElementById("homeButtons");if(!container)return;container.innerHTML="";container.className="button-grid main-home-grid";
+  const add=(slot,label,helper,onClick,count=0,key="")=>{const b=makeMenuButton(label,helper,onClick,true,count,key);b.dataset.homeSlot=slot;container.appendChild(b);};
+  if(canAccess("CHECKSTOCK"))add("check","Check Stock","Search products and view physical stock, pending releases, and available quantity.",()=>chooseType("CHECK_STOCK"));
+  if(canUseReleaseItem())add("releaseitem","Customer Order / Release Item","Create a customer release request. Stock is deducted only when the ticket is completed as a sale.",()=>chooseType("RELEASING"));
+  if(canAccess("SALES"))add("sale","Sold Immediately","Record a completed sale and deduct stock from the selected source.",()=>chooseType("SALE"));
+  if(canAccess("TRANSFER"))add("transfer","Transfer Stock Location","Move stock from one inventory location to another through approval.",()=>chooseType("TRANSFER"));
+  if(canCreateReturnStockIn_())add("return","Return Stock-In","Search a receipt and submit returned stock for approval.",openRevampReturnLookup);
+  if(canViewMyReleaseRequests())add("releases","My Release Requests","Review released items assigned to you and continue them to sale.",openMyReleaseRequests,pendingReleaseCount,"RELEASES");
+  if(canViewMyApprovals())add("approvals","My Approvals","Review pending returns, transfers, and inventory adjustments.",openMyApprovals,pendingApprovalCount,"APPROVALS");
+  if(canReviewUnlistedProducts()){add("unlisted","Unlisted Product Review","Review sold products that are not yet part of the inventory master.",openUnlistedProductReview,pendingUnlistedReviewCount,"UNLISTED");add("products","Product Management","Inventory adjustment, delete product, or correct active product details.",openProductManagement);}
+  add("recent","Recent Transactions",canFilterAllRecentTransactions_()?"Review recent transactions and filter by user or transaction type.":"Review the transactions you recently processed.",openRecentTransactions);applyRoleSensitiveVisibility_();
+}
+
+function applyReleasingFixedSourceLocation_(){
+  if(!currentUser||String(currentUser.role||"").trim().toUpperCase()!=="RELEASING")return;
+  const source=document.getElementById("releaseSourceLocation");
+  if(!source)return;
+  if(source.tagName==="SELECT"){
+    const replacement=document.createElement("input");replacement.type="text";replacement.id="releaseSourceLocation";replacement.value="VACANT";replacement.disabled=true;source.replaceWith(replacement);
+  }else{source.value="VACANT";source.disabled=true;}
+}
+
+function warmFastCaches_(){
+  if(!currentUser)return;
+  window.setTimeout(()=>{apiCall({action:"warmCaches",staffId:currentUser.staffId,pin:currentPin}).catch(()=>{});},250);
+}
+
+/* Every time a workflow form is rendered, lock a Releasing user's source to VACANT. */
+const _charlonRenderFormV20260827=renderForm;
+renderForm=function(){const result=_charlonRenderFormV20260827.apply(this,arguments);applyReleasingFixedSourceLocation_();return result;};
+
+const _charlonOpenHomeV20260827=openHome;
+openHome=function(){const result=_charlonOpenHomeV20260827.apply(this,arguments);warmFastCaches_();return result;};
 
 window.addEventListener("DOMContentLoaded", function(){
   applyVersionUi_();
