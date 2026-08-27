@@ -2949,6 +2949,16 @@
 <style>
 #releaseSourceLocation:disabled{background:#eef3f7;color:#12324a;font-weight:600;}
 .transaction-feedback-cell small{display:block;margin-top:4px;font-size:12px;line-height:1.35;color:#476273;font-weight:500;}
+
+/* v2026.08.27.3 sale result layout */
+.sale-success-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px;}
+.sale-success-item-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+.sale-success-separator{height:1px;background:#b9dfc9;margin:14px 0;}
+.sale-success-product-title{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px;}
+.sale-success-product-title>span{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#547064;}
+.sale-success-product-title>strong{font-size:14px;color:#0b4c2f;}
+.sale-success-product-title>em{font-size:10px;font-style:normal;font-weight:800;color:#8a5a00;background:#fff4cc;border-radius:999px;padding:3px 7px;}
+@media(max-width:760px){.sale-success-summary-grid,.sale-success-item-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
 </style>
 </head>
 <body>
@@ -3717,7 +3727,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = "2026.08.27.2";
+const APP_VERSION = "2026.08.27.3";
 const EXPECTED_API_VERSION = APP_VERSION;
 const API_URL = "https://script.google.com/macros/s/AKfycbx7iFaGeikvykjRicd8kcv6NZQAFg5oYwaRTXU3m4ylM4l8mvqaS84X-iUgLrFWiNUUrw/exec";
 let currentUser = null;
@@ -9400,20 +9410,23 @@ function renderKeywordResults(totalCount, limited){
           ${product.itemType?`<div>ITEM TYPE<strong>${escapeHtml(product.itemType)}</strong></div>`:""}
         </div>
 
-        <div class="search-stock-row">
-          <div>Total<strong>${totalQty.toLocaleString()}</strong></div>
-          <div>Pending Release<strong>${reservedQty.toLocaleString()}</strong></div>
-          <div>Available<strong>${availableQty.toLocaleString()}</strong></div>
-        </div>
-
-        <div class="search-result-locations">
-          <div>CE1<strong>${Number(product.ce1Qty||0).toLocaleString()}</strong></div>
-          <div>CE2<strong>${Number(product.ce2Qty||0).toLocaleString()}</strong></div>
-          <div>CE3<strong>${Number(product.ce3Qty||0).toLocaleString()}</strong></div>
-          <div>SOLER<strong>${Number(product.solerQty||0).toLocaleString()}</strong></div>
-          <div>VACANT<strong>${Number(product.vacantQty||0).toLocaleString()}</strong></div>
-          <div>UNKNOWN<strong>${Number(product.unknownQty||0).toLocaleString()}</strong></div>
-        </div>
+        ${product.liveStockDeferred===true?`
+          <div class="search-stock-row"><div style="grid-column:1/-1">Live Stock<strong>Select product to load current quantities</strong></div></div>
+        `:`
+          <div class="search-stock-row">
+            <div>Total<strong>${totalQty.toLocaleString()}</strong></div>
+            <div>Pending Release<strong>${reservedQty.toLocaleString()}</strong></div>
+            <div>Available<strong>${availableQty.toLocaleString()}</strong></div>
+          </div>
+          <div class="search-result-locations">
+            <div>CE1<strong>${Number(product.ce1Qty||0).toLocaleString()}</strong></div>
+            <div>CE2<strong>${Number(product.ce2Qty||0).toLocaleString()}</strong></div>
+            <div>CE3<strong>${Number(product.ce3Qty||0).toLocaleString()}</strong></div>
+            <div>SOLER<strong>${Number(product.solerQty||0).toLocaleString()}</strong></div>
+            <div>VACANT<strong>${Number(product.vacantQty||0).toLocaleString()}</strong></div>
+            <div>UNKNOWN<strong>${Number(product.unknownQty||0).toLocaleString()}</strong></div>
+          </div>
+        `}
 
         <button class="select-result-btn" type="button" onclick="selectKeywordProduct(${index})">Select Product</button>
       </div>
@@ -9427,30 +9440,35 @@ function renderKeywordResults(totalCount, limited){
   show("keywordResults");
 }
 
-function selectKeywordProduct(index){
-  const product = keywordSearchResults[index];
-  if(!product) return;
-  currentProduct = product;
+async function selectKeywordProduct(index){
+  let product=keywordSearchResults[index];
+  if(!product)return;
+  if(product.liveStockDeferred===true){
+    setStatus("Loading current stock...","info");
+    try{
+      const res=await apiCall({action:"findProduct",staffId:currentUser.staffId,pin:currentPin,searchValue:product.sku});
+      if(!res||!res.success||!res.product)throw new Error(res&&res.message?res.message:"Could not load live stock.");
+      product=res.product;
+      keywordSearchResults[index]=product;
+    }catch(err){
+      setStatus("Product stock lookup error: "+escapeHtml(err.message||err),"error");
+      return;
+    }
+  }
+  currentProduct=product;
   renderProduct();
   if(isCartTransactionType(currentType)){
     addProductToCart(currentProduct);
-    if(
-      document.getElementById("formCard")
-        .classList.contains("hidden")
-    ){
-      renderForm();
-    }
-    document.getElementById("searchValue").value = "";
+    if(document.getElementById("formCard").classList.contains("hidden"))renderForm();
+    document.getElementById("searchValue").value="";
     hide("keywordResults");
-    setTimeout(() => {
-      document.getElementById("searchValue").focus();
-    }, 200);
-    setStatus("Product selected and added to cart.", "success-text");
+    setTimeout(()=>document.getElementById("searchValue").focus(),100);
+    setStatus("Product selected and added to cart.","success-text");
     return;
   }
   renderForm();
   hide("keywordResults");
-  setStatus("Product selected.", "success-text");
+  setStatus("Product selected.","success-text");
 }
 
 function backToKeywordResults(){
@@ -9587,6 +9605,45 @@ function getProductCartKey(product){
   return String(product.barcodeValue || product.sku || product.qboId || product.productName || "").trim().toUpperCase();
 }
 
+function getDefaultSaleLocationForProduct_(product,fallback=""){
+  const p=product||{};
+  const quantities={
+    CE1:Number(p.ce1Qty||0),
+    CE2:Number(p.ce2Qty||0),
+    CE3:Number(p.ce3Qty||0),
+    SOLER:Number(p.solerQty||0),
+    VACANT:Number(p.vacantQty||0),
+    UNKNOWN:Number(p.unknownQty||0)
+  };
+  const positive=INVENTORY_LOCATIONS.filter(location=>Number(quantities[location]||0)>0);
+  if(positive.length===1)return positive[0];
+  const userLocation=String((currentUser&&currentUser.location)||"").trim().toUpperCase();
+  if(positive.includes(userLocation))return userLocation;
+  if(positive.length>1){
+    return positive.sort((a,b)=>Number(quantities[b]||0)-Number(quantities[a]||0))[0];
+  }
+  const fallbackKey=String(fallback||"").trim().toUpperCase();
+  if(INVENTORY_LOCATIONS.includes(fallbackKey))return fallbackKey;
+  if(INVENTORY_LOCATIONS.includes(userLocation))return userLocation;
+  return "";
+}
+
+function saleItemLocationSelectHtml_(index,selected=""){
+  const selectedKey=String(selected||"").trim().toUpperCase();
+  let html=`<select class="cart-sale-location" aria-label="Location / Stock Source" onchange="updateCartLocation(${index}, this.value)">`;
+  html+=`<option value="">Select stock location</option>`;
+  INVENTORY_LOCATIONS.forEach(location=>{
+    html+=`<option value="${location}" ${location===selectedKey?"selected":""}>${location}</option>`;
+  });
+  html+=`</select>`;
+  return html;
+}
+
+function updateCartLocation(index,value){
+  if(!cartItems[index])return;
+  cartItems[index].sourceLocation=String(value||"").trim().toUpperCase();
+}
+
 function addProductToCart(product){
   const key = getProductCartKey(product);
   if(!key){
@@ -9597,7 +9654,19 @@ function addProductToCart(product){
   if(existing){
     existing.quantity += 1;
   } else{
-    cartItems.push({key, product, quantity: 1, unit: "unit", unitDetails: "", pricePerUnit: Number(product.sellingPrice || 0), costPerUnit: Number(product.averageCost || 0)});
+    const releaseFallback=activeReleaseSaleContext&&activeReleaseSaleContext.sourceLocation
+      ?activeReleaseSaleContext.sourceLocation
+      :"";
+    cartItems.push({
+      key,
+      product,
+      quantity:1,
+      unit:"unit",
+      unitDetails:"",
+      sourceLocation:getDefaultSaleLocationForProduct_(product,releaseFallback),
+      pricePerUnit:Number(product.sellingPrice||0),
+      costPerUnit:Number(product.averageCost||0)
+    });
   }
   renderCart();
 }
@@ -10074,7 +10143,7 @@ function addUnlistedProductToCart(){
     unit:"unit",
     unitDetails:"",
 
-    sourceLocation:"",
+    sourceLocation:getDefaultSaleLocationForProduct_({}, activeReleaseSaleContext&&activeReleaseSaleContext.sourceLocation),
 
     pricePerUnit,
     costPerUnit,
@@ -10100,7 +10169,7 @@ function addUnlistedProductToCart(){
 
 
   setStatus(
-    "Unlisted product added to cart. Select the final Location / Stock Source below before submitting.",
+    "Unlisted product added to cart. Confirm the item's Location / Stock Source in the cart before submitting.",
     "success-text"
   );
 }
@@ -10167,6 +10236,11 @@ function renderCart(){
           ${
             currentType === "SALE"
               ? `
+                <div class="compact-form-field">
+                  <label>Location / Stock Source *</label>
+                  ${saleItemLocationSelectHtml_(index,item.sourceLocation||getDefaultSaleLocationForProduct_(p,activeReleaseSaleContext&&activeReleaseSaleContext.sourceLocation))}
+                </div>
+
                 <div class="compact-form-field">
                   <label>Price Per Unit</label>
                   <input type="number" min="0" step="0.01" value="${item.pricePerUnit}" onchange="updateCartPrice(${index}, this.value)">
@@ -10328,11 +10402,6 @@ function renderCartForm(){
         <div class="compact-form-field">
           <label>Sales Channel</label>
           ${selectHtml("salesChannel", settings.salesChannels)}
-        </div>
-
-        <div class="compact-form-field">
-          <label>Location / Stock Source</label>
-          ${inventoryLocationSelectHtml("saleLocation", currentUser.location)}
         </div>
 
         <div class="compact-form-field">
@@ -11014,6 +11083,73 @@ async function verifySavedSaleAfterResponseError_(params,originalError){
   throw originalError;
 }
 
+function saleResultIsUnlisted_(item){
+  return item&&(
+    item.isUnlisted===true||
+    item.unlisted===true||
+    String(item.reviewStatus||item.status||"").toUpperCase().includes("UNLISTED")||
+    String(item.reviewStatus||"").toUpperCase()==="PENDING REVIEW"
+  );
+}
+
+function saleQtyTransition_(oldValue,newValue){
+  if(oldValue===null||oldValue===undefined||newValue===null||newValue===undefined)return "—";
+  return `${Number(oldValue).toLocaleString()} → ${Number(newValue).toLocaleString()}`;
+}
+
+function showSaleSuccessResult_(res,options={}){
+  const results=Array.isArray(res&&res.results)?res.results:[];
+  const ticketNo=(res&&(res.ticketNo||res.saleId||res.releaseId))||options.ticketNo||"";
+  const receiptType=(res&&res.receiptType)||options.receiptType||"";
+  const receiptNo=(res&&res.receiptNo)||options.receiptNo||"";
+  const itemCount=Number((res&&res.itemCount)||results.length||options.itemCount||0);
+  const warningLines=[];
+  let html=`
+    <div class="transaction-feedback-title">
+      <span class="transaction-feedback-check">✓</span>
+      <strong>Sale / Stock Out saved.</strong>
+    </div>
+    <div class="sale-success-summary-grid">
+      <div class="transaction-feedback-cell"><span>Ticket No.</span><strong>${escapeHtml(ticketNo)}</strong></div>
+      <div class="transaction-feedback-cell"><span>Receipt Type</span><strong>${escapeHtml(receiptType)}</strong></div>
+      <div class="transaction-feedback-cell"><span>Receipt No.</span><strong>${escapeHtml(receiptNo)}</strong></div>
+      <div class="transaction-feedback-cell"><span>Items Saved</span><strong>${escapeHtml(itemCount)}</strong></div>
+    </div>
+  `;
+  results.forEach((item,index)=>{
+    const unlisted=saleResultIsUnlisted_(item);
+    const location=String(item.location||item.sourceLocation||"").trim().toUpperCase();
+    html+=`<div class="sale-success-separator"></div>`;
+    html+=`<div class="sale-success-product-title"><span>Product ${index+1}</span><strong>${escapeHtml(item.productName||item.sku||"Unlisted Product")}</strong>${unlisted?'<em>UNLISTED · PENDING REVIEW</em>':''}</div>`;
+    html+=`<div class="sale-success-item-grid">`;
+    html+=`<div class="transaction-feedback-cell"><span>QTY</span><strong>${escapeHtml(item.qty||0)} ${escapeHtml(item.unit||"unit")}</strong></div>`;
+    if(unlisted){
+      html+=`<div class="transaction-feedback-cell"><span>Source</span><strong>${escapeHtml(location||"—")}</strong></div>`;
+      html+=`<div class="transaction-feedback-cell"><span>Temporary ID</span><strong>${escapeHtml(item.unlistedId||item.temporaryId||item.sku||"")}</strong></div>`;
+      html+=`<div class="transaction-feedback-cell"><span>Status</span><strong>${escapeHtml(item.reviewStatus||"PENDING REVIEW")}</strong></div>`;
+      warningLines.push(`${item.productName||"Unlisted product"}: Inventory is unchanged until Admin review.`);
+    }else{
+      html+=`<div class="transaction-feedback-cell"><span>Location</span><strong>${escapeHtml(location||"—")}</strong></div>`;
+      html+=`<div class="transaction-feedback-cell"><span>${escapeHtml(location||"Location")} QTY</span><strong>${escapeHtml(saleQtyTransition_(item.oldLocationQty,item.newLocationQty))}</strong></div>`;
+      html+=`<div class="transaction-feedback-cell"><span>Total QTY</span><strong>${escapeHtml(saleQtyTransition_(item.oldTotalQty,item.newTotalQty))}</strong></div>`;
+      if(Number(item.unknownFallbackQty||0)>0)warningLines.push(`${item.productName||item.sku}: ${item.unknownFallbackQty} qty used from UNKNOWN.`);
+      if(item.negativeStockWarning)warningLines.push(`${item.productName||item.sku}: ${item.negativeStockWarning}`);
+    }
+    html+=`</div>`;
+  });
+  if(warningLines.length){
+    html+=`<div class="sale-success-separator"></div><div class="transaction-feedback-notes"><strong>Notes / Warning</strong>${warningLines.map(line=>`<div>${escapeHtml(line)}</div>`).join("")}</div>`;
+  }
+  const host=getInlineFeedbackHost_();
+  if(!host)return;
+  clearInlineActionFeedback_();
+  const panel=document.createElement("div");
+  panel.className="notice-panel success-panel inline-result transaction-feedback-banner sale-success-panel";
+  panel.innerHTML=html;
+  host.appendChild(panel);
+  panel.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
 async function submitCartTransaction(){
   if(isSubmitting) return;
   if(currentType==="SALE"&&activeReleaseSaleContext){
@@ -11021,10 +11157,6 @@ async function submitCartTransaction(){
   }
   if(!cartItems.length){
     setStatus("Please scan at least one item before submitting.", "error");
-    return;
-  }
-  if(currentType === "SALE" && !val("saleLocation")){
-    setStatus("Please select the stock source location.", "error");
     return;
   }
   
@@ -11136,7 +11268,7 @@ async function submitCartTransaction(){
            * the Sale form.
            */
           sourceLocation:
-            val("saleLocation"),
+            String(item.sourceLocation||"").trim().toUpperCase(),
   
           pricePerUnit:
             Number(
@@ -11196,6 +11328,9 @@ async function submitCartTransaction(){
         unitDetails:
           item.unitDetails||
           "",
+
+        sourceLocation:
+          String(item.sourceLocation||"").trim().toUpperCase(),
   
         pricePerUnit:
           Number(
@@ -11211,6 +11346,13 @@ async function submitCartTransaction(){
   if(currentType==="SALE"&&!val("salesChannel")){
     setStatus("Please select Sales Channel.","error");
     return;
+  }
+  if(currentType==="SALE"){
+    const missingLocationIndex=cleanItems.findIndex(item=>!String(item.sourceLocation||"").trim());
+    if(missingLocationIndex>=0){
+      setStatus("Please select Location / Stock Source for every item in the cart.","error");
+      return;
+    }
   }
 
   let params = {action: "submitCartTransaction", staffId: currentUser.staffId, pin: currentPin, transactionType: currentType, cartItems: JSON.stringify(cleanItems), notes: val("notes")};
@@ -11228,7 +11370,7 @@ async function submitCartTransaction(){
       ticketNo:saleTicketNo,
       dateSold:val("dateSold"),
       salesChannel:val("salesChannel"),
-      saleLocation:val("saleLocation"),
+      saleLocation:"",
       soldBy:val("soldBy"),
       releasedBy:val("releasedBy"),
       receiptType:val("receiptType"),
@@ -11273,10 +11415,8 @@ async function submitCartTransaction(){
             :"";
   
         const sourceLabel=
-          item.isUnlisted&&
-          item.sourceLocation
-            ?" | Source: "+
-              item.sourceLocation
+          currentType==="SALE"&&item.sourceLocation
+            ?" | Source: "+item.sourceLocation
             :"";
   
         return(
@@ -11460,145 +11600,12 @@ async function submitCartTransaction(){
       return;
     }
 
-    let resultHtml = `
-      ${escapeHtml(res.message)}<br>
-      Ticket No.: <strong>${escapeHtml(res.ticketNo || "")}</strong><br>
-      Receipt Type: ${escapeHtml(res.receiptType || "")}<br>
-      Receipt No.: ${escapeHtml(res.receiptNo || "")}<br>
-      Items Saved: ${escapeHtml(res.itemCount || 0)}
-    `;
-    if(
-      Array.isArray(res.results)&&
-      res.results.length
-    ){
-      resultHtml+="<br><br>";
-    
-      res.results.forEach(item=>{
-    
-        /*
-         * ========================================
-         * UNLISTED PRODUCT RESULT
-         * ========================================
-         */
-        if(item.isUnlisted){
-    
-          resultHtml+=`
-            <strong>
-              ${escapeHtml(item.productName||"")}
-            </strong><br>
-    
-            <span class="badge">
-              UNLISTED PRODUCT
-            </span><br>
-    
-            Temporary ID:
-            <strong>
-              ${escapeHtml(
-                item.unlistedId||
-                item.sku||
-                ""
-              )}
-            </strong><br>
-    
-            Qty:
-            ${escapeHtml(item.qty||0)}
-            ${escapeHtml(item.unit||"unit")}
-            <br>
-    
-            ${
-              item.unitDetails
-                ?`Unit Details: ${escapeHtml(item.unitDetails)}<br>`
-                :""
-            }
-    
-            Source Location:
-            <strong>
-              ${escapeHtml(item.location||"")}
-            </strong><br>
-    
-            Status:
-            <strong>
-              ${escapeHtml(
-                item.reviewStatus||
-                "PENDING REVIEW"
-              )}
-            </strong><br>
-    
-            <span class="muted">
-              Inventory Dashboard and Product Location Log were not changed.
-              Admin must review this product.
-            </span>
-    
-            <br><br>
-          `;
-    
-          return;
-        }
-    
-    
-        /*
-         * ========================================
-         * NORMAL LISTED PRODUCT RESULT
-         * ========================================
-         */
-        resultHtml+=`
-          <strong>
-            ${escapeHtml(item.productName||"")}
-          </strong><br>
-    
-          Qty:
-          ${escapeHtml(item.qty)}
-          ${escapeHtml(item.unit||"")}
-          <br>
-    
-          ${
-            item.unitDetails
-              ?`Unit Details: ${escapeHtml(item.unitDetails)}<br>`
-              :""
-          }
-    
-          Location:
-          ${escapeHtml(item.location||"")}
-          <br>
-    
-          Location Qty:
-          ${escapeHtml(item.oldLocationQty)}
-          →
-          ${escapeHtml(item.newLocationQty)}
-          <br>
-    
-          Total Qty:
-          ${escapeHtml(item.oldTotalQty)}
-          →
-          ${escapeHtml(item.newTotalQty)}
-          <br>
-    
-          ${
-            Number(item.unknownFallbackQty||0)>0
-              ?`
-                <span class="info">
-                  ${escapeHtml(item.unknownFallbackQty)}
-                  qty deducted from UNKNOWN.
-                </span><br>
-              `
-              :""
-          }
-    
-          ${
-            item.negativeStockWarning
-              ?`
-                <span class="error">
-                  ${escapeHtml(item.negativeStockWarning)}
-                </span><br>
-              `
-              :""
-          }
-    
-          <br>
-        `;
-      });
-    }
-    setStatus(resultHtml, "success-text");
+    showSaleSuccessResult_(res,{
+      ticketNo:res.ticketNo||val("autoTicketNo"),
+      receiptType:res.receiptType||val("receiptType"),
+      receiptNo:res.receiptNo||val("receiptNo"),
+      itemCount:res.itemCount||cleanItems.length
+    });
     cartItems = [];
     currentProduct = null;
     renderCart();
@@ -12015,6 +12022,7 @@ function continueReleaseRequestToSale(index){
       releaseLineNo:item.lineNo||"",
       unit:item.unit||"unit",
       unitDetails:item.unitDetails||"",
+      sourceLocation:row.sourceLocation||activeReleaseSaleContext.sourceLocation||"",
       pricePerUnit:Number(item.unitPrice||0),
       costPerUnit:0
     };
@@ -12024,8 +12032,6 @@ function continueReleaseRequestToSale(index){
   renderCart();
   renderForm();
 
-  const location=document.getElementById("saleLocation");
-  if(location&&row.sourceLocation){location.value=row.sourceLocation;location.disabled=true;}
   const releasedBy=document.getElementById("releasedBy");
   if(releasedBy&&row.releasedBy){releasedBy.value=row.releasedBy;releasedBy.disabled=true;}
   const ticket=document.getElementById("autoTicketNo");
@@ -12055,10 +12061,13 @@ async function submitReleaseCartSale_(){
   const cleanItems=cartItems.map(item=>{
     const p=item.product||{};
     if(item.isUnlisted===true){
-      return{isUnlisted:true,sku:"",barcodeValue:"",qrValue:"",productName:item.productName||p.productName||"",brand:item.brand||"",model:item.model||"",description:item.description||"",specifications:item.specifications||"",itemType:item.itemType||"",forWith:item.forWith||"",quantity:Number(item.quantity||0),unit:item.unit||"unit",unitDetails:item.unitDetails||"",sourceLocation:ctx.sourceLocation,pricePerUnit:Number(item.pricePerUnit||0),costPerUnit:Number(item.costPerUnit||0),notes:item.notes||""};
+      return{isUnlisted:true,sku:"",barcodeValue:"",qrValue:"",productName:item.productName||p.productName||"",brand:item.brand||"",model:item.model||"",description:item.description||"",specifications:item.specifications||"",itemType:item.itemType||"",forWith:item.forWith||"",quantity:Number(item.quantity||0),unit:item.unit||"unit",unitDetails:item.unitDetails||"",sourceLocation:String(item.sourceLocation||"").trim().toUpperCase(),pricePerUnit:Number(item.pricePerUnit||0),costPerUnit:Number(item.costPerUnit||0),notes:item.notes||""};
     }
-    return{isUnlisted:false,sku:p.sku||"",barcodeValue:p.barcodeValue||"",qrValue:p.qrValue||p.barcodeValue||p.sku||"",productName:p.productName||"",quantity:Number(item.quantity||0),unit:item.unit||"unit",unitDetails:item.unitDetails||"",pricePerUnit:Number(item.pricePerUnit||0),costPerUnit:Number(item.costPerUnit||0)};
+    return{isUnlisted:false,sku:p.sku||"",barcodeValue:p.barcodeValue||"",qrValue:p.qrValue||p.barcodeValue||p.sku||"",productName:p.productName||"",quantity:Number(item.quantity||0),unit:item.unit||"unit",unitDetails:item.unitDetails||"",sourceLocation:String(item.sourceLocation||"").trim().toUpperCase(),pricePerUnit:Number(item.pricePerUnit||0),costPerUnit:Number(item.costPerUnit||0)};
   });
+
+  const missingLocationIndex=cleanItems.findIndex(item=>!String(item.sourceLocation||"").trim());
+  if(missingLocationIndex>=0){setStatus("Please select Location / Stock Source for every item in the cart.","error");return;}
 
   const confirmText="Complete release "+ctx.releaseId+" as a sale with "+cleanItems.length+" cart item(s)?";
   if(!confirm(confirmText))return;
@@ -12083,7 +12092,7 @@ async function submitReleaseCartSale_(){
       cartItems:JSON.stringify(cleanItems),
       dateSold:val("dateSold"),
       salesChannel:val("salesChannel"),
-      saleLocation:ctx.sourceLocation||val("saleLocation"),
+      saleLocation:"",
       soldBy:currentUser.name,
       releasedBy:ctx.releasedBy||val("releasedBy"),
       receiptType:val("receiptType"),
@@ -12096,19 +12105,12 @@ async function submitReleaseCartSale_(){
     if(!res||!res.success)throw new Error(res&&res.message?res.message:"Sale could not be completed.");
 
     const savedResults=Array.isArray(res.results)?res.results:[];
-    const detailCells=[];
-    detailCells.push(`<div class="transaction-feedback-cell"><span>Release ID</span><strong>${escapeHtml(res.releaseId||activeReleaseSaleContext.releaseId||"")}</strong></div>`);
-    detailCells.push(`<div class="transaction-feedback-cell"><span>Receipt Type</span><strong>${escapeHtml(val("receiptType")||"")}</strong></div>`);
-    detailCells.push(`<div class="transaction-feedback-cell"><span>Receipt No.</span><strong>${escapeHtml(val("receiptNo")||"")}</strong></div>`);
-    detailCells.push(`<div class="transaction-feedback-cell"><span>Items Saved</span><strong>${escapeHtml(res.itemCount||savedResults.length||cartItems.length)}</strong></div>`);
-    const itemDetails=savedResults.map(item=>{
-      if(item.isUnlisted===true||item.unlisted===true||String(item.status||"").toUpperCase().includes("UNLISTED")){
-        return `<div class="transaction-feedback-cell is-wide"><span>Unlisted Product</span><strong>${escapeHtml(item.productName||"")}</strong><small>Temporary ID: ${escapeHtml(item.unlistedId||item.temporaryId||item.sku||"")} · Qty: ${escapeHtml(item.qty||"")} ${escapeHtml(item.unit||"unit")} · Source: ${escapeHtml(item.location||item.sourceLocation||activeReleaseSaleContext.sourceLocation||"")} · Status: ${escapeHtml(item.reviewStatus||"PENDING REVIEW")}</small></div>`;
-      }
-      return `<div class="transaction-feedback-cell is-wide"><span>Product</span><strong>${escapeHtml(item.productName||item.sku||"")}</strong><small>SKU: ${escapeHtml(item.sku||"")} · Qty: ${escapeHtml(item.qty||"")} ${escapeHtml(item.unit||"")} · Location: ${escapeHtml(item.location||item.sourceLocation||activeReleaseSaleContext.sourceLocation||"")}${item.oldLocationQty!==undefined?` · Location Qty: ${escapeHtml(item.oldLocationQty)} → ${escapeHtml(item.newLocationQty)}`:""}${item.oldTotalQty!==undefined?` · Total Qty: ${escapeHtml(item.oldTotalQty)} → ${escapeHtml(item.newTotalQty)}`:""}${Number(item.unknownFallbackQty||0)>0?` · UNKNOWN used: ${escapeHtml(item.unknownFallbackQty)}`:""}</small></div>`;
-    }).join("");
-    const successHtml=`<div class="transaction-feedback-title"><span class="transaction-feedback-check">✓</span><strong>Sale / Stock Out saved.</strong></div><div class="transaction-feedback-grid">${detailCells.join("")}${itemDetails}</div>${savedResults.some(item=>item.isUnlisted===true||item.unlisted===true||String(item.status||"").toUpperCase().includes("UNLISTED"))?`<div class="transaction-feedback-note">Inventory Dashboard and Product Location Log are not changed for unlisted products until Admin reviews them.</div>`:""}`;
-    setStatus(successHtml,"success-text")
+    showSaleSuccessResult_(res,{
+      ticketNo:res.saleId||res.releaseId||ctx.releaseId,
+      receiptType:val("receiptType"),
+      receiptNo:val("receiptNo"),
+      itemCount:res.itemCount||savedResults.length||cartItems.length
+    });
     cartItems=[];
     activeReleaseSaleContext=null;
     currentProduct=null;
@@ -14586,8 +14588,6 @@ function continueReleaseRequestToSale(index){
   renderCart();
   renderForm();
 
-  const location=document.getElementById("saleLocation");
-  if(location&&row.sourceLocation){location.value=row.sourceLocation;location.disabled=true;}
   const releasedBy=document.getElementById("releasedBy");
   if(releasedBy&&row.releasedBy){releasedBy.value=row.releasedBy;releasedBy.disabled=true;}
   const ticket=document.getElementById("autoTicketNo");
@@ -14741,8 +14741,6 @@ function continueReleaseRequestToSale(index){
   renderCart();
   renderForm();
 
-  const location=document.getElementById("saleLocation");
-  if(location&&row.sourceLocation){location.value=row.sourceLocation;location.disabled=true;}
   const releasedBy=document.getElementById("releasedBy");
   if(releasedBy&&row.releasedBy){releasedBy.value=row.releasedBy;releasedBy.disabled=true;}
   const ticket=document.getElementById("autoTicketNo");
