@@ -3727,7 +3727,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = "2026.08.27.3";
+const APP_VERSION = "2026.08.28.1";
 const EXPECTED_API_VERSION = APP_VERSION;
 const API_URL = "https://script.google.com/macros/s/AKfycbx7iFaGeikvykjRicd8kcv6NZQAFg5oYwaRTXU3m4ylM4l8mvqaS84X-iUgLrFWiNUUrw/exec";
 let currentUser = null;
@@ -9410,9 +9410,7 @@ function renderKeywordResults(totalCount, limited){
           ${product.itemType?`<div>ITEM TYPE<strong>${escapeHtml(product.itemType)}</strong></div>`:""}
         </div>
 
-        ${product.liveStockDeferred===true?`
-          <div class="search-stock-row"><div style="grid-column:1/-1">Live Stock<strong>Select product to load current quantities</strong></div></div>
-        `:`
+        ${product.liveStockDeferred===true?``:`
           <div class="search-stock-row">
             <div>Total<strong>${totalQty.toLocaleString()}</strong></div>
             <div>Pending Release<strong>${reservedQty.toLocaleString()}</strong></div>
@@ -10207,7 +10205,7 @@ function renderCart(){
                   :`
                     <span>SKU: ${escapeHtml(p.sku || "")}</span>
                     ${p.drNumber ? `<span>DR: ${escapeHtml(p.drNumber)}</span>` : ""}
-                    <span>Available: <strong>${getAvailableQty(p)}</strong></span>
+                    <span>Available: <strong>${item.liveStockLoading?"Loading…":getAvailableQty(p)}</strong></span>
                   `
               }
             </div>
@@ -14916,6 +14914,135 @@ window.addEventListener("DOMContentLoaded", function(){
     setStatus("Ready.", "muted");
   }
 });
+</script>
+
+<script>
+/* ================================================================
+ * Charlon Inventory System v2026.08.28.1
+ * Instant product selection / double-click guard
+ * ================================================================ */
+const CHARLON_PRODUCT_SELECT_IN_FLIGHT_V8=new Set();
+
+function updateSelectedCartItemWithLiveProductV8_(key,liveProduct){
+  const item=cartItems.find(row=>row&&row.key===key);
+  if(!item)return;
+  const previousSource=String(item.sourceLocation||"").trim().toUpperCase();
+  item.product={...(item.product||{}),...(liveProduct||{}),liveStockDeferred:false};
+  item.liveStockLoading=false;
+  if(liveProduct&&liveProduct.averageCost!==null&&liveProduct.averageCost!==undefined){
+    item.costPerUnit=Number(liveProduct.averageCost||0);
+  }
+  if(!previousSource||item.autoSuggestedSource===true){
+    const suggested=getDefaultSaleLocationForProduct_(item.product,"");
+    if(suggested){
+      item.sourceLocation=suggested;
+      item.autoSuggestedSource=true;
+    }
+  }
+  renderCart();
+}
+
+/* Clicking Select Product must react immediately. The static catalog item is
+ * added exactly once, then live stock/cost loads in the background. */
+selectKeywordProduct=async function(index){
+  const source=keywordSearchResults[index];
+  if(!source)return;
+  const skuKey=String(source.sku||source.barcodeValue||index).trim().toUpperCase();
+  const flightKey=String(index)+"|"+skuKey;
+  if(CHARLON_PRODUCT_SELECT_IN_FLIGHT_V8.has(flightKey))return;
+  CHARLON_PRODUCT_SELECT_IN_FLIGHT_V8.add(flightKey);
+
+  /* Disable the visible results immediately so repeated taps/double-clicks
+     cannot create Qty 2, Qty 9, etc. */
+  document.querySelectorAll("#keywordResults .select-result-btn").forEach(button=>{
+    button.disabled=true;
+    button.style.pointerEvents="none";
+  });
+
+  try{
+    if(isCartTransactionType(currentType)){
+      const immediateProduct={...source};
+      currentProduct=immediateProduct;
+      addProductToCart(immediateProduct);
+      const key=getProductCartKey(immediateProduct);
+      const item=cartItems.find(row=>row&&row.key===key);
+      if(item){
+        item.liveStockLoading=source.liveStockDeferred===true;
+        item.autoSuggestedSource=true;
+      }
+      renderCart();
+      if(document.getElementById("formCard").classList.contains("hidden"))renderForm();
+      document.getElementById("searchValue").value="";
+      hide("keywordResults");
+      setStatus(source.liveStockDeferred===true?"Product added to cart. Loading current stock…":"Product selected and added to cart.","success-text");
+      const cartCard=document.getElementById("cartCard");
+      if(cartCard)cartCard.scrollIntoView({behavior:"smooth",block:"start"});
+
+      if(source.liveStockDeferred===true){
+        try{
+          const res=await apiCall({action:"findProduct",staffId:currentUser.staffId,pin:currentPin,searchValue:source.sku});
+          if(!res||!res.success||!res.product)throw new Error(res&&res.message?res.message:"Could not load current stock.");
+          keywordSearchResults[index]=res.product;
+          currentProduct=res.product;
+          updateSelectedCartItemWithLiveProductV8_(key,res.product);
+          renderProduct();
+          setStatus("Product added to cart. Current stock and source location are loaded.","success-text");
+        }catch(err){
+          const target=cartItems.find(row=>row&&row.key===key);
+          if(target)target.liveStockLoading=false;
+          renderCart();
+          setStatus("Product was added, but current stock could not be loaded: "+escapeHtml(err.message||err)+". Select the stock source before submitting.","error");
+        }
+      }else{
+        renderProduct();
+      }
+      setTimeout(()=>document.getElementById("searchValue")?.focus(),100);
+      return;
+    }
+
+    /* Non-cart workflows keep the normal live-product behavior, but are still
+       protected against double-clicks. */
+    let product=source;
+    hide("keywordResults");
+    if(product.liveStockDeferred===true){
+      setStatus("Loading current stock…","info");
+      const res=await apiCall({action:"findProduct",staffId:currentUser.staffId,pin:currentPin,searchValue:product.sku});
+      if(!res||!res.success||!res.product)throw new Error(res&&res.message?res.message:"Could not load current stock.");
+      product=res.product;
+      keywordSearchResults[index]=product;
+    }
+    currentProduct=product;
+    renderProduct();
+    renderForm();
+    setStatus("Product selected.","success-text");
+  }catch(err){
+    setStatus("Product stock lookup error: "+escapeHtml(err.message||err),"error");
+  }finally{
+    CHARLON_PRODUCT_SELECT_IN_FLIGHT_V8.delete(flightKey);
+  }
+};
+
+/* A Sale cannot be submitted while a selected product is still waiting for
+ * live stock, and every line must have its own valid inventory source. */
+const _charlonSubmitCartTransactionBeforeV8=submitCartTransaction;
+submitCartTransaction=async function(){
+  if(currentType==="SALE"){
+    const loading=cartItems.find(item=>item&&!item.isUnlisted&&item.liveStockLoading===true);
+    if(loading){
+      setStatus("Please wait for the selected product's current stock to finish loading.","error");
+      return;
+    }
+    const invalid=cartItems.find(item=>{
+      const loc=String(item&&item.sourceLocation||"").trim().toUpperCase();
+      return !INVENTORY_LOCATIONS.includes(loc);
+    });
+    if(invalid){
+      setStatus("Please select a valid Location / Stock Source for every item in the cart.","error");
+      return;
+    }
+  }
+  return _charlonSubmitCartTransactionBeforeV8.apply(this,arguments);
+};
 </script>
 </body>
 </html>
