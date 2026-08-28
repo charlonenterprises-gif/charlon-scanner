@@ -3727,7 +3727,7 @@
 
 <script>
 'use strict';
-const APP_VERSION = "2026.08.28.1";
+const APP_VERSION = "2026.08.28.2";
 const EXPECTED_API_VERSION = APP_VERSION;
 const API_URL = "https://script.google.com/macros/s/AKfycbx7iFaGeikvykjRicd8kcv6NZQAFg5oYwaRTXU3m4ylM4l8mvqaS84X-iUgLrFWiNUUrw/exec";
 let currentUser = null;
@@ -9364,15 +9364,12 @@ async function loadProductSearchPage(page){
 }
 
 
-function renderKeywordResults(totalCount, limited){
+function renderKeywordResults(totalCount,limited){
   const container=document.getElementById("keywordResults");
   if(!container)return;
 
   if(!keywordSearchResults.length){
-    container.innerHTML=`
-      <hr>
-      <p class="muted">No matching products found.</p>
-    `;
+    container.innerHTML=`<hr><p class="muted">No matching products found.</p>`;
     show("keywordResults");
     return;
   }
@@ -9382,50 +9379,19 @@ function renderKeywordResults(totalCount, limited){
     <div class="section-heading">
       <div>
         <h3>Product Search Results</h3>
-        <p class="muted">
-          ${Number(totalCount||0).toLocaleString()} matching product(s).
-          ${productSearchTotalPages>1?`Page ${productSearchPage} of ${productSearchTotalPages}.`:""}
-        </p>
+        <p class="muted">${Number(totalCount||0).toLocaleString()} matching product(s). ${productSearchTotalPages>1?`Page ${productSearchPage} of ${productSearchTotalPages}.`:""}</p>
       </div>
     </div>
     <div class="search-result-grid">
   `;
 
   keywordSearchResults.forEach((product,index)=>{
-    const totalQty=Number(product.posTotalQty||0);
-    const reservedQty=Number(product.reservedQty||0);
-    const availableQty=Number(product.availableQty!==undefined?product.availableQty:totalQty-reservedQty);
-
     html+=`
-      <div class="search-result-card">
+      <div class="search-result-card search-result-card-compact">
         <div class="search-result-head">
           <div class="search-result-name">${escapeHtml(product.productName||"")}</div>
           <span class="sku-chip">${escapeHtml(product.sku||"")}</span>
         </div>
-
-        <div class="search-result-meta">
-          <div>BRAND<strong>${escapeHtml(product.brand||"-")}</strong></div>
-          <div>MODEL<strong>${escapeHtml(product.model||"-")}</strong></div>
-          ${product.mainCategory?`<div>CATEGORY<strong>${escapeHtml(product.mainCategory)}</strong></div>`:""}
-          ${product.itemType?`<div>ITEM TYPE<strong>${escapeHtml(product.itemType)}</strong></div>`:""}
-        </div>
-
-        ${product.liveStockDeferred===true?``:`
-          <div class="search-stock-row">
-            <div>Total<strong>${totalQty.toLocaleString()}</strong></div>
-            <div>Pending Release<strong>${reservedQty.toLocaleString()}</strong></div>
-            <div>Available<strong>${availableQty.toLocaleString()}</strong></div>
-          </div>
-          <div class="search-result-locations">
-            <div>CE1<strong>${Number(product.ce1Qty||0).toLocaleString()}</strong></div>
-            <div>CE2<strong>${Number(product.ce2Qty||0).toLocaleString()}</strong></div>
-            <div>CE3<strong>${Number(product.ce3Qty||0).toLocaleString()}</strong></div>
-            <div>SOLER<strong>${Number(product.solerQty||0).toLocaleString()}</strong></div>
-            <div>VACANT<strong>${Number(product.vacantQty||0).toLocaleString()}</strong></div>
-            <div>UNKNOWN<strong>${Number(product.unknownQty||0).toLocaleString()}</strong></div>
-          </div>
-        `}
-
         <button class="select-result-btn" type="button" onclick="selectKeywordProduct(${index})">Select Product</button>
       </div>
     `;
@@ -9433,7 +9399,6 @@ function renderKeywordResults(totalCount, limited){
 
   html+='</div>';
   html+=paginationHtml_(productSearchPage,productSearchTotalPages,"loadProductSearchPage");
-
   container.innerHTML=html;
   show("keywordResults");
 }
@@ -12968,6 +12933,27 @@ function renderMyApprovals(res){
   container.innerHTML=html;
 }
 
+
+function approvalSuccessPanelHtml_(row,res){
+  const type=String(row&&row.type||"").toUpperCase();
+  const status=escapeHtml(res&&res.status||"COMPLETED");
+  const cell=(label,value,wide=false)=>`<div class="transaction-feedback-cell${wide?" is-wide":""}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value===undefined||value===null?"":value)}</strong></div>`;
+  let cells="";
+  if(type==="RETURN"){
+    cells+=cell("Status",status)+cell("Return ID",res.returnId||row.returnId||"");
+    cells+=cell("Product",res.productName||row.productName||"",true)+cell("SKU",res.sku||row.sku||"")+cell("Qty",res.qty!==undefined?res.qty:(row.qty||0));
+  }else if(type==="TRANSFER"){
+    const first=Array.isArray(res.results)&&res.results.length?res.results[0]:{};
+    cells+=cell("Status",status)+cell("Transfer ID",res.transferId||row.transferId||"");
+    cells+=cell("Product",first.productName||row.productName||"",true)+cell("SKU",first.sku||row.sku||"")+cell("Qty",first.qty!==undefined?first.qty:(row.qty||0));
+    if(first.fromLocation||row.fromLocation)cells+=cell("From",first.fromLocation||row.fromLocation||"")+cell("To",first.toLocation||row.toLocation||"");
+  }else{
+    cells+=cell("Status",status)+cell("Adjustment ID",res.adjustmentId||row.adjustmentId||"");
+    cells+=cell("Product",res.productName||row.productName||"",true)+cell("SKU",res.sku||row.sku||"")+cell("Qty",res.qty!==undefined?res.qty:(row.adjustmentQty||0));
+    if(res.location||row.location)cells+=cell("Location",res.location||row.location||"");
+  }
+  return `<div class="transaction-feedback-title"><span class="transaction-feedback-check">✓</span><strong>${escapeHtml(res.message||"Approval completed.")}</strong></div><div class="transaction-feedback-grid">${cells}</div>`;
+}
 function submitRevampApprovalByIndex(index,decision){
   const row=revampApprovalRows[index];
 
@@ -13080,69 +13066,7 @@ async function submitRevampApproval(row,decision,index){
       return;
     }
 
-    let resultHtml=`
-      ${escapeHtml(res.message)}<br>
-      Status: <strong>${escapeHtml(res.status||"")}</strong>
-    `;
-
-    if(isAdjustment){
-      resultHtml+=`
-        <br>Adjustment ID: <strong>${escapeHtml(res.adjustmentId||"")}</strong>
-        <br>Product: ${escapeHtml(res.productName||"")}
-        <br>SKU: ${escapeHtml(res.sku||"")}
-        <br>Location: ${escapeHtml(res.location||"")}
-      `;
-
-      if(res.affectsInventory){
-        resultHtml+=`
-          <br>Location Qty:
-          ${escapeHtml(res.oldLocationQty)} → ${escapeHtml(res.newLocationQty)}
-          <br>Total Qty:
-          ${escapeHtml(res.oldTotalQty)} → ${escapeHtml(res.newTotalQty)}
-        `;
-      }
-
-    }else if(isTransfer){
-      resultHtml+=`
-        <br>Transfer ID: <strong>${escapeHtml(res.transferId||"")}</strong>
-        <br>Items: <strong>${escapeHtml(res.itemCount||1)}</strong>
-      `;
-
-      if(Array.isArray(res.results)&&res.results.length){
-        resultHtml+="<br><br>";
-
-        res.results.forEach(item=>{
-          resultHtml+=`
-            <strong>${escapeHtml(item.productName||"")}</strong>
-            SKU: ${escapeHtml(item.sku||"")}<br>
-            Qty: ${escapeHtml(item.qty||0)}<br>
-            From: ${escapeHtml(item.fromLocation||"")}<br>
-            To: ${escapeHtml(item.toLocation||"")}<br>
-          `;
-
-          if(item.affectsInventory){
-            resultHtml+=`
-              ${escapeHtml(item.fromLocation||"")}: ${escapeHtml(item.oldFromQty)} → ${escapeHtml(item.newFromQty)}<br>
-              ${escapeHtml(item.toLocation||"")}: ${escapeHtml(item.oldToQty)} → ${escapeHtml(item.newToQty)}<br>
-              Total Qty: ${escapeHtml(item.oldTotalQty)} → ${escapeHtml(item.newTotalQty)}<br>
-            `;
-          }else{
-            resultHtml+=`Stock quantity did not change.<br>`;
-          }
-
-          resultHtml+="<br>";
-        });
-      }
-
-    }else{
-      resultHtml+=`
-        <br>Return ID: <strong>${escapeHtml(res.returnId||"")}</strong>
-        <br>Product: ${escapeHtml(res.productName||"")}
-        <br>SKU: ${escapeHtml(res.sku||"")}
-        <br>Qty: ${escapeHtml(res.qty||0)}
-        <br>Location: ${escapeHtml(res.returnLocation||"")}
-      `;
-    }
+    const resultHtml=approvalSuccessPanelHtml_(row,res);
 
     const completedType=String(row.type||"").toUpperCase();
 
@@ -14918,7 +14842,7 @@ window.addEventListener("DOMContentLoaded", function(){
 
 <script>
 /* ================================================================
- * Charlon Inventory System v2026.08.28.1
+ * Charlon Inventory System v2026.08.28.2
  * Instant product selection / double-click guard
  * ================================================================ */
 const CHARLON_PRODUCT_SELECT_IN_FLIGHT_V8=new Set();
@@ -14952,8 +14876,6 @@ selectKeywordProduct=async function(index){
   if(CHARLON_PRODUCT_SELECT_IN_FLIGHT_V8.has(flightKey))return;
   CHARLON_PRODUCT_SELECT_IN_FLIGHT_V8.add(flightKey);
 
-  /* Disable the visible results immediately so repeated taps/double-clicks
-     cannot create Qty 2, Qty 9, etc. */
   document.querySelectorAll("#keywordResults .select-result-btn").forEach(button=>{
     button.disabled=true;
     button.style.pointerEvents="none";
@@ -14966,57 +14888,57 @@ selectKeywordProduct=async function(index){
       addProductToCart(immediateProduct);
       const key=getProductCartKey(immediateProduct);
       const item=cartItems.find(row=>row&&row.key===key);
-      if(item){
-        item.liveStockLoading=source.liveStockDeferred===true;
-        item.autoSuggestedSource=true;
-      }
+      if(item){item.liveStockLoading=source.liveStockDeferred===true;item.autoSuggestedSource=true;}
       renderCart();
       if(document.getElementById("formCard").classList.contains("hidden"))renderForm();
       document.getElementById("searchValue").value="";
       hide("keywordResults");
-      setStatus(source.liveStockDeferred===true?"Product added to cart. Loading current stock…":"Product selected and added to cart.","success-text");
-      const cartCard=document.getElementById("cartCard");
-      if(cartCard)cartCard.scrollIntoView({behavior:"smooth",block:"start"});
+      setStatus(source.liveStockDeferred===true?"Product added to cart. Loading current quantity and cost…":"Product selected and added to cart.","success-text");
+      const cartCard=document.getElementById("cartCard");if(cartCard)cartCard.scrollIntoView({behavior:"smooth",block:"start"});
 
       if(source.liveStockDeferred===true){
         try{
           const res=await apiCall({action:"findProduct",staffId:currentUser.staffId,pin:currentPin,searchValue:source.sku});
           if(!res||!res.success||!res.product)throw new Error(res&&res.message?res.message:"Could not load current stock.");
-          keywordSearchResults[index]=res.product;
-          currentProduct=res.product;
-          updateSelectedCartItemWithLiveProductV8_(key,res.product);
-          renderProduct();
-          setStatus("Product added to cart. Current stock and source location are loaded.","success-text");
+          keywordSearchResults[index]=res.product;currentProduct=res.product;updateSelectedCartItemWithLiveProductV8_(key,res.product);renderProduct();
+          setStatus("Product added to cart. Current quantity, cost, and suggested stock source are loaded.","success-text");
         }catch(err){
-          const target=cartItems.find(row=>row&&row.key===key);
-          if(target)target.liveStockLoading=false;
-          renderCart();
+          const target=cartItems.find(row=>row&&row.key===key);if(target)target.liveStockLoading=false;renderCart();
           setStatus("Product was added, but current stock could not be loaded: "+escapeHtml(err.message||err)+". Select the stock source before submitting.","error");
         }
-      }else{
-        renderProduct();
-      }
+      }else renderProduct();
       setTimeout(()=>document.getElementById("searchValue")?.focus(),100);
       return;
     }
 
-    /* Non-cart workflows keep the normal live-product behavior, but are still
-       protected against double-clicks. */
-    let product=source;
+    /* Check Stock / non-cart: show the selected product immediately instead of
+       leaving a blank workspace while live quantities are loading. */
     hide("keywordResults");
+    const productInfo=document.getElementById("productInfo");
+    if(productInfo){
+      productInfo.innerHTML=`
+        <div class="product-found-shell">
+          <div class="product-found-title-row">
+            <div class="product-found-name">${escapeHtml(source.productName||"")}</div>
+            <span class="sku-chip">${escapeHtml(source.sku||"")}</span>
+          </div>
+          <div class="notice-panel"><strong>Loading current quantity and cost…</strong></div>
+        </div>`;
+      show("productInfo");
+      productInfo.scrollIntoView({behavior:"smooth",block:"start"});
+    }
+    setStatus("Product selected. Loading current stock…","info");
+
+    let product=source;
     if(product.liveStockDeferred===true){
-      setStatus("Loading current stock…","info");
       const res=await apiCall({action:"findProduct",staffId:currentUser.staffId,pin:currentPin,searchValue:product.sku});
       if(!res||!res.success||!res.product)throw new Error(res&&res.message?res.message:"Could not load current stock.");
-      product=res.product;
-      keywordSearchResults[index]=product;
+      product=res.product;keywordSearchResults[index]=product;
     }
-    currentProduct=product;
-    renderProduct();
-    renderForm();
-    setStatus("Product selected.","success-text");
+    currentProduct=product;renderProduct();renderForm();setStatus("Product selected.","success-text");
   }catch(err){
     setStatus("Product stock lookup error: "+escapeHtml(err.message||err),"error");
+    show("keywordResults");
   }finally{
     CHARLON_PRODUCT_SELECT_IN_FLIGHT_V8.delete(flightKey);
   }
